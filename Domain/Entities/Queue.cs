@@ -1,0 +1,31 @@
+﻿using System;
+using System.Collections.Generic;
+
+namespace Queue.Domain.Entities;
+
+public partial class Queue
+{
+    public int Id { get; set; }
+
+    public Guid Guid { get; set; }
+
+    public int ShopId { get; set; }
+
+    public int BranchId { get; set; }
+
+    public int QueueNumber { get; set; }
+
+    public int StatusId { get; set; }
+
+    public string Type { get; set; } = null!;
+
+    public DateTime CreatedAt { get; set; }
+
+    public virtual ShopBranch Branch { get; set; } = null!;
+
+    public virtual ICollection<QueueLog> QueueLogs { get; set; } = new List<QueueLog>();
+
+    public virtual Shop Shop { get; set; } = null!;
+
+    public virtual MasterStatus Status { get; set; } = null!;
+}

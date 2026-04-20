@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/Api/">
+    <Project Path="Api/Queue.Api.csproj" />
+  </Folder>
+  <Folder Name="/Application/">
+    <Project Path="Application/Queue.Application.csproj" />
+  </Folder>
+  <Folder Name="/Domain/">
+    <Project Path="Domain/Queue.Domain.csproj" />
+  </Folder>
+  <Folder Name="/Infrastructure/">
+    <Project Path="Infrastructure/Queue.Infrastructure.csproj" />
+  </Folder>
+</Solution>
