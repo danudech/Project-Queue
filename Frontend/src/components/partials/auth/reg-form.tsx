@@ -35,8 +35,6 @@ const RegForm = () => {
     },
   });
 
-  const password = watch("password");
-
   const onSubmit = async (data: UserRegister) => {
     if (loading) return;
 
@@ -139,62 +137,6 @@ const RegForm = () => {
           />
         </InputGroup>
         {errors.phone && <p className="text-xs text-destructive mt-1">{errors.phone.message}</p>}
-      </div>
-
-      {/* PASSWORD */}
-      <div className="space-y-1">
-        <Label htmlFor="password" className="text-default-700 font-medium">Password</Label>
-        <InputGroup className={getGroupClass(errors.password)}>
-          <InputGroupText className={iconWrapperClass}>
-            <Icon icon="material-symbols:lock-outline" fontSize={16} />
-          </InputGroupText>
-          <Input
-            id="password"
-            type={showPassword ? "text" : "password"}
-            placeholder="Enter Your Password"
-            size="sm"
-            {...register("password", {
-              required: "Password is required",
-              minLength: { value: 6, message: "At least 6 characters" },
-            })}
-            className={inputBaseClass}
-          />
-          <InputGroupText
-            className="bg-transparent border-none cursor-pointer hover:text-primary px-3 text-default-400"
-            onClick={() => setShowPassword(!showPassword)}
-          >
-            <Icon icon={showPassword ? "basil:eye-outline" : "basil:eye-closed-solid"} fontSize={20} />
-          </InputGroupText>
-        </InputGroup>
-        {errors.password && <p className="text-xs text-destructive mt-1">{errors.password.message}</p>}
-      </div>
-
-      {/* CONFIRM PASSWORD */}
-      <div className="space-y-1">
-        <Label htmlFor="confirm-password" className="text-default-700 font-medium">Confirm Password</Label>
-        <InputGroup className={getGroupClass(errors.confirmPassword)}>
-          <InputGroupText className={iconWrapperClass}>
-            <Icon icon="material-symbols:lock-outline" fontSize={16} />
-          </InputGroupText>
-          <Input
-            id="confirm-password"
-            type={showConfirmPassword ? "text" : "password"}
-            placeholder="Confirm Your Password"
-            size="sm"
-            {...register("confirmPassword", {
-              required: "Please confirm your password",
-              validate: (value) => value === password || "Passwords do not match",
-            })}
-            className={inputBaseClass}
-          />
-          <InputGroupText
-            className="bg-transparent border-none cursor-pointer hover:text-primary px-3 text-default-400"
-            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-          >
-            <Icon icon={showConfirmPassword ? "basil:eye-outline" : "basil:eye-closed-solid"} fontSize={20} />
-          </InputGroupText>
-        </InputGroup>
-        {errors.confirmPassword && <p className="text-xs text-destructive mt-1">{errors.confirmPassword.message}</p>}
       </div>
 
       {/* TERMS & CONDITIONS */}

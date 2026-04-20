@@ -35,8 +35,8 @@ public class RegisterController : ControllerBase
     {
         try
         {
-            if (req == null || string.IsNullOrWhiteSpace(req.Email) || string.IsNullOrWhiteSpace(req.Password))
-                return BadRequest(ApiResponse<string>.Fail("email and password are required"));
+            if (req == null || string.IsNullOrWhiteSpace(req.Email) || string.IsNullOrWhiteSpace(req.Name))
+                return BadRequest(ApiResponse<string>.Fail("email and name are required"));
 
             _actionLog.Info("Register request (Email={Email})", req.Email);
 

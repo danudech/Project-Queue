@@ -50,6 +50,12 @@ public sealed class Authentication : IAuthentication
             return new LoginResponse { Message = "invalid email/phone or password" };
         }
 
+        if(user.EmailConfirmed == false)
+        {
+            _actionLog.Warning("Login failed for user {EmailOrPhone}: email not confirmed", EmailOrPhone);
+            return new LoginResponse { Message = "email not confirmed. Please confirm your email before logging in." };
+        }
+
         UserAuthentication? authInfo = user.UserAuthentications.FirstOrDefault();
         if (authInfo == null || string.IsNullOrEmpty(authInfo.PasswordHash))
         {
