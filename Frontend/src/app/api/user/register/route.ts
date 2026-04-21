@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { env } from "@/config/env";
 import { serverHttp } from "@/lib/http/server";
-import { StatusRegister, UserRegister } from "@/types/profile-user";
+import { StatusRegister, UserRegister, UserRegisterResponse } from "@/types/user";
 
 export async function POST(req: NextRequest) {
   try {
@@ -18,14 +18,20 @@ export async function POST(req: NextRequest) {
       Name: body.name,
       Email: body.email,
       Phone: body.phone,
+      AcceptTerms: body.acceptTerms,
+      Locale: body.locale,
     };
 
-    const loginres = await api.post<StatusRegister>("register", frombody);
+    const loginres = await api.post<UserRegisterResponse>("register", frombody);
 
     const res = NextResponse.json({
-      status: true,
-      message: "ok",
-      data: loginres,
+      status: loginres?.success ?? false,
+      message: loginres?.message ?? "ok",
+      data: {
+        success: loginres?.success ?? false,
+        code: loginres?.code ?? "error",
+        message: loginres?.message ?? "",
+      } as UserRegisterResponse,
     });
 
     return res;

@@ -25,7 +25,7 @@ string jwtKey = builder.Configuration["Jwt:SignKey"] ?? throw new InvalidOperati
 string encKey = builder.Configuration["Jwt:EncKey"] ?? throw new InvalidOperationException("Jwt:EncKey is missing in configuration.");
 if (string.IsNullOrWhiteSpace(jwtKey))
     throw new InvalidOperationException("Jwt:SignKey is missing in configuration.");
- 
+
 string[] allowedOrigins = builder.Configuration.GetSection("AllowAnyOrigin:Origins").Get<string[]>() ?? throw new InvalidOperationException("AllowAnyOrigin:Origins is missing in configuration.");
 
 builder.Services
@@ -131,6 +131,8 @@ builder.Services.AddSingleton<IActionLog, ActionLog>();
 builder.Services.AddScoped<IAuthentication, Authentication>();
 builder.Services.AddScoped<RefreshToken>();
 builder.Services.AddScoped<ICrudService, CrudService>();
+builder.Services.AddScoped<IUsers, Users>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 #endregion
 
 var app = builder.Build();

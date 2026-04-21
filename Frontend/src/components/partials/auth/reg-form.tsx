@@ -9,18 +9,20 @@ import { InputGroup, InputGroupText } from "@/components/ui/input-group";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { Controller, useForm } from "react-hook-form";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { http } from "@/lib/http/client";
-import { StatusRegister, UserRegister } from "@/types/profile-user";
+import { UserRegister, UserRegisterResponse } from "@/types/user";
+import { useRouter } from "next/navigation";
+import { storage } from "@/services/localstorage";
 
 const RegForm = () => {
   const t = useTranslations("Auth");
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = React.useState(false);
-
+  const locale = useLocale();
+  const router = useRouter();
+  const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
   const {
     register,
@@ -32,23 +34,25 @@ const RegForm = () => {
     defaultValues: {
       acceptTerms: false,
       phone: "",
+      locale: "en",
     },
   });
 
   const onSubmit = async (data: UserRegister) => {
     if (loading) return;
+    data.locale = locale;
 
     try {
       setLoading(true);
 
-      const login = await http.post<StatusRegister>("userregister", data);
-      console.log("Login Response:", login);
-      const message = login === "success" ? "Successfully registered" : login === "idle" ? "Registration is idle" : "Registration failed";
-
-      toast.success(message);
+      const login = await http.post<UserRegisterResponse>("userregister", data);
+      const message = login.code === "success" ? "Successfully registered" : login.code === "idle" ? "Registration is idle" : "Registration failed";
+      toast.success(login.message || message);
+      await storage.set("registeremail", data.email);
 
       // ✅ redirect หลัง login
-      // router.push("/");
+      await sleep(2000);
+      router.push(`/${locale}/auth/mail-confirm`);
     } catch (err: any) {
       toast.error(err.message || "Something went wrong");
     } finally {

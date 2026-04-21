@@ -16,14 +16,14 @@ namespace Queue.Api.Controllers;
 [Route("api/v1/user")]
 public class RegisterController : ControllerBase
 {
-    private readonly IAuthentication _auth;
+    private readonly IUsers _user;
     private readonly IActionLog _actionLog;
     private readonly RefreshToken _istokenrefresh;
     private readonly IHostEnvironment _env;
 
-    public RegisterController(IAuthentication auth, IActionLog actionLog, RefreshToken istokenrefresh, IHostEnvironment env)
+    public RegisterController(IUsers user, IActionLog actionLog, RefreshToken istokenrefresh, IHostEnvironment env)
     {
-        _auth = auth;
+        _user = user;
         _actionLog = actionLog;
         _env = env;
         _istokenrefresh = istokenrefresh;
@@ -31,24 +31,32 @@ public class RegisterController : ControllerBase
 
     [AllowAnonymous]
     [HttpPost("register")]
-    public async Task<ActionResult<ApiResponse<string>>> Register([FromBody] RegisterRequest req, CancellationToken ct)
+    public async Task<ActionResult<ApiResponse<RegisterResponse>>> Register([FromBody] RegisterRequest req, CancellationToken ct)
     {
         try
         {
             if (req == null || string.IsNullOrWhiteSpace(req.Email) || string.IsNullOrWhiteSpace(req.Name))
-                return BadRequest(ApiResponse<string>.Fail("email and name are required"));
+                return BadRequest(ApiResponse<RegisterResponse>.Fail("email and name are required"));
+
+            if (req.AcceptTerms != true)
+                return BadRequest(ApiResponse<RegisterResponse>.Fail("terms must be accepted"));
 
             _actionLog.Info("Register request (Email={Email})", req.Email);
 
             string ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
             string ua = HttpContext.Request.Headers.UserAgent.ToString();
-
-            return Ok(ApiResponse<string>.Ok("success"));
+            RegisterResponse? resp = await _user.LocalRegister(req, ip, ua, ct);
+            if (resp == null || !(resp.Success ?? false))
+            {
+                return BadRequest(ApiResponse<RegisterResponse>.Fail(resp?.Message ?? "Registration failed"));
+            }
+            
+            return Ok(ApiResponse<RegisterResponse>.Ok(resp));
         }
         catch (Exception ex)
         {
             _actionLog.Error(ex, "Register failed (Email={Email})", req?.Email ?? "unknown");
-            return StatusCode(500, ApiResponse<string>.Fail(ex.Message));
+            return StatusCode(500, ApiResponse<RegisterResponse>.Fail(ex.Message));
         }
     }
 }

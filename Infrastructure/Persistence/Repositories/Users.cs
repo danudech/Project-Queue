@@ -1,9 +1,11 @@
 
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Queue.Application.DTO.Request;
 using Queue.Application.Interfaces;
 using Queue.Domain.Entities;
+using Queue.Infrastructure.Identity.Security;
 using Queue.Infrastructure.Service;
 
 namespace Queue.Infrastructure.Persistence.Repositories;
@@ -12,19 +14,23 @@ public sealed class Users : IUsers
 {
     private readonly IActionLog _actionLog;
     private readonly QueueDbContext _db;
-
+    private readonly IEmailService _emailService;
     private readonly ICrudService _crud;
+    private readonly IConfiguration _config;
 
-    public Users(IActionLog actionLog, QueueDbContext db, ICrudService crud)
+
+    public Users(IActionLog actionLog, QueueDbContext db, IEmailService emailService, ICrudService crud, IConfiguration config)
 
     {
         _actionLog = actionLog;
         _db = db;
+        _emailService = emailService;
+        _config = config;
         _crud = crud;
 
     }
 
-    public async Task<RegisterResponse?> Register(RegisterRequest data, string ip, string userAgent, CancellationToken ct)
+    public async Task<RegisterResponse?> LocalRegister(RegisterRequest data, string ip, string userAgent, CancellationToken ct)
     {
         _actionLog.Info("Registration attempt for user {EmailOrPhone}", data.Email ?? data.Phone ?? "unknown");
 
@@ -46,19 +52,101 @@ public sealed class Users : IUsers
             return new RegisterResponse { Message = "Name and Email are required fields. Please provide both." };
         }
 
-
-
-        User _newUser = new User
+        using var transaction = await _db.Database.BeginTransactionAsync(ct);
+        try
         {
-            Guid = Guid.NewGuid(),
-            Name = data.Name,
-            Email = data.Email,
-            Phone = data.Phone ?? string.Empty,
-            StatusId = 1,
-            EmailConfirmed = false,
-            CreatedAt = DateTime.UtcNow
-        };
+            User _newUser = new User
+            {
+                Guid = Guid.NewGuid(),
+                Name = data.Name,
+                Email = data.Email,
+                Phone = data.Phone ?? string.Empty,
+                StatusId = 1, // 1: Pending
+                EmailConfirmed = false,
+                CreatedAt = DateTime.UtcNow
+            };
 
-        return new RegisterResponse { Success = true, Message = "This is a placeholder response. Implement the registration logic here." };
+            await _crud.InsertAsync(_newUser, ct);
+
+            string token = Guid.NewGuid().ToString("N");
+            string tokenHash = Crypto.HashPassword(token);
+
+            EmailConfirmation mailConfirmation = new EmailConfirmation
+            {
+                UserId = _newUser.Id,
+                Token = token,
+                TokenHash = tokenHash,
+                ExpiredAt = DateTime.UtcNow.AddHours(24),
+                IsUsed = false,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _crud.InsertAsync(mailConfirmation, ct);
+
+            await transaction.CommitAsync(ct);
+            string appUrl = _config["AppSettings:AppUrl"] ?? "http://localhost:3000";
+            string currentLocale = data.locale ?? "en";
+            string confirmationLink = $"{appUrl}/{currentLocale}/auth/mail-verify?token={token}";
+
+            await _emailService.SendConfirmationEmailAsync(_newUser.Email, _newUser.Name, confirmationLink);
+
+            _actionLog.Info("User {Email} registered and confirmation email sent.", _newUser.Email);
+
+            return new RegisterResponse { Success = true, Code = "success", Message = "Registration successful. Please check your email." };
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync(ct);
+            _actionLog.Error(ex, "Registration failed: {Message}", ex.Message);
+            return new RegisterResponse { Success = false, Code = "error", Message = "An error occurred during registration." };
+        }
+    }
+
+    public async Task<bool> ConfirmEmail(string token, CancellationToken ct)
+    {
+        var confirmation = await _db.EmailConfirmations
+            .FirstOrDefaultAsync(c => c.Token == token && !c.IsUsed && c.ExpiredAt > DateTime.UtcNow, ct);
+
+        if (confirmation == null) return false;
+
+        using var transaction = await _db.Database.BeginTransactionAsync(ct);
+        try
+        {
+            confirmation.IsUsed = true;
+            confirmation.ConfirmedAt = DateTime.UtcNow;
+
+            var user = await _db.Users.Include(a => a.UserAuthentications).FirstOrDefaultAsync(u => u.Id == confirmation.UserId, ct);
+            if (user != null && (user.UserAuthentications == null || !user.UserAuthentications.Any()))
+            {
+                string tempPassword = Guid.NewGuid().ToString("N").Substring(0, 8);
+
+                user.EmailConfirmed = true;
+                user.EmailConfirmedAt = DateTime.UtcNow;
+                await _crud.UpdateAsync(user, ct);
+
+                UserAuthentication auth = new UserAuthentication
+                {
+                    UserId = user.Id,
+                    Provider = "local",
+                    ProviderId = "User",
+                    PasswordHash = Crypto.HashPassword(tempPassword)
+                };
+
+                await _crud.InsertAsync(auth, ct);
+
+                await _db.SaveChangesAsync(ct);
+                await transaction.CommitAsync(ct);
+                
+                await _emailService.SendPasswordEmailAsync(user.Email, user.Name, tempPassword);
+
+                return true;
+            }
+            return false;
+        }
+        catch (Exception)
+        {
+            await transaction.RollbackAsync(ct);
+            return false;
+        }
     }
 }

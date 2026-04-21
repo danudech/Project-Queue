@@ -15,7 +15,7 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { InputGroup, InputGroupText } from "@/components/ui/input-group";
 import { http } from "@/lib/http/client";
-import { ProfileUser } from "@/types/profile-user";
+import { ProfileUser } from "@/types/user";
 import { useTranslations } from "next-intl";
 
 const schema = z.object({

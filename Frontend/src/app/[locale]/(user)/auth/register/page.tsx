@@ -10,7 +10,6 @@ const Register = async ({ params }: { params: Promise<{ locale: string }> }) => 
   const { locale } = await params;
   const t = await getTranslations("Auth");
 
-
   return (
     <>
       <div className="flex w-full items-center overflow-hidden min-h-dvh h-dvh basis-full">

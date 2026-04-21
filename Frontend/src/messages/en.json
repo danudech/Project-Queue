@@ -17,6 +17,27 @@
     "forgot_password": "Forgot Password?",
     "keep_me": "Keep me signed in"
   },
+  "EmailConfirmation": {
+    "contact_us": "Contact Us",
+    "check_email_title": "Check your email",
+    "check_email_desc_1": "We have sent a verification link to your email address.",
+    "check_email_desc_2": "Please click the link in the email to confirm your registration.",
+    "open_mail_app": "Open Mail App",
+    "didnt_receive_email": "Didn't receive the email?",
+    "resend_link": "Resend link"
+  },
+  "MailVerify": {
+    "success_title": "Verification Complete!",
+    "password_sent_desc": "A temporary password has been sent to your email.",
+    "success_desc": "Please check your inbox (including your junk or spam folder) and use the password to log in for the first time.",
+    "go_to_login": "Log in now",
+    "verifying": "Verifying your email...",
+    "please_wait": "Please wait while we verify your information.",
+    "error_title": "Verification Failed",
+    "error_desc": "The verification link is invalid, expired, or has already been used.",
+    "contact_support": "Contact Support",
+    "back_to_home": "Back to Home"
+  },
   "AnalyticsDashboard": {
     "widget_title": "Upgrade your Dashcode",
     "widget_desc": "Pro plan for better results",

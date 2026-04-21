@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { env } from "@/config/env";
 import { serverHttp } from "@/lib/http/server";
 import { TokenType, UserResponse } from "@/types/auth/auth-response";
-import { UserLogin } from "@/types/profile-user";
+import { UserLogin } from "@/types/user";
 
 export async function POST(req: NextRequest) {
   try {

@@ -19,6 +19,13 @@ export type UserRegister = {
   email: string;
   phone?: string;
   acceptTerms: boolean;
+  locale: string;
+};
+
+export type UserRegisterResponse = {
+  success: boolean;
+  code: StatusRegister;
+  message?: string;
 };
 
 export type StatusRegister = "success" | "error" | "idle";

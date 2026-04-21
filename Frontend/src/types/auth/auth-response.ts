@@ -1,4 +1,4 @@
-import { ProfileUser } from "../profile-user";
+import { ProfileUser } from "../user";
 
 export type UserResponse = {
   userData: ProfileUser;
