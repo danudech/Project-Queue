@@ -44,12 +44,12 @@ export function middleware(request: NextRequest) {
   // 👉 login แล้วห้ามเข้า login ซ้ำ
   if (pathWithoutLocale === "/auth/login" && token && !isExpired(expUtc)) {
     const url = request.nextUrl.clone();
-    url.pathname = `/${maybeLocale}/`;
+    url.pathname = `/${maybeLocale}/dashboard`;
     return NextResponse.redirect(url);
   }
 
   // 👉 protected routes
-  const protectedPaths = ["/dashboard", "/info"];
+  const protectedPaths = ["/auth/resetpassword", "/dashboard", "/info"];
   const isProtected = protectedPaths.some(
     (p) => pathWithoutLocale === p || pathWithoutLocale.startsWith(p + "/"),
   );

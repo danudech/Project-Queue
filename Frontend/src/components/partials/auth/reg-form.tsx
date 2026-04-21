@@ -48,8 +48,7 @@ const RegForm = () => {
       const login = await http.post<UserRegisterResponse>("userregister", data);
       const message = login.code === "success" ? "Successfully registered" : login.code === "idle" ? "Registration is idle" : "Registration failed";
       toast.success(login.message || message);
-      await storage.set("registeremail", data.email);
-
+      await storage.set("registration", JSON.stringify(data));
       // ✅ redirect หลัง login
       await sleep(2000);
       router.push(`/${locale}/auth/mail-confirm`);

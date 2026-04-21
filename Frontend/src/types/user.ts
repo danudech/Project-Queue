@@ -1,4 +1,3 @@
-
 export type UserLogin = {
   email: string;
   password: string;
@@ -12,6 +11,7 @@ export type ProfileUser = {
   status: string;
   role: string;
   profilePictureUrl: string;
+  isChangePassword: boolean;
 };
 
 export type UserRegister = {
@@ -28,5 +28,9 @@ export type UserRegisterResponse = {
   message?: string;
 };
 
-export type StatusRegister = "success" | "error" | "idle";
+export type VerifyAccount = {
+  token: string;
+  email: string;
+};
 
+export type StatusRegister = "success" | "error" | "idle";

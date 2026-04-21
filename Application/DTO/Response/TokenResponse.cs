@@ -18,6 +18,7 @@ public class UserResponse
     public string Status { get; set; } = string.Empty;
     public string Role { get; set; } = string.Empty;
     public string ProfilePictureUrl { get; set; } = string.Empty;
+    public bool IsChangPassword { get; set; } = false;
 }
 
 public class TokenResponse

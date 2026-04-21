@@ -22,6 +22,8 @@ export const internalEndpoints = {
   profile: "/api/user/profile",
   userlogin: "/api/auth/login",
   userregister: "/api/user/register",
+  resendconfirmation: "/api/user/resendconfirmation",
+  verifyaccount: "/api/user/verifyaccount",
 } as const;
 
 export type InternalEndpointKey = keyof typeof internalEndpoints;
@@ -30,6 +32,8 @@ export const externalEndpoints = {
   health_api: "/api/health",
   login: "/api/v1/auth/login",
   register: "/api/v1/user/register",
+  resendconfirmation: "/api/v1/user/resendconfirmation",
+  verifyaccount: "/api/v1/user/verifyaccount",
   refreshToken: "/api/v1/auth/refresh",
   userConsent: "/api/v1/auth/user-consent",
 
@@ -48,7 +52,6 @@ export const externalEndpoints = {
 
   profile: "/api/v1/user/profile",
   userlogin: "/api/v1/auth/login",
-
 
   user_getevents: "/api/v1/event/event",
   user_addevents: "/api/v1/event/addevent",

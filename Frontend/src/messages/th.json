@@ -7,6 +7,14 @@
     "login_desc": "ลงชื่อเข้าใช้บัญชีของคุณเพื่อเริ่มใช้งาน Dashcode",
     "signup_header": "ลงทะเบียน",
     "signup_desc": "สร้างบัญชีเพื่อเริ่มใช้งาน Dashcode",
+    "reset_title": "รีเซ็ตรหัสผ่าน",
+    "reset_header": "ตั้งรหัสผ่านใหม่",
+    "reset_desc": "กรุณากำหนดรหัสผ่านใหม่ของคุณ",
+    "new_password": "รหัสผ่านใหม่",
+    "confirm_password": "ยืนยันรหัสผ่าน",
+    "reset_password_btn": "เปลี่ยนรหัสผ่าน",
+    "back_to_login": "กลับไปเข้าสู่ระบบ",
+    "password_not_match": "รหัสผ่านไม่ตรงกัน",
     "unlock_title": "Less waiting. Better",
     "unlock_performance": "Service.",
     "or_continue": "หรือดำเนินการต่อด้วย",
@@ -24,7 +32,10 @@
     "check_email_desc_2": "โปรดคลิกลิงก์ในอีเมลเพื่อดำเนินการลงทะเบียนให้เสร็จสมบูรณ์",
     "open_mail_app": "เปิดแอปอีเมล",
     "didnt_receive_email": "ไม่ได้รับอีเมล?",
-    "resend_link": "ส่งลิงก์อีกครั้ง"
+    "resend_link": "ส่งลิงก์อีกครั้ง",
+    "sending": "กำลังส่ง...",
+    "resend_in": "ส่งใหม่ได้ใน {seconds} วินาที",
+    "resend_available_in": "คุณสามารถส่งอีเมลใหม่ได้ใน {seconds} วินาที"
   },
   "MailVerify": {
     "success_title": "ยืนยันตัวตนสำเร็จ!",

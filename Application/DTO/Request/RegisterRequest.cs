@@ -15,3 +15,8 @@ public sealed class RegisterRequest
     public bool AcceptTerms { get; set; } = false;
 
 }
+public sealed class VerifyAccountRequest
+{
+    [Required]
+    public string? Token { get; set; } = string.Empty;
+}

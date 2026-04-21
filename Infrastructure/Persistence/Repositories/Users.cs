@@ -102,10 +102,30 @@ public sealed class Users : IUsers
         }
     }
 
-    public async Task<bool> ConfirmEmail(string token, CancellationToken ct)
+    public async Task ResentConfirmationEmail(RegisterRequest data, string ip, string userAgent, CancellationToken ct)
+    {
+        User? user = await _db.Users.FirstOrDefaultAsync(u => u.Email == data.Email, ct);
+        if (user == null) return;
+
+        EmailConfirmation? existingConfirmation = await _db.EmailConfirmations
+            .Where(c => c.UserId == user.Id && !c.IsUsed && c.ExpiredAt > DateTime.UtcNow)
+            .OrderByDescending(c => c.CreatedAt)
+            .FirstOrDefaultAsync(ct);
+
+        if (existingConfirmation != null)
+        {
+            string appUrl = _config["AppSettings:AppUrl"] ?? "http://localhost:3000";
+            string currentLocale = data.locale ?? "en";
+            string confirmationLink = $"{appUrl}/{currentLocale}/auth/mail-verify?token={existingConfirmation.Token}";
+
+            await _emailService.SendConfirmationEmailAsync(user.Email, user.Name, confirmationLink);
+        }
+    }
+
+    public async Task<bool?> ConfirmEmail(VerifyAccountRequest data, string ip, string userAgent, CancellationToken ct)
     {
         var confirmation = await _db.EmailConfirmations
-            .FirstOrDefaultAsync(c => c.Token == token && !c.IsUsed && c.ExpiredAt > DateTime.UtcNow, ct);
+            .FirstOrDefaultAsync(c => c.Token == data.Token && !c.IsUsed && c.ExpiredAt > DateTime.UtcNow, ct);
 
         if (confirmation == null) return false;
 
@@ -136,7 +156,7 @@ public sealed class Users : IUsers
 
                 await _db.SaveChangesAsync(ct);
                 await transaction.CommitAsync(ct);
-                
+
                 await _emailService.SendPasswordEmailAsync(user.Email, user.Name, tempPassword);
 
                 return true;
