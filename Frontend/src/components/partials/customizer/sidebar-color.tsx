@@ -1,10 +1,10 @@
-'use client'
-import React from 'react'
-import { cn } from "@/lib/utils"
-import { Label } from "@/components/ui/label"
-import { useConfig } from '@/hooks/use-config'
-import { Icon } from "@/components/ui/icon"
-import { Check } from 'lucide-react';
+"use client";
+import React from "react";
+import { cn } from "@/lib/utils";
+import { Label } from "@/components/ui/label";
+import { useConfig } from "@/hooks/use-config";
+import { Icon } from "@/components/ui/icon";
+import { Check } from "lucide-react";
 import {
   defaultSidebarColorSvg,
   colorSidebarColorSvg,
@@ -15,12 +15,12 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip"
+} from "@/components/ui/tooltip";
 const SidebarColor = () => {
-  const [config, setConfig] = useConfig()
+  const [config, setConfig] = useConfig();
   const [show, setShow] = React.useState<boolean>(
-    config.sidebarTheme !== 'light'
-  )
+    config.sidebarTheme !== "light",
+  );
 
   return (
     <div className="p-6 -mx-6">
@@ -42,7 +42,7 @@ const SidebarColor = () => {
                 "text-default  border-default-700 dark:border-default-600":
                   config.sidebarTheme === "light",
                 "text-muted-foreground ": config.sidebarTheme !== "light",
-              }
+              },
             )}
           >
             <Icon
@@ -51,7 +51,7 @@ const SidebarColor = () => {
                 "text-default absolute top-1 right-1 duration-100 scale-0",
                 {
                   " scale-100": config.sidebarTheme === "light",
-                }
+                },
               )}
             />
             {defaultSidebarColorSvg}
@@ -73,7 +73,7 @@ const SidebarColor = () => {
               {
                 "text-default  border-default": show,
                 "text-muted-foreground ": !show,
-              }
+              },
             )}
           >
             <Icon
@@ -82,7 +82,7 @@ const SidebarColor = () => {
                 "text-default absolute top-1 right-1 duration-100 scale-0",
                 {
                   " scale-100": show,
-                }
+                },
               )}
             />
             {colorSidebarColorSvg}
@@ -104,7 +104,16 @@ const SidebarColor = () => {
             "green",
             "ocean-blue",
             "gray",
-
+            "indigo",
+            "emerald",
+            "amber",
+            "teal",
+            "cyan",
+            "lime",
+            "pink",
+            "orange",
+            "sky",
+            "violet",
           ].map((color) => (
             <div key={color}>
               <TooltipProvider>
@@ -112,7 +121,9 @@ const SidebarColor = () => {
                   <TooltipTrigger asChild>
                     <button
                       type="button"
-                      onClick={() => setConfig({ ...config, sidebarTheme: color })}
+                      onClick={() =>
+                        setConfig({ ...config, sidebarTheme: color })
+                      }
                       disabled={config.sidebarTheme === color}
                       className={cn(
                         " border    border-default-300  inline-flex justify-center rounded-md items-center relative h-8 w-8  disabled:cursor-not-allowed duration-150",
@@ -125,15 +136,27 @@ const SidebarColor = () => {
                           "bg-[#5D3942]": color === "redwood",
                           "bg-[#135846]": color === "green",
                           "bg-[#0766AD]": color === "ocean-blue",
-                        }
+                          "bg-[#4f46e5]": color === "indigo",
+                          "bg-[#059669]": color === "emerald",
+                          "bg-[#f59e0b]": color === "amber",
+                          "bg-[#14b8a6]": color === "teal",
+                          "bg-[#06b6d4]": color === "cyan",
+                          "bg-[#84cc16]": color === "lime",
+                          "bg-[#ec4899]": color === "pink",
+                          "bg-[#f97316]": color === "orange",
+                          "bg-[#0ea5e9]": color === "sky",
+                          "bg-[#7c3aed]": color === "violet",
+                        },
                       )}
                     >
                       <Check
-                        className={cn(" text-white h-4 w-4  duration-100 scale-0", {
-                          " scale-100": config.sidebarTheme === color,
-                        })}
+                        className={cn(
+                          " text-white h-4 w-4  duration-100 scale-0",
+                          {
+                            " scale-100": config.sidebarTheme === color,
+                          },
+                        )}
                       />
-
                     </button>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -141,13 +164,12 @@ const SidebarColor = () => {
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-
             </div>
           ))}
         </div>
       )}
     </div>
   );
-}
+};
 
-export default SidebarColor
+export default SidebarColor;

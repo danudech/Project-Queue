@@ -84,23 +84,26 @@ const LoginForm = () => {
 
       const login = await http.post<ProfileUser>("userlogin", data);
       toast.success("Successfully logged in");
-      
+
       if (data.remember) {
         await storage.set("remember", JSON.stringify(data));
       } else {
         localStorage.removeItem("remember");
-      }      
-      
+      }
+
       const returnUrl = searchParams.get("returnUrl");
-      if(login.isChangPassword){
-        router.push("/auth/resetpassword?returnUrl=" + encodeURIComponent(returnUrl || "/dashboard"));
+      if (login.isChangPassword) {
+        router.push(
+          "/auth/resetpassword?returnUrl=" +
+            encodeURIComponent(returnUrl || "/dashboard"),
+        );
         return;
       }
 
       let redirectTo = "/dashboard";
 
       if (returnUrl) {
-        redirectTo = returnUrl.replace(`/${locale}`, "") || "/dashboard";
+        redirectTo = returnUrl.replace(/^\/(th|en)/, "") || "/dashboard";
       }
 
       router.push(redirectTo);

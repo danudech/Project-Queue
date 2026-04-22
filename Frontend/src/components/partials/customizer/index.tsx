@@ -117,9 +117,6 @@ const ThemeCustomize = ({ }) => {
             </Tabs>
           </div>
         </ScrollArea>
-        <SheetFooter className="lg:py-4 lg:gap-3 gap-2 flex justify-between    ">
-          <BuyButton />
-        </SheetFooter>
       </SheetContent>
     </Sheet>
   );

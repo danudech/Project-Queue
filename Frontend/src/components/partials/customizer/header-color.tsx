@@ -135,6 +135,16 @@ const HeaderColor = () => {
             "green",
             "ocean-blue",
             "gray",
+            "indigo",
+            "emerald",
+            "amber",
+            "teal",
+            "cyan",
+            "lime",
+            "pink",
+            "orange",
+            "sky",
+            "violet",
           ].map((color) => (
             <div key={color}>
               <TooltipProvider>
@@ -157,6 +167,16 @@ const HeaderColor = () => {
                           "bg-[#5D3942]": color === "redwood",
                           "bg-[#135846]": color === "green",
                           "bg-[#0766AD]": color === "ocean-blue",
+                          "bg-[#4f46e5]": color === "indigo",
+                          "bg-[#059669]": color === "emerald",
+                          "bg-[#f59e0b]": color === "amber",
+                          "bg-[#14b8a6]": color === "teal",
+                          "bg-[#06b6d4]": color === "cyan",
+                          "bg-[#84cc16]": color === "lime",
+                          "bg-[#ec4899]": color === "pink",
+                          "bg-[#f97316]": color === "orange",
+                          "bg-[#0ea5e9]": color === "sky",
+                          "bg-[#7c3aed]": color === "violet",
                         }
                       )}
                     >

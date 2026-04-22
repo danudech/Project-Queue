@@ -61,3 +61,93 @@
      --header: transparent;
      box-shadow: none;
 }
+
+/* 🔵 Indigo */
+.theme-indigo {
+  --sidebar: 243, 75%, 59%;
+  --header: 243, 75%, 59%;
+  --secondary: 243, 70%, 65%;
+  --menu-arrow: 243, 70%, 65%;
+  --menu-arrow-active: 243, 80%, 75%;
+}
+
+/* 🟢 Emerald */
+.theme-emerald {
+  --sidebar: 160, 84%, 39%;
+  --header: 160, 84%, 39%;
+  --secondary: 160, 70%, 45%;
+  --menu-arrow: 160, 70%, 45%;
+  --menu-arrow-active: 160, 75%, 55%;
+}
+
+/* 🟡 Amber */
+.theme-amber {
+  --sidebar: 38, 92%, 50%;
+  --header: 38, 92%, 50%;
+  --secondary: 38, 85%, 55%;
+  --menu-arrow: 38, 85%, 55%;
+  --menu-arrow-active: 38, 90%, 65%;
+}
+
+/* 🟦 Teal */
+.theme-teal {
+  --sidebar: 173, 80%, 40%;
+  --header: 173, 80%, 40%;
+  --secondary: 173, 70%, 45%;
+  --menu-arrow: 173, 70%, 45%;
+  --menu-arrow-active: 173, 75%, 55%;
+}
+
+/* 🔷 Cyan */
+.theme-cyan {
+  --sidebar: 190, 90%, 45%;
+  --header: 190, 90%, 45%;
+  --secondary: 190, 80%, 50%;
+  --menu-arrow: 190, 80%, 50%;
+  --menu-arrow-active: 190, 85%, 60%;
+}
+
+/* 🟩 Lime */
+.theme-lime {
+  --sidebar: 84, 81%, 44%;
+  --header: 84, 81%, 44%;
+  --secondary: 84, 70%, 50%;
+  --menu-arrow: 84, 70%, 50%;
+  --menu-arrow-active: 84, 75%, 60%;
+}
+
+/* 🌸 Pink */
+.theme-pink {
+  --sidebar: 330, 81%, 60%;
+  --header: 330, 81%, 60%;
+  --secondary: 330, 70%, 65%;
+  --menu-arrow: 330, 70%, 65%;
+  --menu-arrow-active: 330, 75%, 75%;
+}
+
+/* 🟠 Orange */
+.theme-orange {
+  --sidebar: 25, 95%, 53%;
+  --header: 25, 95%, 53%;
+  --secondary: 25, 85%, 58%;
+  --menu-arrow: 25, 85%, 58%;
+  --menu-arrow-active: 25, 90%, 68%;
+}
+
+/* 🌤 Sky */
+.theme-sky {
+  --sidebar: 199, 89%, 48%;
+  --header: 199, 89%, 48%;
+  --secondary: 199, 80%, 55%;
+  --menu-arrow: 199, 80%, 55%;
+  --menu-arrow-active: 199, 85%, 65%;
+}
+
+/* 🟣 Violet */
+.theme-violet {
+  --sidebar: 262, 83%, 58%;
+  --header: 262, 83%, 58%;
+  --secondary: 262, 70%, 65%;
+  --menu-arrow: 262, 70%, 65%;
+  --menu-arrow-active: 262, 75%, 75%;
+}
