@@ -54,6 +54,49 @@ public class EmailService : IEmailService
 
         await SendEmailAsync(toEmail, subject, body);
     }
+    public async Task SendForgotPasswordEmailAsync(string toEmail, string userName, string resetLink)
+    {
+        string subject = "รีเซ็ตรหัสผ่านของคุณสำหรับ QueueApp";
+
+        // ใช้การจัดวางที่เน้นความปลอดภัยและกระชับ
+        string body = $@"
+    <div style='background-color: #f9fafb; padding: 50px 10px; font-family: -apple-system, BlinkMacSystemFont, ""Segoe UI"", Roboto, Helvetica, Arial, sans-serif;'>
+            <div style='max-width: 560px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);'>
+                
+                <div style='background-color: #4f46e5; padding: 30px; text-align: center;'>
+                    <h1 style='color: #ffffff; margin: 0; font-size: 28px; letter-spacing: -0.5px;'>QueueApp</h1>
+                </div>
+
+            <div style='padding: 40px 30px; line-height: 1.6;'>
+                <h2 style='color: #111827; margin-top: 0; font-size: 22px;'>สวัสดีคุณ {userName},</h2>
+                <p style='color: #4b5563; font-size: 16px;'>เราได้รับคำขอรีเซ็ตรหัสผ่านสำหรับบัญชีของคุณ หากคุณเป็นผู้ดำเนินการโปรดคลิกปุ่มด้านล่างเพื่อตั้งรหัสผ่านใหม่:</p>
+                
+                <div style='text-align: center; margin: 40px 0;'>
+                    <a href='{resetLink}' 
+                       style='display: inline-block; background-color: #4f46e5; color: #ffffff; padding: 14px 32px; font-weight: 600; text-decoration: none; border-radius: 8px; font-size: 16px;'>
+                       ยืนยัน
+                    </a>
+                </div>
+
+                <div style='background-color: #fffbeb; border-left: 4px solid #f59e0b; padding: 15px; margin-bottom: 25px;'>
+                    <p style='color: #92400e; font-size: 14px; margin: 0;'>
+                        <strong>ข้อควรระวัง:</strong> ลิงก์นี้จะใช้งานได้เพียงครั้งเดียว และจะหมดอายุภายใน 1 ชั่วโมง เพื่อความปลอดภัยของข้อมูลส่วนตัว
+                    </p>
+                </div>
+
+                <p style='color: #4b5563; font-size: 14px;'>หากปุ่มใช้งานไม่ได้ ให้คัดลอกลิงก์นี้ไปวางที่เบราว์เซอร์:</p>
+                <p style='color: #6366f1; font-size: 12px; word-break: break-all; background-color: #f3f4f6; padding: 10px; border-radius: 4px;'>{resetLink}</p>
+            </div>
+
+            <div style='background-color: #f9fafb; padding: 20px 30px; text-align: center; border-top: 1px solid #f3f4f6;'>
+                <p style='color: #ef4444; font-size: 12px; margin: 0; font-weight: 500;'>หากคุณไม่ได้เป็นผู้ขอรีเซ็ตรหัสผ่าน โปรดเพิกเฉยต่ออีเมลฉบับนี้และตรวจสอบความปลอดภัยของบัญชีคุณ</p>
+                <p style='color: #9ca3af; font-size: 12px; margin: 15px 0 0 0;'>© {DateTime.Now.Year} QueueApp Team. All rights reserved.</p>
+            </div>
+        </div>
+    </div>";
+
+        await SendEmailAsync(toEmail, subject, body);
+    }
     public async Task SendPasswordEmailAsync(string toEmail, string userName, string password)
     {
         string subject = "รหัสผ่านสำหรับเข้าใช้งานครั้งแรก - QueueApp";

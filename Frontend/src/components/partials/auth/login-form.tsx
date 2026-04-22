@@ -84,14 +84,18 @@ const LoginForm = () => {
 
       const login = await http.post<ProfileUser>("userlogin", data);
       toast.success("Successfully logged in");
-
+      
       if (data.remember) {
         await storage.set("remember", JSON.stringify(data));
       } else {
         localStorage.removeItem("remember");
-      }
-
+      }      
+      
       const returnUrl = searchParams.get("returnUrl");
+      if(login.isChangPassword){
+        router.push("/auth/resetpassword?returnUrl=" + encodeURIComponent(returnUrl || "/dashboard"));
+        return;
+      }
 
       let redirectTo = "/dashboard";
 
@@ -221,7 +225,7 @@ const LoginForm = () => {
         />
 
         <Link
-          href="/forgot-password"
+          href="/auth/forgot-password"
           className="text-sm text-default-800 dark:text-default-400 leading-6 font-medium hover:underline"
         >
           {t("forgot_password")}

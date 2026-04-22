@@ -1,10 +1,11 @@
+'use client'; 
 import React from 'react'
 import FooterContent from './footer-content'
 import { Link } from "@/components/navigation"
 import Image from 'next/image'
 import { Icon } from "@/components/ui/icon";
 
-const DashCodeFooter = async () => {
+const DashCodeFooter = () => {
     return (
         <FooterContent>
             <div className=' md:flex  justify-between text-default-600 hidden'>

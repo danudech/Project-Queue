@@ -61,7 +61,7 @@ export function createHttp<K extends string>(
     refreshPromise = (async () => {
       try {
         const res = await fetch(
-          `${env.appBaseUrl}${internalEndpoints.line_refresh_token}`,
+          `${env.appBaseUrl}${internalEndpoints.refreshToken}`,
           {
             method: "GET",
             headers: {

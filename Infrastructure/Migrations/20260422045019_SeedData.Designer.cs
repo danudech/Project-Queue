@@ -12,7 +12,7 @@ using Queue.Infrastructure.Persistence;
 namespace Queue.Infrastructure.Migrations
 {
     [DbContext(typeof(QueueDbContext))]
-    [Migration("20260408052257_SeedData")]
+    [Migration("20260422045019_SeedData")]
     partial class SeedData
     {
         /// <inheritdoc />
@@ -161,9 +161,8 @@ namespace Queue.Infrastructure.Migrations
                     b.Property<int?>("QueueCategoryId")
                         .HasColumnType("int");
 
-                    b.Property<string>("QueueNumber")
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
+                    b.Property<int?>("QueueNumber")
+                        .HasColumnType("int");
 
                     b.Property<int>("QueueSlotId")
                         .HasColumnType("int");
@@ -174,10 +173,8 @@ namespace Queue.Infrastructure.Migrations
                     b.Property<int>("ShopId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                    b.Property<int>("StatusId")
+                        .HasColumnType("int");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -198,6 +195,8 @@ namespace Queue.Infrastructure.Migrations
                     b.HasIndex(new[] { "QueueNumber" }, "IX_Bookings_QueueNumber");
 
                     b.HasIndex(new[] { "QueueSlotId" }, "IX_Bookings_QueueSlotId");
+
+                    b.HasIndex(new[] { "StatusId" }, "IX_Bookings_StatusId");
 
                     b.ToTable("Bookings");
                 });
@@ -233,12 +232,13 @@ namespace Queue.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
-
                     b.HasIndex(new[] { "Guid" }, "IX_Customers_Guid")
                         .IsUnique();
 
                     b.HasIndex(new[] { "ShopId" }, "IX_Customers_ShopId");
+
+                    b.HasIndex(new[] { "UserId", "ShopId" }, "IX_Customers_UserId_ShopId")
+                        .IsUnique();
 
                     b.ToTable("Customers");
                 });
@@ -311,6 +311,52 @@ namespace Queue.Infrastructure.Migrations
                     b.ToTable("Districts");
                 });
 
+            modelBuilder.Entity("Queue.Domain.Entities.EmailConfirmation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("ConfirmedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.Property<DateTime>("ExpiredAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex(new[] { "Token" }, "IX_EmailConfirmations_Token");
+
+                    b.HasIndex(new[] { "TokenHash" }, "IX_EmailConfirmations_TokenHash");
+
+                    b.HasIndex(new[] { "UserId" }, "IX_EmailConfirmations_UserId");
+
+                    b.ToTable("EmailConfirmations");
+                });
+
             modelBuilder.Entity("Queue.Domain.Entities.Invoice", b =>
                 {
                     b.Property<int>("Id")
@@ -335,16 +381,57 @@ namespace Queue.Infrastructure.Migrations
                     b.Property<int>("ShopId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                    b.Property<int>("StatusId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ShopId");
 
+                    b.HasIndex("StatusId");
+
                     b.ToTable("Invoices");
+                });
+
+            modelBuilder.Entity("Queue.Domain.Entities.MasterStatus", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("NameEn")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("NameTh")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex(new[] { "Type", "Code" }, "IX_MasterStatuses_Type_Code")
+                        .IsUnique();
+
+                    b.ToTable("MasterStatuses");
                 });
 
             modelBuilder.Entity("Queue.Domain.Entities.Notification", b =>
@@ -364,10 +451,8 @@ namespace Queue.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                    b.Property<int>("StatusId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -383,6 +468,8 @@ namespace Queue.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("StatusId");
 
                     b.HasIndex("UserId");
 
@@ -403,14 +490,14 @@ namespace Queue.Infrastructure.Migrations
                     b.Property<DateTime>("SentAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                    b.Property<int>("StatusId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("NotificationId");
+
+                    b.HasIndex("StatusId");
 
                     b.ToTable("NotificationLogs");
                 });
@@ -439,14 +526,14 @@ namespace Queue.Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                    b.Property<int>("StatusId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("BookingId");
+
+                    b.HasIndex("StatusId");
 
                     b.ToTable("Payments");
                 });
@@ -529,10 +616,8 @@ namespace Queue.Infrastructure.Migrations
                     b.Property<int>("ShopId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                    b.Property<int>("StatusId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Type")
                         .IsRequired()
@@ -547,6 +632,8 @@ namespace Queue.Infrastructure.Migrations
                         .IsUnique();
 
                     b.HasIndex(new[] { "ShopId" }, "IX_Queues_ShopId");
+
+                    b.HasIndex(new[] { "StatusId" }, "IX_Queues_StatusId");
 
                     b.ToTable("Queues");
                 });
@@ -599,10 +686,8 @@ namespace Queue.Infrastructure.Migrations
                     b.Property<int>("QueueId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                    b.Property<int>("StatusId")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("Timestamp")
                         .ValueGeneratedOnAdd()
@@ -612,6 +697,8 @@ namespace Queue.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("QueueId");
+
+                    b.HasIndex("StatusId");
 
                     b.ToTable("QueueLogs");
                 });
@@ -652,14 +739,33 @@ namespace Queue.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BranchId");
-
                     b.HasIndex("ShopId");
+
+                    b.HasIndex(new[] { "BranchId", "Date", "StartTime" }, "IX_QueueSlots_Branch_Date_StartTime")
+                        .IsUnique();
 
                     b.HasIndex(new[] { "Guid" }, "IX_QueueSlots_Guid")
                         .IsUnique();
 
                     b.ToTable("QueueSlots");
+                });
+
+            modelBuilder.Entity("Queue.Domain.Entities.Role", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Roles");
                 });
 
             modelBuilder.Entity("Queue.Domain.Entities.Service", b =>
@@ -751,16 +857,16 @@ namespace Queue.Infrastructure.Migrations
                     b.Property<int>("OwnerId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                    b.Property<int>("StatusId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("AddressId");
 
                     b.HasIndex("OwnerId");
+
+                    b.HasIndex("StatusId");
 
                     b.HasIndex(new[] { "Guid" }, "IX_Shops_Guid")
                         .IsUnique();
@@ -910,9 +1016,10 @@ namespace Queue.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ShopId");
-
                     b.HasIndex("UserId");
+
+                    b.HasIndex(new[] { "ShopId", "UserId" }, "IX_ShopStaffs_ShopId_UserId")
+                        .IsUnique();
 
                     b.ToTable("ShopStaffs");
                 });
@@ -1016,9 +1123,11 @@ namespace Queue.Infrastructure.Migrations
                         .HasDefaultValueSql("(getdate())");
 
                     b.Property<string>("Email")
-                        .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
+
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("bit");
 
                     b.Property<Guid>("Guid")
                         .ValueGeneratedOnAdd()
@@ -1026,24 +1135,24 @@ namespace Queue.Infrastructure.Migrations
                         .HasDefaultValueSql("(newid())");
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
                     b.Property<string>("Phone")
-                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                    b.Property<int>("StatusId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
+                    b.HasIndex(new[] { "Email" }, "IX_Users_Email");
+
                     b.HasIndex(new[] { "Guid" }, "IX_Users_Guid")
                         .IsUnique();
+
+                    b.HasIndex(new[] { "StatusId" }, "IX_Users_StatusId");
 
                     b.ToTable("Users");
                 });
@@ -1060,7 +1169,6 @@ namespace Queue.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("PasswordHash")
-                        .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
@@ -1079,12 +1187,12 @@ namespace Queue.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex(new[] { "UserId" }, "IX_UserAuthentications_UserId");
 
                     b.ToTable("UserAuthentications");
                 });
 
-            modelBuilder.Entity("Queue.Domain.Entities.UserRole", b =>
+            modelBuilder.Entity("Queue.Domain.Entities.UserImage", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1092,14 +1200,40 @@ namespace Queue.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Name")
+                    b.Property<string>("ContentType")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<long>("FileSize")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("FileUrl")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsPrimary")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.ToTable("UserRoles");
+                    b.HasIndex(new[] { "UserId", "IsPrimary" }, "IX_UserImages_UserId_IsPrimary");
+
+                    b.ToTable("UserImages");
                 });
 
             modelBuilder.Entity("Queue.Domain.Entities.UserSession", b =>
@@ -1119,7 +1253,8 @@ namespace Queue.Infrastructure.Migrations
                         .HasDefaultValueSql("(newid())");
 
                     b.Property<string>("RefreshSalt")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("RefreshToken")
                         .HasColumnType("nvarchar(max)");
@@ -1139,7 +1274,10 @@ namespace Queue.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex(new[] { "Guid" }, "IX_UserSessions_Guid")
+                        .IsUnique();
+
+                    b.HasIndex(new[] { "UserId" }, "IX_UserSessions_UserId");
 
                     b.ToTable("UserSessions");
                 });
@@ -1184,7 +1322,7 @@ namespace Queue.Infrastructure.Migrations
 
                     b.HasKey("UserId", "RoleId");
 
-                    b.HasIndex("RoleId");
+                    b.HasIndex(new[] { "RoleId" }, "IX_UserRoleMaps_RoleId");
 
                     b.ToTable("UserRoleMaps", (string)null);
                 });
@@ -1271,6 +1409,12 @@ namespace Queue.Infrastructure.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_Bookings_Shop");
 
+                    b.HasOne("Queue.Domain.Entities.MasterStatus", "Status")
+                        .WithMany("Bookings")
+                        .HasForeignKey("StatusId")
+                        .IsRequired()
+                        .HasConstraintName("FK_Bookings_Status");
+
                     b.HasOne("Queue.Domain.Entities.User", "User")
                         .WithMany("Bookings")
                         .HasForeignKey("UserId")
@@ -1284,6 +1428,8 @@ namespace Queue.Infrastructure.Migrations
                     b.Navigation("QueueSlot");
 
                     b.Navigation("Shop");
+
+                    b.Navigation("Status");
 
                     b.Navigation("User");
                 });
@@ -1329,6 +1475,17 @@ namespace Queue.Infrastructure.Migrations
                     b.Navigation("Province");
                 });
 
+            modelBuilder.Entity("Queue.Domain.Entities.EmailConfirmation", b =>
+                {
+                    b.HasOne("Queue.Domain.Entities.User", "User")
+                        .WithMany("EmailConfirmations")
+                        .HasForeignKey("UserId")
+                        .IsRequired()
+                        .HasConstraintName("FK_EmailConfirmations_User");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Queue.Domain.Entities.Invoice", b =>
                 {
                     b.HasOne("Queue.Domain.Entities.Shop", "Shop")
@@ -1337,16 +1494,32 @@ namespace Queue.Infrastructure.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_Invoices_Shop");
 
+                    b.HasOne("Queue.Domain.Entities.MasterStatus", "Status")
+                        .WithMany("Invoices")
+                        .HasForeignKey("StatusId")
+                        .IsRequired()
+                        .HasConstraintName("FK_Invoices_Status");
+
                     b.Navigation("Shop");
+
+                    b.Navigation("Status");
                 });
 
             modelBuilder.Entity("Queue.Domain.Entities.Notification", b =>
                 {
+                    b.HasOne("Queue.Domain.Entities.MasterStatus", "Status")
+                        .WithMany("Notifications")
+                        .HasForeignKey("StatusId")
+                        .IsRequired()
+                        .HasConstraintName("FK_Notifications_Status");
+
                     b.HasOne("Queue.Domain.Entities.User", "User")
                         .WithMany("Notifications")
                         .HasForeignKey("UserId")
                         .IsRequired()
                         .HasConstraintName("FK_Notifications_User");
+
+                    b.Navigation("Status");
 
                     b.Navigation("User");
                 });
@@ -1359,7 +1532,15 @@ namespace Queue.Infrastructure.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_NotificationLogs_Notification");
 
+                    b.HasOne("Queue.Domain.Entities.MasterStatus", "Status")
+                        .WithMany("NotificationLogs")
+                        .HasForeignKey("StatusId")
+                        .IsRequired()
+                        .HasConstraintName("FK_NotificationLogs_Status");
+
                     b.Navigation("Notification");
+
+                    b.Navigation("Status");
                 });
 
             modelBuilder.Entity("Queue.Domain.Entities.Payment", b =>
@@ -1370,7 +1551,15 @@ namespace Queue.Infrastructure.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_Payments_Booking");
 
+                    b.HasOne("Queue.Domain.Entities.MasterStatus", "Status")
+                        .WithMany("Payments")
+                        .HasForeignKey("StatusId")
+                        .IsRequired()
+                        .HasConstraintName("FK_Payments_Status");
+
                     b.Navigation("Booking");
+
+                    b.Navigation("Status");
                 });
 
             modelBuilder.Entity("Queue.Domain.Entities.PaymentTransaction", b =>
@@ -1398,9 +1587,17 @@ namespace Queue.Infrastructure.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_Queues_Shop");
 
+                    b.HasOne("Queue.Domain.Entities.MasterStatus", "Status")
+                        .WithMany("Queues")
+                        .HasForeignKey("StatusId")
+                        .IsRequired()
+                        .HasConstraintName("FK_Queues_Status");
+
                     b.Navigation("Branch");
 
                     b.Navigation("Shop");
+
+                    b.Navigation("Status");
                 });
 
             modelBuilder.Entity("Queue.Domain.Entities.QueueCategory", b =>
@@ -1422,7 +1619,15 @@ namespace Queue.Infrastructure.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_QueueLogs_Queue");
 
+                    b.HasOne("Queue.Domain.Entities.MasterStatus", "Status")
+                        .WithMany("QueueLogs")
+                        .HasForeignKey("StatusId")
+                        .IsRequired()
+                        .HasConstraintName("FK_QueueLogs_Status");
+
                     b.Navigation("Queue");
+
+                    b.Navigation("Status");
                 });
 
             modelBuilder.Entity("Queue.Domain.Entities.QueueSlot", b =>
@@ -1480,9 +1685,17 @@ namespace Queue.Infrastructure.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_Shops_User");
 
+                    b.HasOne("Queue.Domain.Entities.MasterStatus", "Status")
+                        .WithMany("Shops")
+                        .HasForeignKey("StatusId")
+                        .IsRequired()
+                        .HasConstraintName("FK_Shops_Status");
+
                     b.Navigation("Address");
 
                     b.Navigation("Owner");
+
+                    b.Navigation("Status");
                 });
 
             modelBuilder.Entity("Queue.Domain.Entities.ShopBranch", b =>
@@ -1578,6 +1791,17 @@ namespace Queue.Infrastructure.Migrations
                     b.Navigation("Shop");
                 });
 
+            modelBuilder.Entity("Queue.Domain.Entities.User", b =>
+                {
+                    b.HasOne("Queue.Domain.Entities.MasterStatus", "Status")
+                        .WithMany("Users")
+                        .HasForeignKey("StatusId")
+                        .IsRequired()
+                        .HasConstraintName("FK_Users_Status");
+
+                    b.Navigation("Status");
+                });
+
             modelBuilder.Entity("Queue.Domain.Entities.UserAuthentication", b =>
                 {
                     b.HasOne("Queue.Domain.Entities.User", "User")
@@ -1585,6 +1809,18 @@ namespace Queue.Infrastructure.Migrations
                         .HasForeignKey("UserId")
                         .IsRequired()
                         .HasConstraintName("FK_UserAuth_User");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Queue.Domain.Entities.UserImage", b =>
+                {
+                    b.HasOne("Queue.Domain.Entities.User", "User")
+                        .WithMany("UserImages")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_UserImages_User");
 
                     b.Navigation("User");
                 });
@@ -1632,15 +1868,17 @@ namespace Queue.Infrastructure.Migrations
 
             modelBuilder.Entity("UserRoleMap", b =>
                 {
-                    b.HasOne("Queue.Domain.Entities.UserRole", null)
+                    b.HasOne("Queue.Domain.Entities.Role", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_URM_Role");
 
                     b.HasOne("Queue.Domain.Entities.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_URM_User");
                 });
@@ -1667,6 +1905,27 @@ namespace Queue.Infrastructure.Migrations
                     b.Navigation("Addresses");
 
                     b.Navigation("Subdistricts");
+                });
+
+            modelBuilder.Entity("Queue.Domain.Entities.MasterStatus", b =>
+                {
+                    b.Navigation("Bookings");
+
+                    b.Navigation("Invoices");
+
+                    b.Navigation("NotificationLogs");
+
+                    b.Navigation("Notifications");
+
+                    b.Navigation("Payments");
+
+                    b.Navigation("QueueLogs");
+
+                    b.Navigation("Queues");
+
+                    b.Navigation("Shops");
+
+                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("Queue.Domain.Entities.Notification", b =>
@@ -1752,6 +2011,8 @@ namespace Queue.Infrastructure.Migrations
 
                     b.Navigation("Customers");
 
+                    b.Navigation("EmailConfirmations");
+
                     b.Navigation("Notifications");
 
                     b.Navigation("ShopStaffs");
@@ -1759,6 +2020,8 @@ namespace Queue.Infrastructure.Migrations
                     b.Navigation("Shops");
 
                     b.Navigation("UserAuthentications");
+
+                    b.Navigation("UserImages");
 
                     b.Navigation("UserSessions");
                 });

@@ -724,27 +724,27 @@ export const colorSidebarColorSvg = (
     <path
       d="M16 8H10C8.89543 8 8 8.89543 8 10V16C8 17.1046 8.89543 18 10 18H16C17.1046 18 18 17.1046 18 16V10C18 8.89543 17.1046 8 16 8Z"
       fill="white"
-      fill-opacity="0.15"
+      fillOpacity="0.15"
     />
     <path
       d="M23 28H4C3.44772 28 3 28.4477 3 29V31C3 31.5523 3.44772 32 4 32H23C23.5523 32 24 31.5523 24 31V29C24 28.4477 23.5523 28 23 28Z"
       fill="white"
-      fill-opacity="0.15"
+      fillOpacity="0.15"
     />
     <path
       d="M23 36H4C3.44772 36 3 36.4477 3 37V39C3 39.5523 3.44772 40 4 40H23C23.5523 40 24 39.5523 24 39V37C24 36.4477 23.5523 36 23 36Z"
       fill="white"
-      fill-opacity="0.15"
+      fillOpacity="0.15"
     />
     <path
       d="M23 44H4C3.44772 44 3 44.4477 3 45V47C3 47.5523 3.44772 48 4 48H23C23.5523 48 24 47.5523 24 47V45C24 44.4477 23.5523 44 23 44Z"
       fill="white"
-      fill-opacity="0.15"
+      fillOpacity="0.15"
     />
     <path
       d="M23 52H4C3.44772 52 3 52.4477 3 53V55C3 55.5523 3.44772 56 4 56H23C23.5523 56 24 55.5523 24 55V53C24 52.4477 23.5523 52 23 52Z"
       fill="white"
-      fill-opacity="0.15"
+      fillOpacity="0.15"
     />
     <path
       d="M36 10C37.1046 10 38 9.10457 38 8C38 6.89543 37.1046 6 36 6C34.8954 6 34 6.89543 34 8C34 9.10457 34.8954 10 36 10Z"
@@ -788,7 +788,7 @@ export const gradientSidebarColorSvg = (
       height="10"
       rx="2"
       fill="white"
-      fill-opacity="0.2"
+      fillOpacity="0.2"
     />
     <rect
       x="3"
@@ -797,7 +797,7 @@ export const gradientSidebarColorSvg = (
       height="4"
       rx="1"
       fill="white"
-      fill-opacity="0.2"
+      fillOpacity="0.2"
     />
     <rect
       x="3"
@@ -806,7 +806,7 @@ export const gradientSidebarColorSvg = (
       height="4"
       rx="1"
       fill="white"
-      fill-opacity="0.2"
+      fillOpacity="0.2"
     />
     <rect
       x="3"
@@ -815,7 +815,7 @@ export const gradientSidebarColorSvg = (
       height="4"
       rx="1"
       fill="white"
-      fill-opacity="0.2"
+      fillOpacity="0.2"
     />
     <rect
       x="3"
@@ -824,7 +824,7 @@ export const gradientSidebarColorSvg = (
       height="4"
       rx="1"
       fill="white"
-      fill-opacity="0.2"
+      fillOpacity="0.2"
     />
     <circle cx="36" cy="8" r="2" className="fill-default-300  dark:text-default-400" />
     <circle cx="89" cy="8" r="2" className="fill-default-300  dark:text-default-400" />

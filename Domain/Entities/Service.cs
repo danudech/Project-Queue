@@ -19,11 +19,11 @@ public partial class Service
 
     public bool IsActive { get; set; }
 
+    public virtual ICollection<BookingService> BookingServices { get; set; } = new List<BookingService>();
+
+    public virtual ICollection<ServiceCategoryMap> ServiceCategoryMaps { get; set; } = new List<ServiceCategoryMap>();
+
+    public virtual ICollection<ServiceStaffMap> ServiceStaffMaps { get; set; } = new List<ServiceStaffMap>();
+
     public virtual Shop Shop { get; set; } = null!;
-
-    public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
-
-    public virtual ICollection<ServiceCategory> Categories { get; set; } = new List<ServiceCategory>();
-
-    public virtual ICollection<ShopStaff> Staff { get; set; } = new List<ShopStaff>();
 }

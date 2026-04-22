@@ -55,15 +55,15 @@ const Login = async ({ params }: { params: Promise<{ locale: string }> }) => {
 
               <LoginForm  />
 
-              <div className="relative border-b-[#9AA2AF] border-opacity-[16%] border-b pt-6">
+              {/* <div className="relative border-b-[#9AA2AF] border-opacity-[16%] border-b pt-6">
                 <div className="absolute inline-block bg-default-50 dark:bg-default-100 left-1/2 top-1/2 transform -translate-x-1/2 px-4 min-w-max text-sm text-default-500 font-normal">
                   {t("or_continue")}
                 </div>
-              </div>
+              </div> */}
 
-              <div className="max-w-[242px] mx-auto mt-8 w-full">
+              {/* <div className="max-w-[242px] mx-auto mt-8 w-full">
                 <Social locale={locale} />
-              </div>
+              </div> */}
 
               <div className="md:max-w-[345px] mx-auto font-normal text-default-500 mt-12 uppercase text-sm text-center">
                 {t("no_account")}{" "}

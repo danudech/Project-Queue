@@ -19,9 +19,9 @@ public partial class Customer
 
     public virtual ICollection<CustomerNote> CustomerNotes { get; set; } = new List<CustomerNote>();
 
+    public virtual ICollection<CustomerTagMap> CustomerTagMaps { get; set; } = new List<CustomerTagMap>();
+
     public virtual Shop Shop { get; set; } = null!;
 
     public virtual User User { get; set; } = null!;
-
-    public virtual ICollection<CustomerTag> Tags { get; set; } = new List<CustomerTag>();
 }

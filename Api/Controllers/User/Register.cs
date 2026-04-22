@@ -111,4 +111,35 @@ public class RegisterController : ControllerBase
             return StatusCode(500, ApiResponse<bool>.Fail(ex.Message));
         }
     }
+
+    [Authorize]
+    [HttpPost("resetpassword")]
+    public async Task<ActionResult<ApiResponse<bool>>> ResetPassword([FromBody] ResetPasswordRequest req, CancellationToken ct)
+    {
+        string? userId = User.FindFirst("uid")?.Value;
+        if (string.IsNullOrWhiteSpace(userId))
+            return Unauthorized(ApiResponse<bool>.Fail("User not found"));
+        try
+        {
+            if (string.IsNullOrWhiteSpace(req.NewPassword))
+                return BadRequest(ApiResponse<bool>.Fail("new password is required"));
+
+            _actionLog.Info("Reset password request");
+
+            string ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            string ua = HttpContext.Request.Headers.UserAgent.ToString();
+            bool? resp = await _user.ResetPassword(int.Parse(userId), req.NewPassword, ip, ua, ct);
+            if (resp == null || !(resp ?? false))
+            {
+                return BadRequest(ApiResponse<bool>.Fail("Password reset failed"));
+            }
+
+            return Ok(ApiResponse<bool>.Ok(true));
+        }
+        catch (Exception ex)
+        {
+            _actionLog.Error(ex, "Reset password failed (UserId={UserId})", userId);
+            return StatusCode(500, ApiResponse<bool>.Fail(ex.Message));
+        }
+    }
 }

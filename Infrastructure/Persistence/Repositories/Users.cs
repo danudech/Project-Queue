@@ -3,6 +3,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Queue.Application.DTO.Request;
+using Queue.Application.DTO.Response;
 using Queue.Application.Interfaces;
 using Queue.Domain.Entities;
 using Queue.Infrastructure.Identity.Security;
@@ -36,7 +37,8 @@ public sealed class Users : IUsers
 
         User? user = await _db.Users
                             .Include(c => c.UserAuthentications)
-                            .Include(c => c.Roles)
+                            .Include(c => c.UserRoleMaps)
+                                .ThenInclude(ur => ur.Role)
                             .Include(c => c.UserSessions)
                             .Include(c => c.Status)
                             .FirstOrDefaultAsync(u => u.Email == data.Email || u.Phone == data.Phone, ct);
@@ -61,9 +63,16 @@ public sealed class Users : IUsers
                 Name = data.Name,
                 Email = data.Email,
                 Phone = data.Phone ?? string.Empty,
-                StatusId = 1, // 1: Pending
+                StatusId = 1,
                 EmailConfirmed = false,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                UserRoleMaps = new List<UserRoleMap>
+                {
+                    new UserRoleMap
+                    {
+                        RoleId = 2
+                    }
+                }
             };
 
             await _crud.InsertAsync(_newUser, ct);
@@ -102,10 +111,65 @@ public sealed class Users : IUsers
         }
     }
 
+    public async Task<UserResponse?> GetUserById(int userId, string ip, string userAgent, CancellationToken ct)
+    {
+        User? user = await _db.Users
+            .Include(c => c.UserAuthentications)
+            .Include(c => c.UserImages)
+            .Include(c => c.UserRoleMaps)
+                .ThenInclude(ur => ur.Role)
+            .Include(c => c.UserSessions)
+            .Include(c => c.Status)
+            .FirstOrDefaultAsync(u => u.Id == userId, ct);
+
+        if (user == null) return null;
+
+
+        return new UserResponse
+        {
+            Id = user?.Id ?? 0,
+            Name = user?.Name ?? string.Empty,
+            Email = user?.Email ?? string.Empty,
+            Phone = user?.Phone ?? string.Empty,
+            Status = user?.Status.NameTh ?? "",
+            Role = user?.UserRoleMaps.FirstOrDefault()?.Role.Name ?? string.Empty,
+            ProfilePictureUrl = user?.UserImages.FirstOrDefault(ui => ui.IsPrimary)?.FileUrl ?? string.Empty,
+            IsChangPassword = user?.UserAuthentications.Any(a => a.LastLoginAt == null) ?? false
+        };
+    }
+
+    public async Task GetForgotPasswordRequestByEmail(ForgotPasswordRequest data, string ip, string userAgent, CancellationToken ct)
+    {
+        using var transaction = await _db.Database.BeginTransactionAsync(ct);
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == data.Email, ct);
+        if (user == null || user.Email == null || user.Name == null) return;
+        string token = Guid.NewGuid().ToString("N");
+        string tokenHash = Crypto.HashPassword(token);
+
+        EmailConfirmation mailConfirmation = new EmailConfirmation
+        {
+            UserId = user.Id,
+            Token = token,
+            TokenHash = tokenHash,
+            ExpiredAt = DateTime.UtcNow.AddHours(24),
+            IsUsed = false,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        await _crud.InsertAsync(mailConfirmation, ct);
+
+        await transaction.CommitAsync(ct);
+        string appUrl = _config["AppSettings:AppUrl"] ?? "http://localhost:3000";
+        string currentLocale = data.locale ?? "en";
+        string confirmationLink = $"{appUrl}/{currentLocale}/auth/mail-verify?token={token}";
+
+        await _emailService.SendForgotPasswordEmailAsync(user.Email, user.Name, confirmationLink);
+    }
+    
     public async Task ResentConfirmationEmail(RegisterRequest data, string ip, string userAgent, CancellationToken ct)
     {
         User? user = await _db.Users.FirstOrDefaultAsync(u => u.Email == data.Email, ct);
-        if (user == null) return;
+        if (user == null || string.IsNullOrWhiteSpace(user.Email) || string.IsNullOrWhiteSpace(user.Name)) return;
 
         EmailConfirmation? existingConfirmation = await _db.EmailConfirmations
             .Where(c => c.UserId == user.Id && !c.IsUsed && c.ExpiredAt > DateTime.UtcNow)
@@ -136,14 +200,19 @@ public sealed class Users : IUsers
             confirmation.ConfirmedAt = DateTime.UtcNow;
 
             var user = await _db.Users.Include(a => a.UserAuthentications).FirstOrDefaultAsync(u => u.Id == confirmation.UserId, ct);
-            if (user != null && (user.UserAuthentications == null || !user.UserAuthentications.Any()))
+            if (user == null || string.IsNullOrWhiteSpace(user.Email) || string.IsNullOrWhiteSpace(user.Name)) return false;
+            string tempPassword = Guid.NewGuid().ToString("N").Substring(0, 8);
+
+            user.EmailConfirmed = true;
+            await _crud.UpdateAsync(user, ct);
+            if (user.UserAuthentications.Any())
             {
-                string tempPassword = Guid.NewGuid().ToString("N").Substring(0, 8);
-
-                user.EmailConfirmed = true;
-                user.EmailConfirmedAt = DateTime.UtcNow;
-                await _crud.UpdateAsync(user, ct);
-
+                user.UserAuthentications.First().PasswordHash = Crypto.HashPassword(tempPassword);
+                user.UserAuthentications.First().LastLoginAt = null;
+                await _crud.UpdateAsync(user.UserAuthentications.First(), ct);
+            }
+            else
+            {
                 UserAuthentication auth = new UserAuthentication
                 {
                     UserId = user.Id,
@@ -153,20 +222,34 @@ public sealed class Users : IUsers
                 };
 
                 await _crud.InsertAsync(auth, ct);
-
-                await _db.SaveChangesAsync(ct);
-                await transaction.CommitAsync(ct);
-
-                await _emailService.SendPasswordEmailAsync(user.Email, user.Name, tempPassword);
-
-                return true;
             }
-            return false;
+
+            await _db.SaveChangesAsync(ct);
+            await transaction.CommitAsync(ct);
+
+            await _emailService.SendPasswordEmailAsync(user.Email, user.Name, tempPassword);
+
+            return true;
         }
         catch (Exception)
         {
             await transaction.RollbackAsync(ct);
             return false;
         }
+    }
+
+    public async Task<bool?> ResetPassword(int userId, string newPassword, string ip, string userAgent, CancellationToken ct)
+    {
+        var user = await _db.Users.Include(a => a.UserAuthentications).FirstOrDefaultAsync(u => u.Id == userId, ct);
+        if (user == null) return false;
+
+        var auth = user.UserAuthentications.FirstOrDefault(a => a.ProviderId == "User");
+        if (auth == null) return false;
+
+        auth.PasswordHash = Crypto.HashPassword(newPassword);
+        auth.LastLoginAt = DateTime.UtcNow;
+        await _crud.UpdateAsync(auth, ct);
+
+        return true;
     }
 }

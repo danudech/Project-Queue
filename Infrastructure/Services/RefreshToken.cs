@@ -126,12 +126,12 @@ public sealed class RefreshToken
             return (new TokenResponse(), "session has expired");
         }
 
-        User? _user = _db.Users.Include(c => c.Roles).FirstOrDefault(x => x.Id == session.UserId);
+        User? _user = _db.Users.Include(c => c.UserRoleMaps).ThenInclude(ur => ur.Role).FirstOrDefault(x => x.Id == session.UserId);
 
         string username = _user?.Email ?? _user?.Phone ?? "unknown";
-        string role = _user?.Roles.FirstOrDefault()?.Id.ToString() ?? "";
+        string role = _user?.UserRoleMaps.FirstOrDefault()?.RoleId.ToString() ?? "";
         string name = _user?.Name ?? "";
-        string[] permissions = _user?.Roles.Select(c => c.Name).ToArray() ?? Array.Empty<string>();
+        string[] permissions = _user?.UserRoleMaps.Select(ur => ur.Role.Name).ToArray() ?? Array.Empty<string>();
 
         var (newAccessToken, accessExpiresAtUtc) = _accessToken.CreateAccessToken(
             (int)session.UserId,

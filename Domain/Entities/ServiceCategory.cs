@@ -11,7 +11,7 @@ public partial class ServiceCategory
 
     public string Name { get; set; } = null!;
 
-    public virtual Shop Shop { get; set; } = null!;
+    public virtual ICollection<ServiceCategoryMap> ServiceCategoryMaps { get; set; } = new List<ServiceCategoryMap>();
 
-    public virtual ICollection<Service> Services { get; set; } = new List<Service>();
+    public virtual Shop Shop { get; set; } = null!;
 }

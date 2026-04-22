@@ -20,3 +20,17 @@ public sealed class VerifyAccountRequest
     [Required]
     public string? Token { get; set; } = string.Empty;
 }
+
+public sealed class ResetPasswordRequest
+{
+    [Required]
+    public string? NewPassword { get; set; } = string.Empty;
+}
+
+public sealed class ForgotPasswordRequest
+{
+    [Required]
+    public string? Email { get; set; } = string.Empty;
+    [Required]
+    public string locale { get; set; } = "en";
+}

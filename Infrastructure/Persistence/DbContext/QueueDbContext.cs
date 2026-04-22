@@ -22,11 +22,15 @@ public partial class QueueDbContext : DbContext
 
     public virtual DbSet<Booking> Bookings { get; set; }
 
+    public virtual DbSet<BookingService> BookingServices { get; set; }
+
     public virtual DbSet<Customer> Customers { get; set; }
 
     public virtual DbSet<CustomerNote> CustomerNotes { get; set; }
 
     public virtual DbSet<CustomerTag> CustomerTags { get; set; }
+
+    public virtual DbSet<CustomerTagMap> CustomerTagMaps { get; set; }
 
     public virtual DbSet<District> Districts { get; set; }
 
@@ -54,9 +58,15 @@ public partial class QueueDbContext : DbContext
 
     public virtual DbSet<QueueSlot> QueueSlots { get; set; }
 
+    public virtual DbSet<Role> Roles { get; set; }
+
     public virtual DbSet<Domain.Entities.Service> Services { get; set; }
 
     public virtual DbSet<ServiceCategory> ServiceCategories { get; set; }
+
+    public virtual DbSet<ServiceCategoryMap> ServiceCategoryMaps { get; set; }
+
+    public virtual DbSet<ServiceStaffMap> ServiceStaffMaps { get; set; }
 
     public virtual DbSet<Shop> Shops { get; set; }
 
@@ -82,7 +92,7 @@ public partial class QueueDbContext : DbContext
 
     public virtual DbSet<UserImage> UserImages { get; set; }
 
-    public virtual DbSet<UserRole> UserRoles { get; set; }
+    public virtual DbSet<UserRoleMap> UserRoleMaps { get; set; }
 
     public virtual DbSet<UserSession> UserSessions { get; set; }
 
@@ -132,7 +142,6 @@ public partial class QueueDbContext : DbContext
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Guid).HasDefaultValueSql("(newid())");
-            entity.Property(e => e.QueueNumber).HasMaxLength(10);
 
             entity.HasOne(d => d.Branch).WithMany(p => p.Bookings)
                 .HasForeignKey(d => d.BranchId)
@@ -162,23 +171,23 @@ public partial class QueueDbContext : DbContext
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Bookings_User");
+        });
 
-            entity.HasMany(d => d.Services).WithMany(p => p.Bookings)
-                .UsingEntity<Dictionary<string, object>>(
-                    "BookingService",
-                    r => r.HasOne<Domain.Entities.Service>().WithMany()
-                        .HasForeignKey("ServiceId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK_BS_Service"),
-                    l => l.HasOne<Booking>().WithMany()
-                        .HasForeignKey("BookingId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK_BS_Booking"),
-                    j =>
-                    {
-                        j.HasKey("BookingId", "ServiceId");
-                        j.ToTable("BookingServices");
-                    });
+        modelBuilder.Entity<BookingService>(entity =>
+        {
+            entity.HasKey(e => new { e.BookingId, e.ServiceId });
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+
+            entity.HasOne(d => d.Booking).WithMany(p => p.BookingServices)
+                .HasForeignKey(d => d.BookingId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_BS_Booking");
+
+            entity.HasOne(d => d.Service).WithMany(p => p.BookingServices)
+                .HasForeignKey(d => d.ServiceId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_BS_Service");
         });
 
         modelBuilder.Entity<Customer>(entity =>
@@ -186,6 +195,8 @@ public partial class QueueDbContext : DbContext
             entity.HasIndex(e => e.Guid, "IX_Customers_Guid").IsUnique();
 
             entity.HasIndex(e => e.ShopId, "IX_Customers_ShopId");
+
+            entity.HasIndex(e => new { e.UserId, e.ShopId }, "IX_Customers_UserId_ShopId").IsUnique();
 
             entity.Property(e => e.Guid).HasDefaultValueSql("(newid())");
             entity.Property(e => e.Name).HasMaxLength(150);
@@ -200,23 +211,6 @@ public partial class QueueDbContext : DbContext
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Customers_User");
-
-            entity.HasMany(d => d.Tags).WithMany(p => p.Customers)
-                .UsingEntity<Dictionary<string, object>>(
-                    "CustomerTagMap",
-                    r => r.HasOne<CustomerTag>().WithMany()
-                        .HasForeignKey("TagId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK_CTM_Tag"),
-                    l => l.HasOne<Customer>().WithMany()
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK_CTM_Customer"),
-                    j =>
-                    {
-                        j.HasKey("CustomerId", "TagId");
-                        j.ToTable("CustomerTagMaps");
-                    });
         });
 
         modelBuilder.Entity<CustomerNote>(entity =>
@@ -230,6 +224,23 @@ public partial class QueueDbContext : DbContext
         modelBuilder.Entity<CustomerTag>(entity =>
         {
             entity.Property(e => e.Name).HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<CustomerTagMap>(entity =>
+        {
+            entity.HasKey(e => new { e.CustomerId, e.TagId });
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+
+            entity.HasOne(d => d.Customer).WithMany(p => p.CustomerTagMaps)
+                .HasForeignKey(d => d.CustomerId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_CTM_Customer");
+
+            entity.HasOne(d => d.Tag).WithMany(p => p.CustomerTagMaps)
+                .HasForeignKey(d => d.TagId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_CTM_Tag");
         });
 
         modelBuilder.Entity<District>(entity =>
@@ -411,6 +422,8 @@ public partial class QueueDbContext : DbContext
 
         modelBuilder.Entity<QueueSlot>(entity =>
         {
+            entity.HasIndex(e => new { e.BranchId, e.Date, e.StartTime }, "IX_QueueSlots_Branch_Date_StartTime").IsUnique();
+
             entity.HasIndex(e => e.Guid, "IX_QueueSlots_Guid").IsUnique();
 
             entity.Property(e => e.Guid).HasDefaultValueSql("(newid())");
@@ -426,6 +439,11 @@ public partial class QueueDbContext : DbContext
                 .HasConstraintName("FK_QS_Shop");
         });
 
+        modelBuilder.Entity<Role>(entity =>
+        {
+            entity.Property(e => e.Name).HasMaxLength(100);
+        });
+
         modelBuilder.Entity<Domain.Entities.Service>(entity =>
         {
             entity.HasIndex(e => e.Guid, "IX_Services_Guid").IsUnique();
@@ -439,40 +457,6 @@ public partial class QueueDbContext : DbContext
                 .HasForeignKey(d => d.ShopId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Services_Shop");
-
-            entity.HasMany(d => d.Categories).WithMany(p => p.Services)
-                .UsingEntity<Dictionary<string, object>>(
-                    "ServiceCategoryMap",
-                    r => r.HasOne<ServiceCategory>().WithMany()
-                        .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK_SCM_Category"),
-                    l => l.HasOne<Domain.Entities.Service>().WithMany()
-                        .HasForeignKey("ServiceId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK_SCM_Service"),
-                    j =>
-                    {
-                        j.HasKey("ServiceId", "CategoryId");
-                        j.ToTable("ServiceCategoryMaps");
-                    });
-
-            entity.HasMany(d => d.Staff).WithMany(p => p.Services)
-                .UsingEntity<Dictionary<string, object>>(
-                    "ServiceStaffMap",
-                    r => r.HasOne<ShopStaff>().WithMany()
-                        .HasForeignKey("StaffId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK_SSM_Staff"),
-                    l => l.HasOne<Domain.Entities.Service>().WithMany()
-                        .HasForeignKey("ServiceId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK_SSM_Service"),
-                    j =>
-                    {
-                        j.HasKey("ServiceId", "StaffId");
-                        j.ToTable("ServiceStaffMaps");
-                    });
         });
 
         modelBuilder.Entity<ServiceCategory>(entity =>
@@ -483,6 +467,40 @@ public partial class QueueDbContext : DbContext
                 .HasForeignKey(d => d.ShopId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_SC_Shop");
+        });
+
+        modelBuilder.Entity<ServiceCategoryMap>(entity =>
+        {
+            entity.HasKey(e => new { e.ServiceId, e.CategoryId });
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+
+            entity.HasOne(d => d.Category).WithMany(p => p.ServiceCategoryMaps)
+                .HasForeignKey(d => d.CategoryId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_SCM_Category");
+
+            entity.HasOne(d => d.Service).WithMany(p => p.ServiceCategoryMaps)
+                .HasForeignKey(d => d.ServiceId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_SCM_Service");
+        });
+
+        modelBuilder.Entity<ServiceStaffMap>(entity =>
+        {
+            entity.HasKey(e => new { e.ServiceId, e.StaffId });
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+
+            entity.HasOne(d => d.Service).WithMany(p => p.ServiceStaffMaps)
+                .HasForeignKey(d => d.ServiceId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_SSM_Service");
+
+            entity.HasOne(d => d.Staff).WithMany(p => p.ServiceStaffMaps)
+                .HasForeignKey(d => d.StaffId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_SSM_Staff");
         });
 
         modelBuilder.Entity<Shop>(entity =>
@@ -557,6 +575,8 @@ public partial class QueueDbContext : DbContext
 
         modelBuilder.Entity<ShopStaff>(entity =>
         {
+            entity.HasIndex(e => new { e.ShopId, e.UserId }, "IX_ShopStaffs_ShopId_UserId").IsUnique();
+
             entity.Property(e => e.Role).HasMaxLength(50);
 
             entity.HasOne(d => d.Shop).WithMany(p => p.ShopStaffs)
@@ -619,27 +639,12 @@ public partial class QueueDbContext : DbContext
                 .HasForeignKey(d => d.StatusId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Users_Status");
-
-            entity.HasMany(d => d.Roles).WithMany(p => p.Users)
-                .UsingEntity<Dictionary<string, object>>(
-                    "UserRoleMap",
-                    r => r.HasOne<UserRole>().WithMany()
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK_URM_Role"),
-                    l => l.HasOne<User>().WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK_URM_User"),
-                    j =>
-                    {
-                        j.HasKey("UserId", "RoleId");
-                        j.ToTable("UserRoleMaps");
-                    });
         });
 
         modelBuilder.Entity<UserAuthentication>(entity =>
         {
+            entity.HasIndex(e => e.UserId, "IX_UserAuthentications_UserId");
+
             entity.Property(e => e.PasswordHash).HasMaxLength(500);
             entity.Property(e => e.Provider).HasMaxLength(50);
             entity.Property(e => e.ProviderId).HasMaxLength(150);
@@ -652,9 +657,7 @@ public partial class QueueDbContext : DbContext
 
         modelBuilder.Entity<UserImage>(entity =>
         {
-            entity.HasIndex(e => e.IsPrimary, "IX_UserImages_IsPrimary");
-
-            entity.HasIndex(e => e.UserId, "IX_UserImages_UserId");
+            entity.HasIndex(e => new { e.UserId, e.IsPrimary }, "IX_UserImages_UserId_IsPrimary");
 
             entity.Property(e => e.ContentType).HasMaxLength(100);
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
@@ -666,13 +669,29 @@ public partial class QueueDbContext : DbContext
                 .HasConstraintName("FK_UserImages_User");
         });
 
-        modelBuilder.Entity<UserRole>(entity =>
+        modelBuilder.Entity<UserRoleMap>(entity =>
         {
-            entity.Property(e => e.Name).HasMaxLength(50);
+            entity.HasKey(e => new { e.UserId, e.RoleId });
+
+            entity.HasIndex(e => e.RoleId, "IX_UserRoleMaps_RoleId");
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+
+            entity.HasOne(d => d.Role).WithMany(p => p.UserRoleMaps)
+                .HasForeignKey(d => d.RoleId)
+                .HasConstraintName("FK_URM_Role");
+
+            entity.HasOne(d => d.User).WithMany(p => p.UserRoleMaps)
+                .HasForeignKey(d => d.UserId)
+                .HasConstraintName("FK_URM_User");
         });
 
         modelBuilder.Entity<UserSession>(entity =>
         {
+            entity.HasIndex(e => e.Guid, "IX_UserSessions_Guid").IsUnique();
+
+            entity.HasIndex(e => e.UserId, "IX_UserSessions_UserId");
+
             entity.Property(e => e.Guid).HasDefaultValueSql("(newid())");
             entity.Property(e => e.RefreshSalt).HasMaxLength(200);
 

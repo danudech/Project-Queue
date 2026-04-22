@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
       !loginres.tokenData.session
     ) {
       return NextResponse.json(
-        { status: false, message: "Invalid token response", data: null },
+        { status: false, message: loginres.message || "Invalid token response", data: null },
         { status: 500 },
       );
     }
@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
     return res;
   } catch (e: any) {
     return NextResponse.json(
-      { status: false, message: e?.message ?? "error" },
+      { status: false, message: e?.message ?? "error", data: null },
       { status: e?.status ?? 500 },
     );
   }

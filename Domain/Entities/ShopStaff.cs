@@ -13,9 +13,9 @@ public partial class ShopStaff
 
     public string Role { get; set; } = null!;
 
+    public virtual ICollection<ServiceStaffMap> ServiceStaffMaps { get; set; } = new List<ServiceStaffMap>();
+
     public virtual Shop Shop { get; set; } = null!;
 
     public virtual User User { get; set; } = null!;
-
-    public virtual ICollection<Service> Services { get; set; } = new List<Service>();
 }

@@ -1,24 +1,22 @@
+'use client'; 
 import React from 'react'
-import HeaderContent from './header-content'
-import HeaderSearch from './header-search'
-import ProfileInfo from './profile-info'
-import Notifications from './notifications'
-import Messages from "./messages"
-import { Cart } from './cart'
-import ThemeSwitcher from './theme-switcher'
-import { SidebarToggle } from '@/components/partials/sidebar/sidebar-toggle'
-import { SheetMenu } from '@/components/partials/sidebar/menu/sheet-menu'
-import HorizontalMenu from "./horizontal-menu"
-import LocalSwitcher from './locale-switcher'
-import HeaderLogo from "./header-logo"
+import HorizontalMenu from './horizontal-menu';
+import HeaderContent from './header-content';
+import HeaderLogo from './header-logo';
+import { SidebarToggle } from '../sidebar/sidebar-toggle';
+import HeaderSearch from './header-search';
+import LocalSwitcher from './locale-switcher';
+import ThemeSwitcher from './theme-switcher';
+import Messages from './messages';
+import { Cart } from './cart';
+import Notifications from './notifications';
+import ProfileInfo from './profile-info';
+import { SheetMenu } from '../sidebar/menu/sheet-menu';
 
-
-const DashCodeHeader = async () => {
-
-
+const DashCodeHeader = () => {
     return (
         <>
-            <HeaderContent>
+        <HeaderContent>
                 <div className=' flex gap-3 items-center'>
                     <HeaderLogo />
                     <SidebarToggle />

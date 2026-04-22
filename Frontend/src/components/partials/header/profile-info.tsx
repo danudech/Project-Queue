@@ -1,4 +1,3 @@
-
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,29 +11,44 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Icon } from "@/components/ui/icon"
 import Image from "next/image";
-import { Link } from '@/i18n/routing';
-import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon"
+import { useMe } from "@/hooks/use-me";
+import { Link, useRouter } from '@/i18n/routing';
+import { http } from "@/lib/http/client";
+import { toast } from "sonner";
 
-const ProfileInfo = async () => {
+const ProfileInfo = () => {
+  const router = useRouter();
+  const { data, isLoading } = useMe();
+
+  if (isLoading) return <div>Loading...</div>;
+
+  const handleLogout = async () => {
+    try {
+      await http.get("signout");
+      toast.success("Logged out");
+      router.push("/auth/login");
+    } catch (err) {
+      toast.error("Logout failed");
+    }
+  };
 
   return (
     <div className="md:block hidden">
       <DropdownMenu>
         <DropdownMenuTrigger asChild className=" cursor-pointer">
           <div className=" flex items-center gap-3  text-default-800 ">
-
-            {/* <Image
-              src={session?.user?.image as string}
-              alt={session?.user?.name?.charAt(0) as string}
+            <Image
+              src={data?.profilePictureUrl || "https://avatars.githubusercontent.com/u/9919?s=200&v=4"}
+              alt={data?.name || "User Avatar"}
               width={36}
               height={36}
               className="rounded-full"
-            /> */}
+            />
 
             <div className="text-sm font-medium  capitalize lg:block hidden  ">
-              Mock User
+              {data?.name || "Mock User"}
             </div>
             <span className="text-base  me-2.5 lg:inline-block hidden">
               <Icon icon="heroicons-outline:chevron-down"></Icon>
@@ -54,13 +68,13 @@ const ProfileInfo = async () => {
 
             <div>
               <div className="text-sm font-medium text-default-800 capitalize ">
-                Mock User
+                {data?.name || "Mock User"}
               </div>
               <Link
                 href="/dashboard"
                 className="text-xs text-default-600 hover:text-primary"
               >
-                Mock Email
+                {data?.email || "Mock Email"}
               </Link>
             </div>
           </DropdownMenuLabel>
@@ -182,8 +196,7 @@ const ProfileInfo = async () => {
             <div>
               <form
                 action={async () => {
-                  "use server";
-                  console.log("logout")
+                  await handleLogout();
                 }}
               >
                 <button type="submit" className=" w-full  flex  items-center gap-2" >

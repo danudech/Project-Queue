@@ -11,7 +11,7 @@ export type ProfileUser = {
   status: string;
   role: string;
   profilePictureUrl: string;
-  isChangePassword: boolean;
+  isChangPassword: boolean;
 };
 
 export type UserRegister = {

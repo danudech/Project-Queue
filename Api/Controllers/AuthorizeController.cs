@@ -17,13 +17,15 @@ namespace Queue.Api.Controllers;
 public class AuthorizeController : ControllerBase
 {
     private readonly IAuthentication _auth;
+    private readonly IUsers _users;
     private readonly IActionLog _actionLog;
     private readonly RefreshToken _istokenrefresh;
     private readonly IHostEnvironment _env;
 
-    public AuthorizeController(IAuthentication auth, IActionLog actionLog, RefreshToken istokenrefresh, IHostEnvironment env)
+    public AuthorizeController(IAuthentication auth, IUsers users, IActionLog actionLog, RefreshToken istokenrefresh, IHostEnvironment env)
     {
         _auth = auth;
+        _users = users;
         _actionLog = actionLog;
         _env = env;
         _istokenrefresh = istokenrefresh;
@@ -57,9 +59,33 @@ public class AuthorizeController : ControllerBase
         }
     }
 
+    [AllowAnonymous]
+    [HttpPost("forgot-password")]
+    public async Task<ActionResult<ApiResponse<bool>>> ForgotPassword([FromBody] ForgotPasswordRequest req, CancellationToken ct)
+    {
+        try
+        {
+            if (req == null || string.IsNullOrWhiteSpace(req.Email))
+                return BadRequest(ApiResponse<bool>.Fail("email is required"));
+
+            _actionLog.Info("Forgot password request (Email={Email})", req.Email);
+
+            string ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            string ua = HttpContext.Request.Headers.UserAgent.ToString();
+
+            await _users.GetForgotPasswordRequestByEmail(req, ip, ua, ct);
+            return Ok(ApiResponse<bool>.Ok(true));
+        }
+        catch (Exception ex)
+        {
+            _actionLog.Error(ex, "Forgot password failed (Email={Email})", req?.Email ?? "unknown");
+            return StatusCode(500, ApiResponse<bool>.Fail(ex.Message));
+        }
+    }
+
     [Authorize]
     [HttpGet("me")]
-    public async Task<ActionResult<ApiResponse<object>>> Me(CancellationToken ct)
+    public async Task<ActionResult<ApiResponse<UserResponse>>> Me(CancellationToken ct)
     {
         try
         {
@@ -67,18 +93,42 @@ public class AuthorizeController : ControllerBase
             string ua = HttpContext.Request.Headers.UserAgent.ToString();
             (bool status, string message, string refreshtoken) = await _istokenrefresh.UserHasConsent(HttpContext, ip, ua, ct);
             if (!status)
-                return Unauthorized(ApiResponse<object>.Fail(message));
+                return Unauthorized(ApiResponse<UserResponse>.Fail(message));
             string? userId = User.FindFirst("uid")?.Value;
-            string? username = User.FindFirst("un")?.Value;
-            string? role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
-            string? name = User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
-            string? permissions = User.FindFirst("permissions")?.Value;
-            return Ok(ApiResponse<object>.Ok(new { ok = true, userId = userId, username = username, role = role, name = name, permissions = permissions }));
+            if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int uid))
+                return Unauthorized(ApiResponse<UserResponse>.Fail("invalid user id in token"));
+            UserResponse? user = await _users.GetUserById(uid, ip, ua, ct);
+            if (user == null)
+                return NotFound(ApiResponse<UserResponse>.Fail("user not found"));
+            return Ok(ApiResponse<UserResponse>.Ok(user));
         }
         catch (Exception ex)
         {
             _actionLog.Error(ex, "Me failed (by={User})", User?.Identity?.Name ?? "anonymous");
-            return StatusCode(500, ApiResponse<object>.Fail(ex.Message));
+            return StatusCode(500, ApiResponse<UserResponse>.Fail(ex.Message));
         }
     }
+
+    [AllowAnonymous]
+    [HttpGet("refresh-token")]
+    public async Task<ActionResult<ApiResponse<TokenResponse>>> LineRefreshToken(CancellationToken ct)
+    {
+        try
+        {
+            _actionLog.Info("Line refresh token request");
+
+            string ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            string ua = HttpContext.Request.Headers.UserAgent.ToString();
+            (TokenResponse? resp, string? message) = await _istokenrefresh.UserRefreshAccessTokenAsync(HttpContext, ct);
+            if (resp == null)
+                return Unauthorized(ApiResponse<TokenResponse>.Fail(message ?? "Invalid refresh token"));
+            return Ok(ApiResponse<TokenResponse>.Ok(resp, message ?? "ok"));
+        }
+        catch (Exception ex)
+        {
+            _actionLog.Error(ex, "Line refresh token failed");
+            return StatusCode(500, ApiResponse<TokenResponse>.Fail(ex.Message));
+        }
+    }
+
 }

@@ -13,7 +13,7 @@ public partial class UserAuthentication
 
     public string ProviderId { get; set; } = null!;
 
-    public string PasswordHash { get; set; } = null!;
+    public string? PasswordHash { get; set; }
 
     public DateTime? LastLoginAt { get; set; }
 

@@ -3,27 +3,14 @@ export const internalEndpoints = {
   signout: "/api/auth/logout",
   authRefresh: "/api/auth/refresh",
 
-  line_authorize: "/api/auth/line-login",
-  line_logout: "/api/auth/line-logout",
-  line_refresh_token: "/api/auth/line-refresh-token",
-
-  friends: "/api/user/friends/list",
-  friends_incoming: "/api/user/friends/incomingfriends",
-  friends_outgoing: "/api/user/friends/outgoingfriends",
-  addfriend: "/api/user/friends/addfriend",
-  cancelfriend: "/api/user/friends/cancelfriend",
-  acceptfriend: "/api/user/friends/acceptfriend",
-  rejectfriend: "/api/user/friends/rejectfriend",
-  deletefriend: "/api/user/friends/deletefriend",
-
-  user_getevents: "/api/user/event/list",
-  user_addevents: "/api/user/event/addevent",
-
-  profile: "/api/user/profile",
+  profile: "/api/auth/me",
   userlogin: "/api/auth/login",
+  refreshToken: "/api/auth/refresh-token",
   userregister: "/api/user/register",
   resendconfirmation: "/api/user/resendconfirmation",
   verifyaccount: "/api/user/verifyaccount",
+  resetpassword: "/api/user/resetpassword",
+  forgotpassword: "/api/auth/forgot-password",
 } as const;
 
 export type InternalEndpointKey = keyof typeof internalEndpoints;
@@ -34,27 +21,14 @@ export const externalEndpoints = {
   register: "/api/v1/user/register",
   resendconfirmation: "/api/v1/user/resendconfirmation",
   verifyaccount: "/api/v1/user/verifyaccount",
-  refreshToken: "/api/v1/auth/refresh",
+  refreshToken: "/api/v1/auth/refresh-token",
   userConsent: "/api/v1/auth/user-consent",
 
-  line_authorize: "/api/v1/auth/line-login",
-  line_logout: "/api/v1/auth/line-logout",
-  line_refresh_token: "/api/v1/auth/line-refresh-token",
-
-  friends: "/api/v1/user/friends",
-  friends_incoming: "/api/v1/user/requests/incoming",
-  friends_outgoing: "/api/v1/user/requests/outgoing",
-  addfriend: "/api/v1/user/requests/addfriend",
-  cancelfriend: "/api/v1/user/requests/cancelfriend",
-  acceptfriend: "/api/v1/user/requests/acceptfriend",
-  rejectfriend: "/api/v1/user/requests/rejectfriend",
-  deletefriend: "/api/v1/user/requests/deletefriend",
-
-  profile: "/api/v1/user/profile",
+  profile: "/api/v1/auth/me",
   userlogin: "/api/v1/auth/login",
+  resetpassword: "/api/v1/user/resetpassword",
+  forgotpassword: "/api/v1/auth/forgot-password",
 
-  user_getevents: "/api/v1/event/event",
-  user_addevents: "/api/v1/event/addevent",
 
 } as const;
 

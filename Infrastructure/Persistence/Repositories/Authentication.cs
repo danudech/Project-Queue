@@ -39,7 +39,8 @@ public sealed class Authentication : IAuthentication
 
         User? user = await _db.Users
                             .Include(c => c.UserAuthentications)
-                            .Include(c => c.Roles)
+                            .Include(c => c.UserRoleMaps)
+                                .ThenInclude(ur => ur.Role)
                             .Include(c => c.UserSessions)
                             .Include(c => c.Status)
                             .FirstOrDefaultAsync(u => u.Email == EmailOrPhone || u.Phone == EmailOrPhone, ct);
@@ -70,11 +71,10 @@ public sealed class Authentication : IAuthentication
             _actionLog.Warning("Login failed for user {EmailOrPhone}: password verify failed", EmailOrPhone);
             return new LoginResponse { Message = "invalid email/phone or password" };
         }
-        UserRole? roleRecord = user.Roles.FirstOrDefault();
 
-        string role = roleRecord?.Id.ToString() ?? "";
-        string name = user.Name;
-        string[] permissions = user.Roles.Select(c => c.Name).ToArray();
+        string role = user.UserRoleMaps.FirstOrDefault()?.RoleId.ToString() ?? string.Empty;
+        string name = user.Name ?? string.Empty;
+        string[] permissions = user.UserRoleMaps.Select(ur => ur.Role.Name).ToArray();
 
         var (token, expUtc) = _accessToken.CreateAccessToken((int)(user?.Id ?? 0), EmailOrPhone, role, name, permissions);
         string refreshRaw = _accessToken.GenerateRefreshToken();
@@ -108,7 +108,7 @@ public sealed class Authentication : IAuthentication
                 Email = user?.Email ?? string.Empty,
                 Phone = user?.Phone ?? string.Empty,
                 Status = user?.Status.NameTh ?? "",
-                Role = roleRecord?.Name ?? string.Empty,
+                Role = role,
                 ProfilePictureUrl = "",
                 IsChangPassword = authInfo.LastLoginAt == null
             },

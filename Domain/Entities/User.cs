@@ -9,17 +9,15 @@ public partial class User
 
     public Guid Guid { get; set; }
 
-    public string Name { get; set; } = null!;
+    public string? Name { get; set; }
 
-    public string Phone { get; set; } = null!;
+    public string? Email { get; set; }
 
-    public string Email { get; set; } = null!;
+    public string? Phone { get; set; }
 
     public int StatusId { get; set; }
 
     public bool EmailConfirmed { get; set; }
-
-    public DateTime? EmailConfirmedAt { get; set; }
 
     public DateTime CreatedAt { get; set; }
 
@@ -41,7 +39,7 @@ public partial class User
 
     public virtual ICollection<UserImage> UserImages { get; set; } = new List<UserImage>();
 
-    public virtual ICollection<UserSession> UserSessions { get; set; } = new List<UserSession>();
+    public virtual ICollection<UserRoleMap> UserRoleMaps { get; set; } = new List<UserRoleMap>();
 
-    public virtual ICollection<UserRole> Roles { get; set; } = new List<UserRole>();
+    public virtual ICollection<UserSession> UserSessions { get; set; } = new List<UserSession>();
 }

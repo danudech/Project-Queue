@@ -10,14 +10,14 @@ import { UserRegister } from "@/types/user";
 import { http } from "@/lib/http/client";
 import { toast } from "sonner";
 
-const RESEND_COOLDOWN = 60; // วินาที
+const FORGOT_PASSWORD_COOLDOWN = 60; // วินาที
 
 const MailConfirm = () => {
   const t = useTranslations("EmailConfirmation");
 
   const [data, setData] = useState<UserRegister | null>(null);
   const [loading, setLoading] = useState(false);
-  const [countdown, setCountdown] = useState(0);
+  const [iscountdown, setIsCountdown] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -31,18 +31,16 @@ const MailConfirm = () => {
 
   // countdown timer
   useEffect(() => {
-    if (countdown <= 0) return;
+    if (iscountdown <= 0) return;
 
     const timer = setInterval(() => {
-      setCountdown((prev) => prev - 1);
+      setIsCountdown((prev) => prev - 1);
     }, 1000);
-    console.log("Countdown:", countdown);
     return () => clearInterval(timer);
-  }, [countdown]);
+  }, [iscountdown]);
 
   const resendMail = async () => {
-    console.log("Resend mail clicked", { data, loading, countdown });
-    if (!data || loading || countdown > 0) return;
+    if (!data || loading || iscountdown > 0) return;
 
     try {
       setLoading(true);
@@ -52,7 +50,7 @@ const MailConfirm = () => {
       toast.success("Confirmation email resent if the email is registered");
 
       // เริ่ม cooldown
-      setCountdown(RESEND_COOLDOWN);
+      setIsCountdown(FORGOT_PASSWORD_COOLDOWN);
     } catch (err: any) {
       toast.error(err?.message || "Something went wrong");
     } finally {
@@ -107,12 +105,12 @@ const MailConfirm = () => {
               <button
                 className="text-primary font-medium hover:underline disabled:opacity-50"
                 onClick={resendMail}
-                disabled={loading || countdown > 0}
+                disabled={loading || iscountdown > 0}
               >
                 {loading
                   ? t("sending")
-                  : countdown > 0
-                    ? t("resend_in", { seconds: countdown })
+                  : iscountdown > 0
+                    ? t("resend_in", { seconds: iscountdown })
                     : t("resend_link")}
               </button>
             </p>

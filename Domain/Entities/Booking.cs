@@ -19,13 +19,15 @@ public partial class Booking
 
     public int? QueueCategoryId { get; set; }
 
-    public string? QueueNumber { get; set; }
+    public int? QueueNumber { get; set; }
 
     public string? Remark { get; set; }
 
     public int StatusId { get; set; }
 
     public DateTime CreatedAt { get; set; }
+
+    public virtual ICollection<BookingService> BookingServices { get; set; } = new List<BookingService>();
 
     public virtual ShopBranch Branch { get; set; } = null!;
 
@@ -40,6 +42,4 @@ public partial class Booking
     public virtual MasterStatus Status { get; set; } = null!;
 
     public virtual User User { get; set; } = null!;
-
-    public virtual ICollection<Service> Services { get; set; } = new List<Service>();
 }

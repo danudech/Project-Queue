@@ -1,7 +1,6 @@
 "use client"
 
 import * as React from "react"
-import { useSession } from "next-auth/react";
 import { ChevronsUpDown, Check, CirclePlus } from 'lucide-react';
 
 import { cn } from "@/lib/utils"
@@ -47,6 +46,7 @@ import { useConfig } from "@/hooks/use-config";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMenuHoverConfig } from "@/hooks/use-menu-hover";
+import { useMe } from "@/hooks/use-me";
 
 const groups = [
     {
@@ -90,16 +90,18 @@ export default function TeamSwitcher({ className }: TeamSwitcherProps) {
     const [config] = useConfig();
     const [hoverConfig] = useMenuHoverConfig();
     const { hovered } = hoverConfig;
-    const { data: session } = useSession();
     const [open, setOpen] = React.useState(false)
     const [showNewTeamDialog, setShowNewTeamDialog] = React.useState(false)
     const [selectedTeam, setSelectedTeam] = React.useState<Team>(
         groups[0].teams[0]
     )
     const isDesktop = useMediaQuery("(min-width: 1280px)")
+    const { data, isLoading } = useMe();
+
     if (config.showSwitcher === false || config.sidebar === 'compact') return null
 
-
+    if (isLoading) return <div>Loading...</div>;
+    
     return (
         <Dialog open={showNewTeamDialog} onOpenChange={setShowNewTeamDialog}>
             <Popover open={open} onOpenChange={setOpen}>
@@ -130,12 +132,12 @@ export default function TeamSwitcher({ className }: TeamSwitcherProps) {
                                 <AvatarImage
                                     height={24}
                                     width={24}
-                                    src={session?.user?.image as any}
+                                    src={data?.profilePictureUrl || "https://avatars.githubusercontent.com/u/9919?s=200&v=4"}
                                     alt={selectedTeam.label}
                                     className="grayscale"
                                 />
 
-                                <AvatarFallback>{session?.user?.name?.charAt(0)}</AvatarFallback>
+                                <AvatarFallback>{data?.name?.charAt(0)}</AvatarFallback>
                             </Avatar>
                         </Button> : <Button
                             variant="outline"
@@ -151,16 +153,16 @@ export default function TeamSwitcher({ className }: TeamSwitcherProps) {
                                     <AvatarImage
                                         height={38}
                                         width={38}
-                                        src={session?.user?.image as any}
+                                        src={data?.profilePictureUrl || "https://avatars.githubusercontent.com/u/9919?s=200&v=4"}
                                         alt={selectedTeam.label}
                                         className="grayscale"
                                     />
 
-                                    <AvatarFallback>{session?.user?.name?.charAt(0)}</AvatarFallback>
+                                    <AvatarFallback>{data?.name?.charAt(0)}</AvatarFallback>
                                 </Avatar>
                                 <div className="flex-1 text-start w-[100px]">
 
-                                    <div className=" text-sm  font-semibold text-default-900">Codeshaper</div>
+                                    <div className=" text-sm  font-semibold text-default-900">ร้านค้า/บริการ</div>
                                     <div className=" text-xs font-normal text-default-500 dark:text-default-700 truncate ">{selectedTeam.label}</div>
 
                                 </div>
@@ -175,8 +177,6 @@ export default function TeamSwitcher({ className }: TeamSwitcherProps) {
                 <PopoverContent className="w-[200px] p-0">
                     <Command>
                         <CommandList>
-                            <CommandInput placeholder="Search team..." className=" placeholder:text-xs" />
-                            <CommandEmpty>No team found.</CommandEmpty>
                             {groups.map((group) => (
                                 <CommandGroup key={group.label} heading={group.label}>
                                     {group.teams.map((team) => (
