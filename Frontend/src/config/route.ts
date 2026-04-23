@@ -4,7 +4,7 @@ export const ROUTES = {
     REGISTER: "/register",
   },
   DASHBOARD: {
-    HOME: "/dashboard",
-    INFO: "/info",
+    HOME: "en/dashboard",
+    INFO: "en/info",
   },
 };
