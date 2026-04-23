@@ -206,39 +206,42 @@
     "ratings": "ratings",
     "view_less": "View Less",
     "add_to_cart": "Add to Cart"
-  },"Menu": {
+  },
+  "Menu": {
     "dashboard": "Dashboard",
-
+    "analytics": "Analytics",
+    "queueAndBooking": "Queue & Booking",
     "queue": "Queue",
-    "todayQueue": "Today",
-    "waiting": "Waiting",
-    "processing": "Processing",
-    "completed": "Completed",
-    "cancel": "Cancelled",
-    "history": "History",
-
-    "shop": "Shop",
-
+    "queueLive": "Live Queue",
+    "queueHistory": "Queue History",
+    "queueCategory": "Queue Categories",
+    "booking": "Booking",
+    "bookingList": "Booking List",
+    "bookingSlot": "Queue Slots",
     "service": "Services",
     "serviceList": "Service List",
-    "category": "Category",
-
-    "staff": "Staff",
-    "staffList": "Staff List",
-    "schedule": "Schedule",
-
+    "serviceCategory": "Service Categories",
     "customer": "Customers",
     "customerList": "Customer List",
-
-    "report": "Reports",
-    "queueReport": "Queue Report",
-    "revenueReport": "Revenue Report",
-
+    "customerTag": "Customer Tags",
+    "finance": "Finance",
+    "payment": "Payments",
+    "paymentList": "Payment List",
+    "paymentTransaction": "Transactions",
+    "invoice": "Invoices",
+    "subscription": "Subscription",
+    "notification": "Notifications",
     "setting": "Settings",
+    "shopSetting": "Shop",
     "shopInfo": "Shop Info",
+    "branch": "Branches",
     "businessHours": "Business Hours",
+    "holiday": "Holidays",
+    "staff": "Staff",
     "queueSetting": "Queue Settings",
-
+    "systemConfig": "System Config",
+    "auditLog": "Audit Logs",
+    "masterStatus": "Master Status",
     "logout": "Logout"
   },
   "Changelog": {

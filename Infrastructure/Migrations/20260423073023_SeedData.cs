@@ -108,13 +108,21 @@ BEGIN
     ('PAYMENT_STATUS','FAILED',    N'ล้มเหลว',               'Failed'),
 
     -- Notification
-    ('NOTIFICATION_STATUS','UNREAD', N'ยังไม่อ่าน',          'Unread'),
-    ('NOTIFICATION_STATUS','READ',   N'อ่านแล้ว',            'Read'),
+    ('NOTIFICATION_STATUS','UNREAD', N'ยังไม่อ่าน', 'Unread'),
+    ('NOTIFICATION_STATUS','READ',   N'อ่านแล้ว',   'Read'),
 
     -- Invoice
-    ('INVOICE_STATUS','PENDING',   N'รอชำระ',               'Pending'),
-    ('INVOICE_STATUS','PAID',      N'ชำระแล้ว',              'Paid'),
-    ('INVOICE_STATUS','CANCELLED', N'ยกเลิก',               'Cancelled');
+    ('INVOICE_STATUS','PENDING',   N'รอชำระ',  'Pending'),
+    ('INVOICE_STATUS','PAID',      N'ชำระแล้ว', 'Paid'),
+    ('INVOICE_STATUS','CANCELLED', N'ยกเลิก',   'Cancelled'),
+
+    -- Shop Type
+    ('SHOP_TYPE', 'CLINIC',     N'คลินิก / สถานพยาบาล', 'Clinic'),
+    ('SHOP_TYPE', 'SALON',      N'ร้านเสริมสวย / ตัดผม', 'Salon'),
+    ('SHOP_TYPE', 'RESTAURANT', N'ร้านอาหาร',             'Restaurant'),
+    ('SHOP_TYPE', 'GOVERNMENT', N'หน่วยงานราชการ',       'Government'),
+    ('SHOP_TYPE', 'BANK',       N'ธนาคาร / การเงิน',      'Bank'),
+    ('SHOP_TYPE', 'OTHER',      N'อื่น ๆ',                'Other');
 END
 ");
 
@@ -209,9 +217,10 @@ VALUES
 -- ✅ FIX: ใช้ SHOP_STATUS แทน USER_STATUS
 -- =========================
 SET IDENTITY_INSERT Shops ON;
-INSERT INTO Shops (Id, Guid, Name, OwnerId, AddressId, StatusId)
-VALUES (1, '{shopGuid}', N'Demo Shop', 1, 1,
-    (SELECT Id FROM MasterStatuses WHERE Type='SHOP_STATUS' AND Code='ACTIVE'));
+INSERT INTO Shops (Id, Guid, Name, OwnerId, StatusId, TypeId)
+VALUES (1, '{shopGuid}', N'Demo Shop', 1,
+    (SELECT Id FROM MasterStatuses WHERE Type='SHOP_STATUS' AND Code='ACTIVE'),
+    (SELECT Id FROM MasterStatuses WHERE Type='SHOP_TYPE' AND Code='CLINIC'));
 SET IDENTITY_INSERT Shops OFF;
 
 -- =========================

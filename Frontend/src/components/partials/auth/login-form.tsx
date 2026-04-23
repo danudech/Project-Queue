@@ -95,7 +95,7 @@ const LoginForm = () => {
       if (login.isChangPassword) {
         router.push(
           "/auth/resetpassword?returnUrl=" +
-            encodeURIComponent(returnUrl || "/dashboard"),
+          encodeURIComponent(returnUrl || "/dashboard"),
         );
         return;
       }
@@ -109,7 +109,6 @@ const LoginForm = () => {
       router.push(redirectTo);
     } catch (err: any) {
       toast.error(err.message || "Something went wrong");
-    } finally {
       setLoading(false);
     }
   };

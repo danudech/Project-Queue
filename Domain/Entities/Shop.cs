@@ -13,11 +13,9 @@ public partial class Shop
 
     public int OwnerId { get; set; }
 
-    public int AddressId { get; set; }
+    public int? TypeId { get; set; }
 
     public int StatusId { get; set; }
-
-    public virtual Address Address { get; set; } = null!;
 
     public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 
@@ -50,4 +48,6 @@ public partial class Shop
     public virtual MasterStatus Status { get; set; } = null!;
 
     public virtual ICollection<Subscription> Subscriptions { get; set; } = new List<Subscription>();
+
+    public virtual MasterStatus? Type { get; set; }
 }

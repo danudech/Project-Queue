@@ -12,8 +12,8 @@ using Queue.Infrastructure.Persistence;
 namespace Queue.Infrastructure.Migrations
 {
     [DbContext(typeof(QueueDbContext))]
-    [Migration("20260422044934_InitialFullSchema")]
-    partial class InitialFullSchema
+    [Migration("20260423073023_SeedData")]
+    partial class SeedData
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,36 +24,6 @@ namespace Queue.Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("BookingService", b =>
-                {
-                    b.Property<int>("BookingId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ServiceId")
-                        .HasColumnType("int");
-
-                    b.HasKey("BookingId", "ServiceId");
-
-                    b.HasIndex("ServiceId");
-
-                    b.ToTable("BookingServices", (string)null);
-                });
-
-            modelBuilder.Entity("CustomerTagMap", b =>
-                {
-                    b.Property<int>("CustomerId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TagId")
-                        .HasColumnType("int");
-
-                    b.HasKey("CustomerId", "TagId");
-
-                    b.HasIndex("TagId");
-
-                    b.ToTable("CustomerTagMaps", (string)null);
-                });
 
             modelBuilder.Entity("Queue.Domain.Entities.Address", b =>
                 {
@@ -201,6 +171,26 @@ namespace Queue.Infrastructure.Migrations
                     b.ToTable("Bookings");
                 });
 
+            modelBuilder.Entity("Queue.Domain.Entities.BookingService", b =>
+                {
+                    b.Property<int>("BookingId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ServiceId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.HasKey("BookingId", "ServiceId");
+
+                    b.HasIndex("ServiceId");
+
+                    b.ToTable("BookingServices");
+                });
+
             modelBuilder.Entity("Queue.Domain.Entities.Customer", b =>
                 {
                     b.Property<int>("Id")
@@ -281,6 +271,26 @@ namespace Queue.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("CustomerTags");
+                });
+
+            modelBuilder.Entity("Queue.Domain.Entities.CustomerTagMap", b =>
+                {
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TagId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.HasKey("CustomerId", "TagId");
+
+                    b.HasIndex("TagId");
+
+                    b.ToTable("CustomerTagMaps");
                 });
 
             modelBuilder.Entity("Queue.Domain.Entities.District", b =>
@@ -833,6 +843,46 @@ namespace Queue.Infrastructure.Migrations
                     b.ToTable("ServiceCategories");
                 });
 
+            modelBuilder.Entity("Queue.Domain.Entities.ServiceCategoryMap", b =>
+                {
+                    b.Property<int>("ServiceId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.HasKey("ServiceId", "CategoryId");
+
+                    b.HasIndex("CategoryId");
+
+                    b.ToTable("ServiceCategoryMaps");
+                });
+
+            modelBuilder.Entity("Queue.Domain.Entities.ServiceStaffMap", b =>
+                {
+                    b.Property<int>("ServiceId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StaffId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.HasKey("ServiceId", "StaffId");
+
+                    b.HasIndex("StaffId");
+
+                    b.ToTable("ServiceStaffMaps");
+                });
+
             modelBuilder.Entity("Queue.Domain.Entities.Shop", b =>
                 {
                     b.Property<int>("Id")
@@ -1236,6 +1286,26 @@ namespace Queue.Infrastructure.Migrations
                     b.ToTable("UserImages");
                 });
 
+            modelBuilder.Entity("Queue.Domain.Entities.UserRoleMap", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RoleId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.HasKey("UserId", "RoleId");
+
+                    b.HasIndex(new[] { "RoleId" }, "IX_UserRoleMaps_RoleId");
+
+                    b.ToTable("UserRoleMaps");
+                });
+
             modelBuilder.Entity("Queue.Domain.Entities.UserSession", b =>
                 {
                     b.Property<int>("Id")
@@ -1280,81 +1350,6 @@ namespace Queue.Infrastructure.Migrations
                     b.HasIndex(new[] { "UserId" }, "IX_UserSessions_UserId");
 
                     b.ToTable("UserSessions");
-                });
-
-            modelBuilder.Entity("ServiceCategoryMap", b =>
-                {
-                    b.Property<int>("ServiceId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("CategoryId")
-                        .HasColumnType("int");
-
-                    b.HasKey("ServiceId", "CategoryId");
-
-                    b.HasIndex("CategoryId");
-
-                    b.ToTable("ServiceCategoryMaps", (string)null);
-                });
-
-            modelBuilder.Entity("ServiceStaffMap", b =>
-                {
-                    b.Property<int>("ServiceId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("StaffId")
-                        .HasColumnType("int");
-
-                    b.HasKey("ServiceId", "StaffId");
-
-                    b.HasIndex("StaffId");
-
-                    b.ToTable("ServiceStaffMaps", (string)null);
-                });
-
-            modelBuilder.Entity("UserRoleMap", b =>
-                {
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("RoleId")
-                        .HasColumnType("int");
-
-                    b.HasKey("UserId", "RoleId");
-
-                    b.HasIndex(new[] { "RoleId" }, "IX_UserRoleMaps_RoleId");
-
-                    b.ToTable("UserRoleMaps", (string)null);
-                });
-
-            modelBuilder.Entity("BookingService", b =>
-                {
-                    b.HasOne("Queue.Domain.Entities.Booking", null)
-                        .WithMany()
-                        .HasForeignKey("BookingId")
-                        .IsRequired()
-                        .HasConstraintName("FK_BS_Booking");
-
-                    b.HasOne("Queue.Domain.Entities.Service", null)
-                        .WithMany()
-                        .HasForeignKey("ServiceId")
-                        .IsRequired()
-                        .HasConstraintName("FK_BS_Service");
-                });
-
-            modelBuilder.Entity("CustomerTagMap", b =>
-                {
-                    b.HasOne("Queue.Domain.Entities.Customer", null)
-                        .WithMany()
-                        .HasForeignKey("CustomerId")
-                        .IsRequired()
-                        .HasConstraintName("FK_CTM_Customer");
-
-                    b.HasOne("Queue.Domain.Entities.CustomerTag", null)
-                        .WithMany()
-                        .HasForeignKey("TagId")
-                        .IsRequired()
-                        .HasConstraintName("FK_CTM_Tag");
                 });
 
             modelBuilder.Entity("Queue.Domain.Entities.Address", b =>
@@ -1434,6 +1429,25 @@ namespace Queue.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Queue.Domain.Entities.BookingService", b =>
+                {
+                    b.HasOne("Queue.Domain.Entities.Booking", "Booking")
+                        .WithMany("BookingServices")
+                        .HasForeignKey("BookingId")
+                        .IsRequired()
+                        .HasConstraintName("FK_BS_Booking");
+
+                    b.HasOne("Queue.Domain.Entities.Service", "Service")
+                        .WithMany("BookingServices")
+                        .HasForeignKey("ServiceId")
+                        .IsRequired()
+                        .HasConstraintName("FK_BS_Service");
+
+                    b.Navigation("Booking");
+
+                    b.Navigation("Service");
+                });
+
             modelBuilder.Entity("Queue.Domain.Entities.Customer", b =>
                 {
                     b.HasOne("Queue.Domain.Entities.Shop", "Shop")
@@ -1462,6 +1476,25 @@ namespace Queue.Infrastructure.Migrations
                         .HasConstraintName("FK_CustomerNotes_Customer");
 
                     b.Navigation("Customer");
+                });
+
+            modelBuilder.Entity("Queue.Domain.Entities.CustomerTagMap", b =>
+                {
+                    b.HasOne("Queue.Domain.Entities.Customer", "Customer")
+                        .WithMany("CustomerTagMaps")
+                        .HasForeignKey("CustomerId")
+                        .IsRequired()
+                        .HasConstraintName("FK_CTM_Customer");
+
+                    b.HasOne("Queue.Domain.Entities.CustomerTag", "Tag")
+                        .WithMany("CustomerTagMaps")
+                        .HasForeignKey("TagId")
+                        .IsRequired()
+                        .HasConstraintName("FK_CTM_Tag");
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("Tag");
                 });
 
             modelBuilder.Entity("Queue.Domain.Entities.District", b =>
@@ -1671,6 +1704,44 @@ namespace Queue.Infrastructure.Migrations
                     b.Navigation("Shop");
                 });
 
+            modelBuilder.Entity("Queue.Domain.Entities.ServiceCategoryMap", b =>
+                {
+                    b.HasOne("Queue.Domain.Entities.ServiceCategory", "Category")
+                        .WithMany("ServiceCategoryMaps")
+                        .HasForeignKey("CategoryId")
+                        .IsRequired()
+                        .HasConstraintName("FK_SCM_Category");
+
+                    b.HasOne("Queue.Domain.Entities.Service", "Service")
+                        .WithMany("ServiceCategoryMaps")
+                        .HasForeignKey("ServiceId")
+                        .IsRequired()
+                        .HasConstraintName("FK_SCM_Service");
+
+                    b.Navigation("Category");
+
+                    b.Navigation("Service");
+                });
+
+            modelBuilder.Entity("Queue.Domain.Entities.ServiceStaffMap", b =>
+                {
+                    b.HasOne("Queue.Domain.Entities.Service", "Service")
+                        .WithMany("ServiceStaffMaps")
+                        .HasForeignKey("ServiceId")
+                        .IsRequired()
+                        .HasConstraintName("FK_SSM_Service");
+
+                    b.HasOne("Queue.Domain.Entities.ShopStaff", "Staff")
+                        .WithMany("ServiceStaffMaps")
+                        .HasForeignKey("StaffId")
+                        .IsRequired()
+                        .HasConstraintName("FK_SSM_Staff");
+
+                    b.Navigation("Service");
+
+                    b.Navigation("Staff");
+                });
+
             modelBuilder.Entity("Queue.Domain.Entities.Shop", b =>
                 {
                     b.HasOne("Queue.Domain.Entities.Address", "Address")
@@ -1825,6 +1896,27 @@ namespace Queue.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Queue.Domain.Entities.UserRoleMap", b =>
+                {
+                    b.HasOne("Queue.Domain.Entities.Role", "Role")
+                        .WithMany("UserRoleMaps")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_URM_Role");
+
+                    b.HasOne("Queue.Domain.Entities.User", "User")
+                        .WithMany("UserRoleMaps")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_URM_User");
+
+                    b.Navigation("Role");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Queue.Domain.Entities.UserSession", b =>
                 {
                     b.HasOne("Queue.Domain.Entities.User", "User")
@@ -1836,53 +1928,6 @@ namespace Queue.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("ServiceCategoryMap", b =>
-                {
-                    b.HasOne("Queue.Domain.Entities.ServiceCategory", null)
-                        .WithMany()
-                        .HasForeignKey("CategoryId")
-                        .IsRequired()
-                        .HasConstraintName("FK_SCM_Category");
-
-                    b.HasOne("Queue.Domain.Entities.Service", null)
-                        .WithMany()
-                        .HasForeignKey("ServiceId")
-                        .IsRequired()
-                        .HasConstraintName("FK_SCM_Service");
-                });
-
-            modelBuilder.Entity("ServiceStaffMap", b =>
-                {
-                    b.HasOne("Queue.Domain.Entities.Service", null)
-                        .WithMany()
-                        .HasForeignKey("ServiceId")
-                        .IsRequired()
-                        .HasConstraintName("FK_SSM_Service");
-
-                    b.HasOne("Queue.Domain.Entities.ShopStaff", null)
-                        .WithMany()
-                        .HasForeignKey("StaffId")
-                        .IsRequired()
-                        .HasConstraintName("FK_SSM_Staff");
-                });
-
-            modelBuilder.Entity("UserRoleMap", b =>
-                {
-                    b.HasOne("Queue.Domain.Entities.Role", null)
-                        .WithMany()
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_URM_Role");
-
-                    b.HasOne("Queue.Domain.Entities.User", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_URM_User");
-                });
-
             modelBuilder.Entity("Queue.Domain.Entities.Address", b =>
                 {
                     b.Navigation("ShopBranches");
@@ -1892,12 +1937,21 @@ namespace Queue.Infrastructure.Migrations
 
             modelBuilder.Entity("Queue.Domain.Entities.Booking", b =>
                 {
+                    b.Navigation("BookingServices");
+
                     b.Navigation("Payments");
                 });
 
             modelBuilder.Entity("Queue.Domain.Entities.Customer", b =>
                 {
                     b.Navigation("CustomerNotes");
+
+                    b.Navigation("CustomerTagMaps");
+                });
+
+            modelBuilder.Entity("Queue.Domain.Entities.CustomerTag", b =>
+                {
+                    b.Navigation("CustomerTagMaps");
                 });
 
             modelBuilder.Entity("Queue.Domain.Entities.District", b =>
@@ -1960,6 +2014,25 @@ namespace Queue.Infrastructure.Migrations
                     b.Navigation("Bookings");
                 });
 
+            modelBuilder.Entity("Queue.Domain.Entities.Role", b =>
+                {
+                    b.Navigation("UserRoleMaps");
+                });
+
+            modelBuilder.Entity("Queue.Domain.Entities.Service", b =>
+                {
+                    b.Navigation("BookingServices");
+
+                    b.Navigation("ServiceCategoryMaps");
+
+                    b.Navigation("ServiceStaffMaps");
+                });
+
+            modelBuilder.Entity("Queue.Domain.Entities.ServiceCategory", b =>
+                {
+                    b.Navigation("ServiceCategoryMaps");
+                });
+
             modelBuilder.Entity("Queue.Domain.Entities.Shop", b =>
                 {
                     b.Navigation("Bookings");
@@ -2000,6 +2073,11 @@ namespace Queue.Infrastructure.Migrations
                     b.Navigation("Queues");
                 });
 
+            modelBuilder.Entity("Queue.Domain.Entities.ShopStaff", b =>
+                {
+                    b.Navigation("ServiceStaffMaps");
+                });
+
             modelBuilder.Entity("Queue.Domain.Entities.Subdistrict", b =>
                 {
                     b.Navigation("Addresses");
@@ -2022,6 +2100,8 @@ namespace Queue.Infrastructure.Migrations
                     b.Navigation("UserAuthentications");
 
                     b.Navigation("UserImages");
+
+                    b.Navigation("UserRoleMaps");
 
                     b.Navigation("UserSessions");
                 });

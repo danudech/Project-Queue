@@ -342,18 +342,21 @@ namespace Queue.Infrastructure.Migrations
                     Guid = table.Column<Guid>(defaultValueSql: "NEWID()"),
                     Name = table.Column<string>(maxLength: 150),
                     OwnerId = table.Column<int>(),
-                    AddressId = table.Column<int>(),
+                    TypeId = table.Column<int>(nullable: true),
+
                     StatusId = table.Column<int>()
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Shops", x => x.Id);
-                    table.ForeignKey("FK_Shops_User", x => x.OwnerId, "Users", "Id");
-                    table.ForeignKey("FK_Shops_Address", x => x.AddressId, "Addresses", "Id");
+                    table.ForeignKey("FK_Shops_Owner", x => x.OwnerId, "Users", "Id");
+                    table.ForeignKey("FK_Shops_Type", x => x.TypeId, "MasterStatuses", "Id");
                     table.ForeignKey("FK_Shops_Status", x => x.StatusId, "MasterStatuses", "Id");
                 });
 
             migrationBuilder.CreateIndex("IX_Shops_Guid", "Shops", "Guid", unique: true);
+            migrationBuilder.CreateIndex("IX_Shops_OwnerId", "Shops", "OwnerId");
+            migrationBuilder.CreateIndex("IX_Shops_TypeId", "Shops", "TypeId");
 
             migrationBuilder.CreateTable(
                 name: "ShopBranches",

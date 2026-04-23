@@ -95,7 +95,6 @@ public partial class QueueDbContext : DbContext
     public virtual DbSet<UserRoleMap> UserRoleMaps { get; set; }
 
     public virtual DbSet<UserSession> UserSessions { get; set; }
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Address>(entity =>
@@ -507,23 +506,26 @@ public partial class QueueDbContext : DbContext
         {
             entity.HasIndex(e => e.Guid, "IX_Shops_Guid").IsUnique();
 
+            entity.HasIndex(e => e.OwnerId, "IX_Shops_OwnerId");
+
+            entity.HasIndex(e => e.TypeId, "IX_Shops_TypeId");
+
             entity.Property(e => e.Guid).HasDefaultValueSql("(newid())");
             entity.Property(e => e.Name).HasMaxLength(150);
-
-            entity.HasOne(d => d.Address).WithMany(p => p.Shops)
-                .HasForeignKey(d => d.AddressId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Shops_Address");
 
             entity.HasOne(d => d.Owner).WithMany(p => p.Shops)
                 .HasForeignKey(d => d.OwnerId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Shops_User");
+                .HasConstraintName("FK_Shops_Owner");
 
-            entity.HasOne(d => d.Status).WithMany(p => p.Shops)
+            entity.HasOne(d => d.Status).WithMany(p => p.ShopStatuses)
                 .HasForeignKey(d => d.StatusId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Shops_Status");
+
+            entity.HasOne(d => d.Type).WithMany(p => p.ShopTypes)
+                .HasForeignKey(d => d.TypeId)
+                .HasConstraintName("FK_Shops_Type");
         });
 
         modelBuilder.Entity<ShopBranch>(entity =>

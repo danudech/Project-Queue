@@ -25,7 +25,5 @@ public partial class Address
 
     public virtual ICollection<ShopBranch> ShopBranches { get; set; } = new List<ShopBranch>();
 
-    public virtual ICollection<Shop> Shops { get; set; } = new List<Shop>();
-
     public virtual Subdistrict Subdistrict { get; set; } = null!;
 }

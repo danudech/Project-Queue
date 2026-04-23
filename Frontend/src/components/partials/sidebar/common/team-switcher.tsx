@@ -1,14 +1,13 @@
 "use client"
 
 import * as React from "react"
-import { ChevronsUpDown, Check, CirclePlus } from 'lucide-react';
+import { ChevronsUpDown, Check, CirclePlus, Phone, Briefcase, Store, Loader2 } from 'lucide-react';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 
 import { cn } from "@/lib/utils"
-import {
-    Avatar,
-    AvatarFallback,
-    AvatarImage,
-} from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
     Command,
@@ -30,11 +29,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import {
     Select,
     SelectContent,
@@ -42,138 +37,125 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from "@/components/ui/form"
 import { useConfig } from "@/hooks/use-config";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useMenuHoverConfig } from "@/hooks/use-menu-hover";
-import { useMe } from "@/hooks/use-me";
+import { useProfile, useShop } from "@/hooks/use-me";
+
+// 1. กำหนด Schema สำหรับการ Validate
+const formSchema = z.object({
+    name: z.string().min(2, "ชื่อร้านต้องมีความยาวอย่างน้อย 2 ตัวอักษร"),
+    type: z.string().min(1, "กรุณาเลือกประเภทธุรกิจ"),
+    phone: z.string().regex(/^[0-9+\-\s()]*$/, "รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง").optional().or(z.string().length(0)),
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 const groups = [
     {
         label: "Personal Account",
-        teams: [
-            {
-                label: "Designing Workspace",
-                value: "personal",
-            },
-        ],
+        teams: [{ label: "Designing Workspace", value: "personal" }],
     },
     {
         label: "Teams",
         teams: [
-            {
-                label: "Core Workspace",
-                value: "acme-inc",
-            },
-            {
-                label: "Dev.Workspace",
-                value: "monsters",
-            },
+            { label: "Core Workspace", value: "acme-inc" },
+            { label: "Dev.Workspace", value: "monsters" },
         ],
     },
 ]
 
 type Team = (typeof groups)[number]["teams"][number]
 
-type PopoverTriggerProps = React.ComponentPropsWithoutRef<typeof PopoverTrigger>
-
-interface TeamSwitcherProps extends PopoverTriggerProps {
-    className?: string;
-}
-
-const scaleVariants = {
-    collapsed: { scale: 0.8 },
-    expanded: { scale: 1 }
-};
-
-export default function TeamSwitcher({ className }: TeamSwitcherProps) {
+export default function TeamSwitcher({ className }: { className?: string }) {
     const [config] = useConfig();
     const [hoverConfig] = useMenuHoverConfig();
     const { hovered } = hoverConfig;
     const [open, setOpen] = React.useState(false)
     const [showNewTeamDialog, setShowNewTeamDialog] = React.useState(false)
-    const [selectedTeam, setSelectedTeam] = React.useState<Team>(
-        groups[0].teams[0]
-    )
-    const isDesktop = useMediaQuery("(min-width: 1280px)")
-    const { data, isLoading } = useMe();
+    const [selectedTeam, setSelectedTeam] = React.useState<Team>(groups[0].teams[0])
+    
+    const { data, isLoading } = useProfile();
+    const { data: shopData, isLoading: isShopLoading } = useShop();
+
+    // 2. Setup Form ด้วย React Hook Form
+    const form = useForm<FormValues>({
+        resolver: zodResolver(formSchema),
+        defaultValues: {
+            name: "",
+            type: "",
+            phone: "",
+        },
+    });
+
+    const onSubmit = (values: FormValues) => {
+        console.log("Form Submitted:", values);
+        // จำลองการโหลดหรือส่งข้อมูล
+        setTimeout(() => {
+            setShowNewTeamDialog(false);
+            form.reset();
+        }, 1000);
+    };
 
     if (config.showSwitcher === false || config.sidebar === 'compact') return null
+    if (isLoading || isShopLoading) return <div className="p-4 flex justify-center"><Loader2 className="animate-spin h-5 w-5" /></div>;
 
-    if (isLoading) return <div>Loading...</div>;
-    
     return (
-        <Dialog open={showNewTeamDialog} onOpenChange={setShowNewTeamDialog}>
+        <Dialog open={showNewTeamDialog} onOpenChange={(val) => {
+            setShowNewTeamDialog(val);
+            if (!val) form.reset(); // Reset form เมื่อปิด dialog
+        }}>
             <Popover open={open} onOpenChange={setOpen}>
-
-
                 <PopoverTrigger asChild>
-
-
-
                     <motion.div
                         key={(config.collapsed && !hovered) ? "collapsed" : "expanded"}
                         initial={{ scale: 0.9 }}
                         animate={{ scale: 1 }}
                         transition={{ type: "spring", stiffness: 300, damping: 20 }}
-
-
                     >
-                        {(config.collapsed && !hovered) ? <Button
-                            variant="outline"
-                            color="secondary"
-                            role="combobox"
-                            fullWidth
-                            aria-expanded={open}
-                            aria-label="Select a team"
-                            className={cn("  h-14 w-14 mx-auto  p-0 md:p-0  dark:border-secondary ring-offset-sidebar", className)}
-                        >
-                            <Avatar className="">
-                                <AvatarImage
-                                    height={24}
-                                    width={24}
-                                    src={data?.profilePictureUrl || "https://avatars.githubusercontent.com/u/9919?s=200&v=4"}
-                                    alt={selectedTeam.label}
-                                    className="grayscale"
-                                />
-
-                                <AvatarFallback>{data?.name?.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                        </Button> : <Button
-                            variant="outline"
-                            color="secondary"
-                            role="combobox"
-                            fullWidth
-                            aria-expanded={open}
-                            aria-label="Select a team"
-                            className={cn("  h-auto py-3 md:px-3 px-3 justify-start dark:border-secondary ring-offset-sidebar", className)}
-                        >
-                            <div className=" flex  gap-2 flex-1 items-center">
-                                <Avatar className=" flex-none h-[38px] w-[38px]">
-                                    <AvatarImage
-                                        height={38}
-                                        width={38}
-                                        src={data?.profilePictureUrl || "https://avatars.githubusercontent.com/u/9919?s=200&v=4"}
-                                        alt={selectedTeam.label}
-                                        className="grayscale"
-                                    />
-
+                        {/* ส่วน Switcher Button (คงเดิมตาม Logic คุณ) */}
+                        {(config.collapsed && !hovered) ? (
+                            <Button
+                                variant="outline"
+                                color="secondary"
+                                className={cn("h-14 w-14 mx-auto p-0 dark:border-secondary", className)}
+                            >
+                                <Avatar>
+                                    <AvatarImage src={data?.profilePictureUrl} className="grayscale" />
                                     <AvatarFallback>{data?.name?.charAt(0)}</AvatarFallback>
                                 </Avatar>
-                                <div className="flex-1 text-start w-[100px]">
-
-                                    <div className=" text-sm  font-semibold text-default-900">ร้านค้า/บริการ</div>
-                                    <div className=" text-xs font-normal text-default-500 dark:text-default-700 truncate ">{selectedTeam.label}</div>
-
+                            </Button>
+                        ) : (
+                            <Button
+                                variant="outline"
+                                color="secondary"
+                                className={cn("h-auto py-3 px-3 justify-start dark:border-secondary w-full", className)}
+                            >
+                                <div className="flex gap-2 flex-1 items-center overflow-hidden">
+                                    <Avatar className="h-9 w-9 flex-none">
+                                        <AvatarImage src={data?.profilePictureUrl} className="grayscale" />
+                                        <AvatarFallback>{data?.name?.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex-1 text-start overflow-hidden">
+                                        <div className="text-sm font-semibold text-default-900 truncate">ร้านค้า/บริการ</div>
+                                        <div className="text-xs font-normal text-default-500 truncate">{selectedTeam.label}</div>
+                                    </div>
+                                    <ChevronsUpDown className="h-4 w-4 shrink-0 text-default-500" />
                                 </div>
-                                <div className="">
-                                    <ChevronsUpDown className="ml-auto h-5 w-5 shrink-0  text-default-500 dark:text-default-700" />
-                                </div>
-                            </div>
-                        </Button>}
+                            </Button>
+                        )}
                     </motion.div>
-
                 </PopoverTrigger>
+                
                 <PopoverContent className="w-[200px] p-0">
                     <Command>
                         <CommandList>
@@ -183,21 +165,13 @@ export default function TeamSwitcher({ className }: TeamSwitcherProps) {
                                         <CommandItem
                                             key={team.value}
                                             onSelect={() => {
-                                                setSelectedTeam(team)
-                                                setOpen(false)
+                                                setSelectedTeam(team);
+                                                setOpen(false);
                                             }}
-                                            className="text-sm font-normal"
+                                            className="text-sm"
                                         >
-
                                             {team.label}
-                                            <Check
-                                                className={cn(
-                                                    "ml-auto h-4 w-4",
-                                                    selectedTeam.value === team.value
-                                                        ? "opacity-100"
-                                                        : "opacity-0"
-                                                )}
-                                            />
+                                            <Check className={cn("ml-auto h-4 w-4", selectedTeam.value === team.value ? "opacity-100" : "opacity-0")} />
                                         </CommandItem>
                                     ))}
                                 </CommandGroup>
@@ -206,65 +180,101 @@ export default function TeamSwitcher({ className }: TeamSwitcherProps) {
                         <CommandSeparator />
                         <CommandList>
                             <CommandGroup>
-                                <DialogTrigger asChild>
-                                    <CommandItem
-                                        onSelect={() => {
-                                            setOpen(false)
-                                            setShowNewTeamDialog(true)
-                                        }}
-                                    >
-                                        <CirclePlus className="mr-2 h-5 w-5" />
-                                        Create Team
-                                    </CommandItem>
-                                </DialogTrigger>
+                                <CommandItem onSelect={() => { setOpen(false); setShowNewTeamDialog(true); }}>
+                                    <CirclePlus className="mr-2 h-4 w-4" />
+                                    Create Team
+                                </CommandItem>
                             </CommandGroup>
                         </CommandList>
                     </Command>
                 </PopoverContent>
             </Popover>
-            <DialogContent>
+
+            <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Create team</DialogTitle>
-                    <DialogDescription>
-                        Add a new team to manage products and customers.
-                    </DialogDescription>
+                    <DialogTitle>ข้อมูลร้านค้า</DialogTitle>
+                    <DialogDescription>เพิ่มร้านค้าใหม่เพื่อจัดการสินค้าและลูกค้า</DialogDescription>
                 </DialogHeader>
-                <div>
-                    <div className="space-y-4 py-2 pb-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="name">Team name</Label>
-                            <Input id="name" placeholder="Acme Inc." />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="plan">Subscription plan</Label>
-                            <Select>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select a plan" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="free">
-                                        <span className="font-medium">Free</span> -{" "}
-                                        <span className="text-muted-foreground">
-                                            Trial for two weeks
-                                        </span>
-                                    </SelectItem>
-                                    <SelectItem value="pro">
-                                        <span className="font-medium">Pro</span> -{" "}
-                                        <span className="text-muted-foreground">
-                                            $9/month per user
-                                        </span>
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-                </div>
-                <DialogFooter>
-                    <Button variant="outline" onClick={() => setShowNewTeamDialog(false)}>
-                        Cancel
-                    </Button>
-                    <Button type="submit">Continue</Button>
-                </DialogFooter>
+
+                {/* 3. นำ Form มาครอบ Input ต่างๆ */}
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 py-4">
+                        
+                        {/* ชื่อร้านค้า */}
+                        <FormField
+                            control={form.control}
+                            name="name"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className="flex items-center gap-2 text-slate-700">
+                                        <Store className="w-4 h-4 text-indigo-500" />
+                                        ชื่อร้านค้า <span className="text-rose-500">*</span>
+                                    </FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="เช่น คลินิกสุขภาพดี, ร้านตัดผม The Cut" {...field} className="h-11 rounded-lg" />
+                                    </FormControl>
+                                    <p className="text-[11px] text-slate-400">ชื่อที่ลูกค้าจะเห็นเมื่อมาจองคิว</p>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        {/* ประเภทธุรกิจ */}
+                        <FormField
+                            control={form.control}
+                            name="type"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className="flex items-center gap-2 text-slate-700">
+                                        <Briefcase className="w-4 h-4 text-indigo-500" />
+                                        ประเภทธุรกิจ <span className="text-rose-500">*</span>
+                                    </FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl>
+                                            <SelectTrigger className="h-11 rounded-lg">
+                                                <SelectValue placeholder="เลือกประเภทธุรกิจ" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="clinic">🏥 คลินิก / สุขภาพ</SelectItem>
+                                            <SelectItem value="salon">✂️ เสริมสวย / ตัดผม</SelectItem>
+                                            <SelectItem value="restaurant">☕ ร้านอาหาร / คาเฟ่</SelectItem>
+                                            <SelectItem value="other">✨ อื่นๆ</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        {/* เบอร์โทรศัพท์ */}
+                        <FormField
+                            control={form.control}
+                            name="phone"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className="flex items-center gap-2 text-slate-700">
+                                        <Phone className="w-4 h-4 text-indigo-500" />
+                                        เบอร์โทรศัพท์ร้าน
+                                    </FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="02-XXX-XXXX หรือ 081-XXX-XXXX" {...field} className="h-11 rounded-lg" />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        <DialogFooter className="pt-4">
+                            <Button type="button" variant="outline" onClick={() => setShowNewTeamDialog(false)}>
+                                Cancel
+                            </Button>
+                            <Button type="submit" className="bg-indigo-600 hover:bg-indigo-700">
+                                Continue
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </Form>
             </DialogContent>
         </Dialog>
     )

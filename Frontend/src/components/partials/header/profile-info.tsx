@@ -13,14 +13,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Image from "next/image";
 import { Icon } from "@/components/ui/icon"
-import { useMe } from "@/hooks/use-me";
+import { useProfile } from "@/hooks/use-me";
 import { Link, useRouter } from '@/i18n/routing';
 import { http } from "@/lib/http/client";
 import { toast } from "sonner";
 
 const ProfileInfo = () => {
   const router = useRouter();
-  const { data, isLoading } = useMe();
+  const { data, isLoading } = useProfile();
 
   if (isLoading) return <div>Loading...</div>;
 

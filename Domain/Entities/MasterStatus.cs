@@ -31,7 +31,9 @@ public partial class MasterStatus
 
     public virtual ICollection<Queue> Queues { get; set; } = new List<Queue>();
 
-    public virtual ICollection<Shop> Shops { get; set; } = new List<Shop>();
+    public virtual ICollection<Shop> ShopStatuses { get; set; } = new List<Shop>();
+
+    public virtual ICollection<Shop> ShopTypes { get; set; } = new List<Shop>();
 
     public virtual ICollection<User> Users { get; set; } = new List<User>();
 }

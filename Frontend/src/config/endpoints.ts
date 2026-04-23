@@ -11,6 +11,8 @@ export const internalEndpoints = {
   verifyaccount: "/api/user/verifyaccount",
   resetpassword: "/api/user/resetpassword",
   forgotpassword: "/api/auth/forgot-password",
+  
+  shopdata: "/api/shop/get-shop",
 } as const;
 
 export type InternalEndpointKey = keyof typeof internalEndpoints;
@@ -28,6 +30,8 @@ export const externalEndpoints = {
   userlogin: "/api/v1/auth/login",
   resetpassword: "/api/v1/user/resetpassword",
   forgotpassword: "/api/v1/auth/forgot-password",
+
+  shopdata: "/api/v1/shop/get-shop",
 
 
 } as const;

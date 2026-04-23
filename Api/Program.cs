@@ -133,6 +133,7 @@ builder.Services.AddScoped<RefreshToken>();
 builder.Services.AddScoped<ICrudService, CrudService>();
 builder.Services.AddScoped<IUsers, Users>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IManageShop, ManageShop>();
 #endregion
 
 var app = builder.Build();
