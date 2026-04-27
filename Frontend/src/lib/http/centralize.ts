@@ -133,6 +133,19 @@ export function createHttp<K extends string>(
           token,
         );
       } else {
+        await fetch(
+          `${env.appBaseUrl}${internalEndpoints.signout}`,
+          {
+            method: "GET",
+            headers: {
+              ...(getDefaultHeaders?.() ?? {}),
+            },
+            cache: "no-store",
+          },
+        );
+        setTimeout(() => {
+          window.location.href = "/auth/login"; 
+        }, 1500);
         console.error(`❌ [API Error] Refresh Token ล้มเหลว หรือ Token หมดอายุถาวร`);
         toast.error("กรุณาเข้าสู่ระบบใหม่");
       }

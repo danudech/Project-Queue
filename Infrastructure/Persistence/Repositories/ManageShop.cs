@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Queue.Application.Interfaces;
@@ -54,6 +55,43 @@ public sealed class ManageShop : IManageShop
         {
             _actionLog.Error(ex, "Error fetching shop data (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, userAgent);
             return null;
+        }
+    }
+
+    public async Task<List<MasterStatus>> MasterShopType(int? typeid, string ip, string userAgent, CancellationToken ct)
+    {
+        try
+        {
+            _actionLog.Info("Fetching shop type (TypeId={TypeId}, IP={IP}, UserAgent={UserAgent})", typeid ?? 0, ip, userAgent);
+            List<MasterStatus> ShopTypeResponsd = new List<MasterStatus>();
+            if (typeid == null)
+            {
+
+                ShopTypeResponsd = await _db.MasterStatuses
+                .Where(ms => ms.Type == "SHOP_TYPE" && ms.IsActive)
+                .AsNoTracking()
+                .ToListAsync(ct);
+            }
+            else
+            {
+                ShopTypeResponsd = await _db.MasterStatuses
+                    .Where(ms => ms.Id == typeid && ms.Type == "SHOP_TYPE" && ms.IsActive)
+                    .AsNoTracking()
+                    .ToListAsync(ct);
+            }
+
+            return ShopTypeResponsd.Select(st => new MasterStatus
+            {
+                Id = st.Id,
+                NameTh = st.NameTh ?? string.Empty,
+                NameEn = st.NameEn ?? string.Empty,
+                IsActive = st.IsActive
+            }).ToList();
+        }
+        catch (Exception ex)
+        {
+            _actionLog.Error(ex, "Error fetching shop type (TypeId={TypeId}, IP={IP}, UserAgent={UserAgent})", typeid ?? 0, ip, userAgent);
+            return new List<MasterStatus>();
         }
     }
 

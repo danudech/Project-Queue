@@ -888,9 +888,6 @@ namespace Queue.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("AddressId")
-                        .HasColumnType("int");
-
                     b.Property<Guid>("Guid")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier")
@@ -907,16 +904,19 @@ namespace Queue.Infrastructure.Migrations
                     b.Property<int>("StatusId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("TypeId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
-
-                    b.HasIndex("AddressId");
-
-                    b.HasIndex("OwnerId");
 
                     b.HasIndex("StatusId");
 
                     b.HasIndex(new[] { "Guid" }, "IX_Shops_Guid")
                         .IsUnique();
+
+                    b.HasIndex(new[] { "OwnerId" }, "IX_Shops_OwnerId");
+
+                    b.HasIndex(new[] { "TypeId" }, "IX_Shops_TypeId");
 
                     b.ToTable("Shops");
                 });
@@ -1741,29 +1741,28 @@ namespace Queue.Infrastructure.Migrations
 
             modelBuilder.Entity("Queue.Domain.Entities.Shop", b =>
                 {
-                    b.HasOne("Queue.Domain.Entities.Address", "Address")
-                        .WithMany("Shops")
-                        .HasForeignKey("AddressId")
-                        .IsRequired()
-                        .HasConstraintName("FK_Shops_Address");
-
                     b.HasOne("Queue.Domain.Entities.User", "Owner")
                         .WithMany("Shops")
                         .HasForeignKey("OwnerId")
                         .IsRequired()
-                        .HasConstraintName("FK_Shops_User");
+                        .HasConstraintName("FK_Shops_Owner");
 
                     b.HasOne("Queue.Domain.Entities.MasterStatus", "Status")
-                        .WithMany("Shops")
+                        .WithMany("ShopStatuses")
                         .HasForeignKey("StatusId")
                         .IsRequired()
                         .HasConstraintName("FK_Shops_Status");
 
-                    b.Navigation("Address");
+                    b.HasOne("Queue.Domain.Entities.MasterStatus", "Type")
+                        .WithMany("ShopTypes")
+                        .HasForeignKey("TypeId")
+                        .HasConstraintName("FK_Shops_Type");
 
                     b.Navigation("Owner");
 
                     b.Navigation("Status");
+
+                    b.Navigation("Type");
                 });
 
             modelBuilder.Entity("Queue.Domain.Entities.ShopBranch", b =>
@@ -1928,8 +1927,6 @@ namespace Queue.Infrastructure.Migrations
             modelBuilder.Entity("Queue.Domain.Entities.Address", b =>
                 {
                     b.Navigation("ShopBranches");
-
-                    b.Navigation("Shops");
                 });
 
             modelBuilder.Entity("Queue.Domain.Entities.Booking", b =>
@@ -1974,7 +1971,9 @@ namespace Queue.Infrastructure.Migrations
 
                     b.Navigation("Queues");
 
-                    b.Navigation("Shops");
+                    b.Navigation("ShopStatuses");
+
+                    b.Navigation("ShopTypes");
 
                     b.Navigation("Users");
                 });

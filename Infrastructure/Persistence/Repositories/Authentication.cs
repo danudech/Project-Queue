@@ -71,7 +71,7 @@ public sealed class Authentication : IAuthentication
             _actionLog.Warning("Login failed for user {EmailOrPhone}: password verify failed", EmailOrPhone);
             return new LoginResponse { Message = "invalid email/phone or password" };
         }
-
+        
         string role = user.UserRoleMaps.FirstOrDefault()?.RoleId.ToString() ?? string.Empty;
         string name = user.Name ?? string.Empty;
         string[] permissions = user.UserRoleMaps.Select(ur => ur.Role.Name).ToArray();

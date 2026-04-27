@@ -5,6 +5,7 @@ using Queue.Domain.Entities;
 
 namespace Queue.Infrastructure.Persistence;
 
+
 public partial class QueueDbContext : DbContext
 {
     public QueueDbContext()
@@ -95,6 +96,7 @@ public partial class QueueDbContext : DbContext
     public virtual DbSet<UserRoleMap> UserRoleMaps { get; set; }
 
     public virtual DbSet<UserSession> UserSessions { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Address>(entity =>

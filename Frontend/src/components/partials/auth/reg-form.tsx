@@ -54,7 +54,6 @@ const RegForm = () => {
       router.push(`/${locale}/auth/mail-confirm`);
     } catch (err: any) {
       toast.error(err.message || "Something went wrong");
-    } finally {
       setLoading(false);
     }
   };

@@ -1,3 +1,5 @@
+import { add } from "@dnd-kit/utilities";
+
 export const internalEndpoints = {
   health: "/api/health",
   signout: "/api/auth/logout",
@@ -11,8 +13,12 @@ export const internalEndpoints = {
   verifyaccount: "/api/user/verifyaccount",
   resetpassword: "/api/user/resetpassword",
   forgotpassword: "/api/auth/forgot-password",
-  
+
   shopdata: "/api/shop/get-shop",
+  shoptype: "/api/shop/shop-type",
+  newshop: "/api/shop/new-shop",
+  
+  addressbyzipcode: "/api/address/by-zipcode",
 } as const;
 
 export type InternalEndpointKey = keyof typeof internalEndpoints;
@@ -32,8 +38,10 @@ export const externalEndpoints = {
   forgotpassword: "/api/v1/auth/forgot-password",
 
   shopdata: "/api/v1/shop/get-shop",
+  shoptype: "/api/v1/shop/shop-type",
+  newshop: "/api/v1/shop/new-shop",
 
-
+  addressbyzipcode: "/api/v1/address/by-zipcode",
 } as const;
 
 export type ExternalEndpointKey = keyof typeof externalEndpoints;
