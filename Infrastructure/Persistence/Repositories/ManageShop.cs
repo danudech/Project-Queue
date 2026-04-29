@@ -1,6 +1,7 @@
 using System.Runtime.InteropServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Queue.Application.DTO.Request;
 using Queue.Application.Interfaces;
 using Queue.Domain.Entities;
 using Queue.Infrastructure.Service;
@@ -94,6 +95,67 @@ public sealed class ManageShop : IManageShop
             return new List<MasterStatus>();
         }
     }
+
+    public async Task<ShopResponse?> CreateShop(int userId, CreateShopRequest request, string ip, string userAgent, CancellationToken ct)
+    {
+        _actionLog.Info("Creating new shop (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, userAgent);
+        await using var transaction = await _db.Database.BeginTransactionAsync(ct);
+        try
+        {
+            Shop newShop = new Shop
+            {
+                Name = request.ShopName,
+                OwnerId = userId,
+                TypeId = int.Parse(request.ShopType),
+                StatusId = 3,
+            };
+            await _crud.InsertAsync(newShop, ct);
+
+            Address newAddress = new Address
+            {
+                HouseNo = request.Branch?.BranchAddress?.HouseNo ?? string.Empty,
+                Street = request.Branch?.BranchAddress?.Street ?? string.Empty,
+                ProvinceId = request.Branch?.BranchAddress?.ProvinceId ?? 0,
+                DistrictId = request.Branch?.BranchAddress?.DistrictId ?? 0,
+                SubdistrictId = request.Branch?.BranchAddress?.SubdistrictId ?? 0,
+                Zipcode = request.Branch?.BranchAddress?.Zipcode ?? string.Empty
+            };
+            await _crud.InsertAsync(newAddress, ct);
+
+            ShopBranch newBranch = new ShopBranch
+            {
+                Guid = Guid.NewGuid(),
+                ShopId = newShop.Id,
+                Name = request.Branch?.BranchName ?? "Main Branch",
+                Phone = request.Branch?.BranchPhone ?? string.Empty,
+                AddressId = newAddress.Id
+            };
+            await _crud.InsertAsync(newBranch, ct);
+            List<ShopBusinessHour> businessHours = request.BusinessHours.Select(h => new ShopBusinessHour
+            {
+                ShopId = newShop.Id,
+                DayOfWeek = h.DayOfWeek,
+                OpenTime = TimeOnly.Parse(h.OpenTime),
+                CloseTime = TimeOnly.Parse(h.CloseTime),
+            }).ToList();
+
+            await _crud.InsertRangeAsync(businessHours, ct); // insert ทีเดียว
+
+            await transaction.CommitAsync(ct);
+
+            return MapToResponse(newShop);
+        }
+        catch (Exception ex)
+        {
+            _actionLog.Error(ex, "Error creating shop (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, userAgent);
+            await transaction.RollbackAsync(ct);
+            return null;
+        }
+    }
+
+
+
+    // ================= Private Helper Methods =================
 
     private static ShopResponse MapToResponse(Shop shop) => new()
     {

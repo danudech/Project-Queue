@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { env } from "@/config/env";
 import { serverHttp } from "@/lib/http/server";
 import { ProfileUser } from "@/types/user";
+import { ShopResponse } from "@/types/shop/shop-responsd";
 
 export async function GET(req: NextRequest) {
   try {
     const api = serverHttp(req, env.apiBaseUrl);
-    
+
     const accessToken = req.cookies.get("access_token")?.value;
 
     if (!accessToken) {
@@ -15,8 +16,8 @@ export async function GET(req: NextRequest) {
         { status: 401 }
       );
     }
-    
-    const shop = await api.get("shopdata");
+
+    const shop = await api.get<ShopResponse>("shopdata");
 
     return NextResponse.json({
       status: true,

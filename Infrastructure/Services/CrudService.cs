@@ -9,6 +9,9 @@ public interface ICrudService
 {
     Task<T> InsertAsync<T>(T entity, CancellationToken ct = default)
         where T : class;
+        
+    Task<IEnumerable<T>> InsertRangeAsync<T>(IEnumerable<T> entities, CancellationToken ct = default)  // เพิ่ม
+            where T : class;
 
     Task<T> UpdateAsync<T>(T entity, CancellationToken ct = default)
         where T : class;
@@ -40,6 +43,14 @@ public sealed class CrudService : ICrudService
         await _db.Set<T>().AddAsync(entity, ct);
         await _db.SaveChangesAsync(ct);
         return entity;
+    }
+    public async Task<IEnumerable<T>> InsertRangeAsync<T>(IEnumerable<T> entities, CancellationToken ct = default)
+        where T : class
+    {
+        var list = entities.ToList();
+        await _db.Set<T>().AddRangeAsync(list, ct);
+        await _db.SaveChangesAsync(ct);
+        return list;
     }
 
     public async Task<T?> GetByIdAsync<T, TKey>(TKey id, CancellationToken ct = default)

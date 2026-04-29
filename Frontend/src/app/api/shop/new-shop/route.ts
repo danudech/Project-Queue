@@ -2,36 +2,27 @@ import { NextRequest, NextResponse } from "next/server";
 import { env } from "@/config/env";
 import { serverHttp } from "@/lib/http/server";
 import { StatusRegister, UserRegister, UserRegisterResponse } from "@/types/user";
+import { AddShop } from "@/types/shop/shoptype";
+import { ShopResponse } from "@/types/shop/shop-responsd";
 
 export async function POST(req: NextRequest) {
   try {
     const api = serverHttp(req, env.apiBaseUrl);
-    const body = (await req.json().catch(() => ({}))) as UserRegister;
+    const body = (await req.json().catch(() => ({}))) as AddShop;
 
-    if (!body.name || !body.email) {
+    if (!body.shopname || !body.shoptype) {
       return NextResponse.json(
-        { status: false, message: "Missing name or email", data: null },
+        { status: false, message: "Missing shop name or shop type", data: null },
         { status: 400 },
       );
     }
-    const frombody = {
-      Name: body.name,
-      Email: body.email,
-      Phone: body.phone,
-      AcceptTerms: body.acceptTerms,
-      Locale: body.locale,
-    };
 
-    const loginres = await api.post<UserRegisterResponse>("register", frombody);
+    const loginres = await api.post<ShopResponse>("newshop", body);
 
     const res = NextResponse.json({
-      status: loginres?.success ?? false,
-      message: loginres?.message ?? "ok",
-      data: {
-        success: loginres?.success ?? false,
-        code: loginres?.code ?? "error",
-        message: loginres?.message ?? "",
-      } as UserRegisterResponse,
+      status: loginres ? true : false,
+      message: "ok",
+      data: loginres as ShopResponse,
     });
 
     return res;

@@ -36,7 +36,7 @@ public class ManageShopController : ControllerBase
 
         string ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
         string ua = HttpContext.Request.Headers.UserAgent.ToString();
-        string userId = User.FindFirst("id")?.Value ?? "0";
+        string userId = User.FindFirst("uid")?.Value ?? "0";
         try
         {
             _actionLog.Info("Get shop request (UserId={UserId})", userId);
@@ -58,7 +58,7 @@ public class ManageShopController : ControllerBase
 
         string ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
         string ua = HttpContext.Request.Headers.UserAgent.ToString();
-        string userId = User.FindFirst("id")?.Value ?? "0";
+        string userId = User.FindFirst("uid")?.Value ?? "0";
         try
         {
             _actionLog.Info("Get shop type request (UserId={UserId})", userId);

@@ -17,7 +17,8 @@ export const internalEndpoints = {
   shopdata: "/api/shop/get-shop",
   shoptype: "/api/shop/shop-type",
   newshop: "/api/shop/new-shop",
-  
+  newbranch : "/api/shop/new-branch",
+
   addressbyzipcode: "/api/address/by-zipcode",
 } as const;
 
@@ -40,6 +41,7 @@ export const externalEndpoints = {
   shopdata: "/api/v1/shop/get-shop",
   shoptype: "/api/v1/shop/shop-type",
   newshop: "/api/v1/shop/new-shop",
+  newbranch : "/api/v1/shop/new-branch",
 
   addressbyzipcode: "/api/v1/address/by-zipcode",
 } as const;

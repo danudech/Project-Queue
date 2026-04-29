@@ -192,6 +192,19 @@ const AvatarImage = React.forwardRef<HTMLImageElement, AvatarImageProps>(
 );
 AvatarImage.displayName = AvatarPrimitive.Image.displayName;
 
+const StoreImage = React.forwardRef<HTMLImageElement, AvatarImageProps>(
+  ({ className, ...props }, ref) => {
+    return (
+      <AvatarPrimitive.Image
+        ref={ref}
+        className={cn("aspect-square object-cover", className)}
+        {...props}
+      />
+    );
+  }
+);
+StoreImage.displayName = AvatarPrimitive.Image.displayName;
+
 
 export interface AvatarFallbackProps extends React.HTMLAttributes<HTMLSpanElement> { }
 
@@ -209,5 +222,5 @@ const AvatarFallback = React.forwardRef<HTMLSpanElement, AvatarFallbackProps>(
 AvatarFallback.displayName = AvatarPrimitive.Fallback.displayName;
 
 
-export { Avatar, AvatarImage, AvatarFallback };
+export { Avatar, AvatarImage, AvatarFallback, StoreImage };
 

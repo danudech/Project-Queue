@@ -1,0 +1,43 @@
+export interface ShopResponse {
+  id: number;
+  name: string;
+  address: string;
+  phone: string;
+  status: number;
+  ownerId: number;
+  shopHours: ShopBusinessHour[];
+  shopHolidays: ShopHoliday[];
+  shopBranches: BranchDto[];
+}
+
+export interface ShopBusinessHour {
+  shopId: number;
+  dayOfWeek: number;
+  isOpen: boolean;
+  openTime: string;
+  closeTime: string;
+}
+
+export interface ShopHoliday {
+  shopId: number;
+  date: string;
+  description?: string;
+}
+
+export interface BranchDto {
+  id: number;
+  guid: string;
+  name: string;
+  phone: string;
+  address?: AddressDto;
+}
+
+export interface AddressDto {
+  houseNo: string;
+  street: string;
+  subdistrict: string;
+  district: string;
+  province: string;
+  zipcode: string;
+  fullAddress: string;
+}
