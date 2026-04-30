@@ -19,6 +19,14 @@ public partial class Address
 
     public string Zipcode { get; set; } = null!;
 
+    public DateTime CreatedAt { get; set; }
+
+    public int? CreatedBy { get; set; }
+
+    public DateTime? UpdatedAt { get; set; }
+
+    public int? UpdatedBy { get; set; }
+
     public virtual District District { get; set; } = null!;
 
     public virtual Province Province { get; set; } = null!;

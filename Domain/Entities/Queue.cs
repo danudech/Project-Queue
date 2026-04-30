@@ -21,6 +21,12 @@ public partial class Queue
 
     public DateTime CreatedAt { get; set; }
 
+    public int? CreatedBy { get; set; }
+
+    public DateTime? UpdatedAt { get; set; }
+
+    public int? UpdatedBy { get; set; }
+
     public virtual ShopBranch Branch { get; set; } = null!;
 
     public virtual ICollection<QueueLog> QueueLogs { get; set; } = new List<QueueLog>();

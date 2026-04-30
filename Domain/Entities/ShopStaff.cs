@@ -13,6 +13,16 @@ public partial class ShopStaff
 
     public string Role { get; set; } = null!;
 
+    public bool IsActive { get; set; }
+
+    public DateTime CreatedAt { get; set; }
+
+    public int? CreatedBy { get; set; }
+
+    public DateTime? UpdatedAt { get; set; }
+
+    public int? UpdatedBy { get; set; }
+
     public virtual ICollection<ServiceStaffMap> ServiceStaffMaps { get; set; } = new List<ServiceStaffMap>();
 
     public virtual Shop Shop { get; set; } = null!;

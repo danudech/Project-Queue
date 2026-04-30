@@ -12,8 +12,8 @@ using Queue.Infrastructure.Persistence;
 namespace Queue.Infrastructure.Migrations
 {
     [DbContext(typeof(QueueDbContext))]
-    [Migration("20260427045116_SeedData")]
-    partial class SeedData
+    [Migration("20260430075055_InitialFullSchema")]
+    partial class InitialFullSchema
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -973,6 +973,9 @@ namespace Queue.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("BranchId")
+                        .HasColumnType("int");
+
                     b.Property<TimeOnly>("CloseTime")
                         .HasColumnType("time");
 
@@ -988,6 +991,9 @@ namespace Queue.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ShopId");
+
+                    b.HasIndex(new[] { "BranchId", "DayOfWeek" }, "IX_ShopBusinessHours_BranchId_DayOfWeek")
+                        .IsUnique();
 
                     b.ToTable("ShopBusinessHours");
                 });
@@ -1789,11 +1795,19 @@ namespace Queue.Infrastructure.Migrations
 
             modelBuilder.Entity("Queue.Domain.Entities.ShopBusinessHour", b =>
                 {
+                    b.HasOne("Queue.Domain.Entities.ShopBranch", "Branch")
+                        .WithMany("ShopBusinessHours")
+                        .HasForeignKey("BranchId")
+                        .IsRequired()
+                        .HasConstraintName("FK_ShopBusinessHours_Branch");
+
                     b.HasOne("Queue.Domain.Entities.Shop", "Shop")
                         .WithMany("ShopBusinessHours")
                         .HasForeignKey("ShopId")
                         .IsRequired()
                         .HasConstraintName("FK_ShopBusinessHours_Shop");
+
+                    b.Navigation("Branch");
 
                     b.Navigation("Shop");
                 });
@@ -2070,6 +2084,8 @@ namespace Queue.Infrastructure.Migrations
                     b.Navigation("QueueSlots");
 
                     b.Navigation("Queues");
+
+                    b.Navigation("ShopBusinessHours");
                 });
 
             modelBuilder.Entity("Queue.Domain.Entities.ShopStaff", b =>

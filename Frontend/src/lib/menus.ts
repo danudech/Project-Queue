@@ -33,7 +33,7 @@ export function getMenuList(pathname: string, t: any): Group[] {
   return [
 
     // ─────────────────────────────────────────
-    // 🏠 Overview
+    // Overview
     // ─────────────────────────────────────────
     {
       groupLabel: "",
@@ -59,7 +59,7 @@ export function getMenuList(pathname: string, t: any): Group[] {
     },
 
     // ─────────────────────────────────────────
-    // 🎟️ Queue & Booking  (Queues, Bookings, QueueSlots, QueueCategories)
+    // Queue & Booking — รวม queue + booking ไว้กลุ่มเดียว
     // ─────────────────────────────────────────
     {
       groupLabel: t("queueAndBooking"),
@@ -69,153 +69,109 @@ export function getMenuList(pathname: string, t: any): Group[] {
           id: "queue-live",
           href: "/queue/live",
           label: t("queueLive"),
-          active: pathname.startsWith("/queue"),
+          active: pathname === "/queue/live",
           icon: "heroicons-outline:clock",
-          submenus: [
-            {
-              href: "/queue/live",
-              label: t("queueLive"),
-              active: pathname === "/queue/live",
-              icon: "",
-              children: [],
-            },
-            {
-              href: "/queue/history",
-              label: t("queueHistory"),
-              active: pathname === "/queue/history",
-              icon: "",
-              children: [],
-            },
-            {
-              href: "/queue/category",
-              label: t("queueCategory"),
-              active: pathname === "/queue/category",
-              icon: "",
-              children: [],
-            },
-          ],
+          submenus: [],
         },
         {
-          id: "booking",
-          href: "/booking",
-          label: t("booking"),
-          active: pathname.startsWith("/booking"),
+          id: "queue-history",
+          href: "/queue/history",
+          label: t("queueHistory"),
+          active: pathname === "/queue/history",
+          icon: "heroicons-outline:archive-box",
+          submenus: [],
+        },
+        {
+          id: "queue-category",
+          href: "/queue/category",
+          label: t("queueCategory"),
+          active: pathname === "/queue/category",
+          icon: "heroicons-outline:tag",
+          submenus: [],
+        },
+        {
+          id: "booking-list",
+          href: "/booking/list",
+          label: t("bookingList"),
+          active: pathname === "/booking/list",
           icon: "heroicons-outline:calendar-days",
-          submenus: [
-            {
-              href: "/booking/list",
-              label: t("bookingList"),
-              active: pathname === "/booking/list",
-              icon: "",
-              children: [],
-            },
-            {
-              href: "/booking/slot",
-              label: t("bookingSlot"),
-              active: pathname === "/booking/slot",
-              icon: "",
-              children: [],
-            },
-          ],
+          submenus: [],
+        },
+        {
+          id: "booking-slot",
+          href: "/booking/slot",
+          label: t("bookingSlot"),
+          active: pathname === "/booking/slot",
+          icon: "heroicons-outline:calendar",
+          submenus: [],
         },
       ],
     },
 
     // ─────────────────────────────────────────
-    // 💼 Service  (Services, ServiceCategories)
+    // Service & Customer — รวมเป็นกลุ่ม "ธุรกิจ"
     // ─────────────────────────────────────────
     {
-      groupLabel: t("service"),
-      id: "service",
+      groupLabel: t("business"),
+      id: "business",
       menus: [
         {
-          id: "service",
-          href: "/service",
-          label: t("service"),
-          active: pathname.startsWith("/service"),
+          id: "service-list",
+          href: "/service/list",
+          label: t("serviceList"),
+          active: pathname === "/service/list",
           icon: "heroicons-outline:briefcase",
-          submenus: [
-            {
-              href: "/service/list",
-              label: t("serviceList"),
-              active: pathname === "/service/list",
-              icon: "",
-              children: [],
-            },
-            {
-              href: "/service/category",
-              label: t("serviceCategory"),
-              active: pathname === "/service/category",
-              icon: "",
-              children: [],
-            },
-          ],
+          submenus: [],
         },
-      ],
-    },
-
-    // ─────────────────────────────────────────
-    // 👥 Customer  (Customers, CustomerNotes, CustomerTags)
-    // ─────────────────────────────────────────
-    {
-      groupLabel: t("customer"),
-      id: "customer",
-      menus: [
         {
-          id: "customer",
-          href: "/customer",
-          label: t("customer"),
-          active: pathname.startsWith("/customer"),
+          id: "service-category",
+          href: "/service/category",
+          label: t("serviceCategory"),
+          active: pathname === "/service/category",
+          icon: "heroicons-outline:rectangle-stack",
+          submenus: [],
+        },
+        {
+          id: "customer-list",
+          href: "/customer/list",
+          label: t("customerList"),
+          active: pathname === "/customer/list",
           icon: "heroicons-outline:user-group",
-          submenus: [
-            {
-              href: "/customer/list",
-              label: t("customerList"),
-              active: pathname === "/customer/list",
-              icon: "",
-              children: [],
-            },
-            {
-              href: "/customer/tag",
-              label: t("customerTag"),
-              active: pathname === "/customer/tag",
-              icon: "",
-              children: [],
-            },
-          ],
+          submenus: [],
+        },
+        {
+          id: "customer-tag",
+          href: "/customer/tag",
+          label: t("customerTag"),
+          active: pathname === "/customer/tag",
+          icon: "heroicons-outline:tag",
+          submenus: [],
         },
       ],
     },
 
     // ─────────────────────────────────────────
-    // 💳 Payment  (Payments, PaymentTransactions, Invoices, Subscriptions)
+    // Finance — payment + invoice + subscription
     // ─────────────────────────────────────────
     {
       groupLabel: t("finance"),
       id: "finance",
       menus: [
         {
-          id: "payment",
-          href: "/payment",
-          label: t("payment"),
-          active: pathname.startsWith("/payment"),
+          id: "payment-list",
+          href: "/payment/list",
+          label: t("paymentList"),
+          active: pathname === "/payment/list",
           icon: "heroicons-outline:credit-card",
-          submenus: [
-            {
-              href: "/payment/list",
-              label: t("paymentList"),
-              active: pathname === "/payment/list",
-              icon: "",
-              children: [],
-            },
-            {
-              href: "/payment/transaction",
-              label: t("paymentTransaction"),
-              active: pathname === "/payment/transaction",
-              icon: "",
-              children: [],
-            },
-          ],
+          submenus: [],
+        },
+        {
+          id: "payment-transaction",
+          href: "/payment/transaction",
+          label: t("paymentTransaction"),
+          active: pathname === "/payment/transaction",
+          icon: "heroicons-outline:arrows-right-left",
+          submenus: [],
         },
         {
           id: "invoice",
@@ -237,11 +193,11 @@ export function getMenuList(pathname: string, t: any): Group[] {
     },
 
     // ─────────────────────────────────────────
-    // 🔔 Notification
+    // Setting — shop + system + notification รวมไว้กลุ่มเดียว
     // ─────────────────────────────────────────
     {
-      groupLabel: t("notification"),
-      id: "notification",
+      groupLabel: t("setting"),
+      id: "setting",
       menus: [
         {
           id: "notification",
@@ -251,103 +207,83 @@ export function getMenuList(pathname: string, t: any): Group[] {
           icon: "heroicons-outline:bell",
           submenus: [],
         },
-      ],
-    },
-
-    // ─────────────────────────────────────────
-    // ⚙️ Setting  (Shop, Branches, BusinessHours, Holidays, Staff, QueueConfig)
-    // ─────────────────────────────────────────
-    {
-      groupLabel: t("setting"),
-      id: "setting",
-      menus: [
         {
           id: "setting-shop",
           href: "/setting/shop",
-          label: t("shopSetting"),
-          active: pathname.startsWith("/setting"),
+          label: t("shopInfo"),
+          active: pathname === "/setting/shop",
           icon: "heroicons-outline:building-storefront",
-          submenus: [
-            {
-              href: "/setting/shop",
-              label: t("shopInfo"),
-              active: pathname === "/setting/shop",
-              icon: "",
-              children: [],
-            },
-            {
-              href: "/setting/branch",
-              label: t("branch"),
-              active: pathname === "/setting/branch",
-              icon: "",
-              children: [],
-            },
-            {
-              href: "/setting/business-hours",
-              label: t("businessHours"),
-              active: pathname === "/setting/business-hours",
-              icon: "",
-              children: [],
-            },
-            {
-              href: "/setting/holiday",
-              label: t("holiday"),
-              active: pathname === "/setting/holiday",
-              icon: "",
-              children: [],
-            },
-            {
-              href: "/setting/staff",
-              label: t("staff"),
-              active: pathname === "/setting/staff",
-              icon: "",
-              children: [],
-            },
-            {
-              href: "/setting/queue",
-              label: t("queueSetting"),
-              active: pathname === "/setting/queue",
-              icon: "",
-              children: [],
-            },
-          ],
+          submenus: [],
         },
-        // System (Admin only)
         {
-          id: "setting-system",
+          id: "setting-branch",
+          href: "/setting/branch",
+          label: t("branch"),
+          active: pathname === "/setting/branch",
+          icon: "heroicons-outline:building-office",
+          submenus: [],
+        },
+        {
+          id: "setting-business-hours",
+          href: "/setting/business-hours",
+          label: t("businessHours"),
+          active: pathname === "/setting/business-hours",
+          icon: "heroicons-outline:clock",
+          submenus: [],
+        },
+        {
+          id: "setting-holiday",
+          href: "/setting/holiday",
+          label: t("holiday"),
+          active: pathname === "/setting/holiday",
+          icon: "heroicons-outline:calendar",
+          submenus: [],
+        },
+        {
+          id: "setting-staff",
+          href: "/setting/staff",
+          label: t("staff"),
+          active: pathname === "/setting/staff",
+          icon: "heroicons-outline:users",
+          submenus: [],
+        },
+        {
+          id: "setting-queue",
+          href: "/setting/queue",
+          label: t("queueSetting"),
+          active: pathname === "/setting/queue",
+          icon: "heroicons-outline:adjustments-horizontal",
+          submenus: [],
+        },
+        {
+          id: "system-config",
           href: "/setting/system",
           label: t("systemConfig"),
-          active: pathname.startsWith("/setting/system"),
+          active: pathname === "/setting/system",
           icon: "heroicons-outline:cog-6-tooth",
-          submenus: [
-            {
-              href: "/setting/system",
-              label: t("systemConfig"),
-              active: pathname === "/setting/system",
-              icon: "",
-              children: [],
-            },
-            {
-              href: "/setting/audit-log",
-              label: t("auditLog"),
-              active: pathname === "/setting/audit-log",
-              icon: "",
-              children: [],
-            },
-            {
-              href: "/setting/master-status",
-              label: t("masterStatus"),
-              active: pathname === "/setting/master-status",
-              icon: "",
-              children: [],
-            },
-          ],
+          submenus: [],
+        },
+        {
+          id: "audit-log",
+          href: "/setting/audit-log",
+          label: t("auditLog"),
+          active: pathname === "/setting/audit-log",
+          icon: "heroicons-outline:document-magnifying-glass",
+          submenus: [],
+        },
+        {
+          id: "master-status",
+          href: "/setting/master-status",
+          label: t("masterStatus"),
+          active: pathname === "/setting/master-status",
+          icon: "heroicons-outline:list-bullet",
+          submenus: [],
         },
       ],
     },
 
     // ─────────────────────────────────────────
-    // 🚪 Logout
+    // Logout
     // ─────────────────────────────────────────
     {
       groupLabel: "",
@@ -381,66 +317,36 @@ export function getHorizontalMenuList(pathname: string, t: any): Group[] {
           submenus: [],
         },
         {
-          id: "queue-booking",
+          id: "queue-live",
           href: "/queue/live",
           label: t("queueAndBooking"),
           active: pathname.startsWith("/queue") || pathname.startsWith("/booking"),
           icon: "heroicons-outline:clock",
-          submenus: [
-            { href: "/queue/live", label: t("queueLive"), active: pathname.startsWith("/queue"), icon: "", children: [] },
-            { href: "/booking/list", label: t("bookingList"), active: pathname.startsWith("/booking"), icon: "", children: [] },
-            { href: "/booking/slot", label: t("bookingSlot"), active: pathname === "/booking/slot", icon: "", children: [] },
-            { href: "/queue/category", label: t("queueCategory"), active: pathname === "/queue/category", icon: "", children: [] },
-          ],
+          submenus: [],
         },
         {
-          id: "service",
+          id: "service-list",
           href: "/service/list",
-          label: t("service"),
-          active: pathname.startsWith("/service"),
+          label: t("business"),
+          active: pathname.startsWith("/service") || pathname.startsWith("/customer"),
           icon: "heroicons-outline:briefcase",
-          submenus: [
-            { href: "/service/list", label: t("serviceList"), active: pathname === "/service/list", icon: "", children: [] },
-            { href: "/service/category", label: t("serviceCategory"), active: pathname === "/service/category", icon: "", children: [] },
-          ],
+          submenus: [],
         },
         {
-          id: "customer",
-          href: "/customer/list",
-          label: t("customer"),
-          active: pathname.startsWith("/customer"),
-          icon: "heroicons-outline:user-group",
-          submenus: [
-            { href: "/customer/list", label: t("customerList"), active: pathname === "/customer/list", icon: "", children: [] },
-            { href: "/customer/tag", label: t("customerTag"), active: pathname === "/customer/tag", icon: "", children: [] },
-          ],
-        },
-        {
-          id: "finance",
+          id: "payment-list",
           href: "/payment/list",
           label: t("finance"),
           active: pathname.startsWith("/payment") || pathname.startsWith("/invoice") || pathname.startsWith("/subscription"),
           icon: "heroicons-outline:credit-card",
-          submenus: [
-            { href: "/payment/list", label: t("payment"), active: pathname.startsWith("/payment"), icon: "", children: [] },
-            { href: "/invoice", label: t("invoice"), active: pathname.startsWith("/invoice"), icon: "", children: [] },
-            { href: "/subscription", label: t("subscription"), active: pathname.startsWith("/subscription"), icon: "", children: [] },
-          ],
+          submenus: [],
         },
         {
-          id: "setting",
+          id: "setting-shop",
           href: "/setting/shop",
           label: t("setting"),
-          active: pathname.startsWith("/setting"),
+          active: pathname.startsWith("/setting") || pathname.startsWith("/notification"),
           icon: "heroicons-outline:cog-6-tooth",
-          submenus: [
-            { href: "/setting/shop", label: t("shopInfo"), active: pathname === "/setting/shop", icon: "", children: [] },
-            { href: "/setting/branch", label: t("branch"), active: pathname === "/setting/branch", icon: "", children: [] },
-            { href: "/setting/business-hours", label: t("businessHours"), active: pathname === "/setting/business-hours", icon: "", children: [] },
-            { href: "/setting/holiday", label: t("holiday"), active: pathname === "/setting/holiday", icon: "", children: [] },
-            { href: "/setting/staff", label: t("staff"), active: pathname === "/setting/staff", icon: "", children: [] },
-            { href: "/setting/queue", label: t("queueSetting"), active: pathname === "/setting/queue", icon: "", children: [] },
-          ],
+          submenus: [],
         },
       ],
     },

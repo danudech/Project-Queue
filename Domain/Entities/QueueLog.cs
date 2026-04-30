@@ -13,6 +13,8 @@ public partial class QueueLog
 
     public DateTime Timestamp { get; set; }
 
+    public int? CreatedBy { get; set; }
+
     public virtual Queue Queue { get; set; } = null!;
 
     public virtual MasterStatus Status { get; set; } = null!;

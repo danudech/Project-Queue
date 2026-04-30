@@ -19,5 +19,15 @@ public partial class Subscription
 
     public DateTime EndDate { get; set; }
 
+    public bool IsActive { get; set; }
+
+    public DateTime CreatedAt { get; set; }
+
+    public int? CreatedBy { get; set; }
+
+    public DateTime? UpdatedAt { get; set; }
+
+    public int? UpdatedBy { get; set; }
+
     public virtual Shop Shop { get; set; } = null!;
 }

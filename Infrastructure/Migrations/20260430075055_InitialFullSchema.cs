@@ -23,7 +23,11 @@ namespace Queue.Infrastructure.Migrations
                     Code = table.Column<string>(maxLength: 50),
                     NameTh = table.Column<string>(maxLength: 150),
                     NameEn = table.Column<string>(maxLength: 150),
-                    IsActive = table.Column<bool>(defaultValue: true)
+                    IsActive = table.Column<bool>(defaultValue: true),
+                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
+                    CreatedBy = table.Column<int>(nullable: true),
+                    UpdatedAt = table.Column<DateTime>(nullable: true),
+                    UpdatedBy = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -93,7 +97,11 @@ namespace Queue.Infrastructure.Migrations
                     ProvinceId = table.Column<int>(),
                     DistrictId = table.Column<int>(),
                     SubdistrictId = table.Column<int>(),
-                    Zipcode = table.Column<string>(maxLength: 10)
+                    Zipcode = table.Column<string>(maxLength: 10),
+                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
+                    CreatedBy = table.Column<int>(nullable: true),
+                    UpdatedAt = table.Column<DateTime>(nullable: true),
+                    UpdatedBy = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -112,7 +120,12 @@ namespace Queue.Infrastructure.Migrations
                 {
                     Id = table.Column<int>()
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(maxLength: 100, nullable: false)
+                    Name = table.Column<string>(maxLength: 100, nullable: false),
+                    IsActive = table.Column<bool>(defaultValue: true),
+                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
+                    CreatedBy = table.Column<int>(nullable: true),
+                    UpdatedAt = table.Column<DateTime>(nullable: true),
+                    UpdatedBy = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -134,7 +147,11 @@ namespace Queue.Infrastructure.Migrations
                     Phone = table.Column<string>(maxLength: 20, nullable: true),
                     StatusId = table.Column<int>(nullable: false),
                     EmailConfirmed = table.Column<bool>(nullable: false),
-                    CreatedAt = table.Column<DateTime>(nullable: false, defaultValueSql: "(getdate())")
+                    IsActive = table.Column<bool>(defaultValue: true),
+                    CreatedAt = table.Column<DateTime>(nullable: false, defaultValueSql: "(getdate())"),
+                    CreatedBy = table.Column<int>(nullable: true),
+                    UpdatedAt = table.Column<DateTime>(nullable: true),
+                    UpdatedBy = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -169,7 +186,8 @@ namespace Queue.Infrastructure.Migrations
                 {
                     UserId = table.Column<int>(nullable: false),
                     RoleId = table.Column<int>(nullable: false),
-                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()")
+                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
+                    CreatedBy = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -209,7 +227,8 @@ namespace Queue.Infrastructure.Migrations
                     ExpiredAt = table.Column<DateTime>(),
                     IsUsed = table.Column<bool>(defaultValue: false),
                     ConfirmedAt = table.Column<DateTime>(nullable: true),
-                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()")
+                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
+                    CreatedBy = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -252,7 +271,10 @@ namespace Queue.Infrastructure.Migrations
                     ContentType = table.Column<string>(maxLength: 100),
                     FileSize = table.Column<long>(),
                     IsPrimary = table.Column<bool>(defaultValue: false),
-                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()")
+                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
+                    CreatedBy = table.Column<int>(nullable: true),
+                    UpdatedAt = table.Column<DateTime>(nullable: true),
+                    UpdatedBy = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -284,7 +306,11 @@ namespace Queue.Infrastructure.Migrations
                     Provider = table.Column<string>(maxLength: 50),
                     ProviderId = table.Column<string>(maxLength: 150),
                     PasswordHash = table.Column<string>(maxLength: 500, nullable: true),
-                    LastLoginAt = table.Column<DateTime>(nullable: true)
+                    LastLoginAt = table.Column<DateTime>(nullable: true),
+                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
+                    CreatedBy = table.Column<int>(nullable: true),
+                    UpdatedAt = table.Column<DateTime>(nullable: true),
+                    UpdatedBy = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -312,7 +338,9 @@ namespace Queue.Infrastructure.Migrations
                     RefreshToken = table.Column<string>(nullable: true),
                     RefreshSalt = table.Column<string>(maxLength: 200, nullable: true),
                     RefreshTokenExpiredAt = table.Column<DateTime>(nullable: true),
-                    ExpiredAt = table.Column<DateTime>()
+                    ExpiredAt = table.Column<DateTime>(),
+                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
+                    CreatedBy = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -343,8 +371,12 @@ namespace Queue.Infrastructure.Migrations
                     Name = table.Column<string>(maxLength: 150),
                     OwnerId = table.Column<int>(),
                     TypeId = table.Column<int>(nullable: true),
-
-                    StatusId = table.Column<int>()
+                    StatusId = table.Column<int>(),
+                    IsActive = table.Column<bool>(defaultValue: true),
+                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
+                    CreatedBy = table.Column<int>(nullable: true),
+                    UpdatedAt = table.Column<DateTime>(nullable: true),
+                    UpdatedBy = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -367,7 +399,12 @@ namespace Queue.Infrastructure.Migrations
                     ShopId = table.Column<int>(),
                     Name = table.Column<string>(maxLength: 150),
                     AddressId = table.Column<int>(),
-                    Phone = table.Column<string>(maxLength: 20)
+                    Phone = table.Column<string>(maxLength: 20),
+                    IsActive = table.Column<bool>(defaultValue: true),
+                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
+                    CreatedBy = table.Column<int>(nullable: true),
+                    UpdatedAt = table.Column<DateTime>(nullable: true),
+                    UpdatedBy = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -385,7 +422,12 @@ namespace Queue.Infrastructure.Migrations
                     Id = table.Column<int>().Annotation("SqlServer:Identity", "1,1"),
                     ShopId = table.Column<int>(),
                     UserId = table.Column<int>(),
-                    Role = table.Column<string>(maxLength: 50)
+                    Role = table.Column<string>(maxLength: 50),
+                    IsActive = table.Column<bool>(defaultValue: true),
+                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
+                    CreatedBy = table.Column<int>(nullable: true),
+                    UpdatedAt = table.Column<DateTime>(nullable: true),
+                    UpdatedBy = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -407,7 +449,11 @@ namespace Queue.Infrastructure.Migrations
                     Id = table.Column<int>().Annotation("SqlServer:Identity", "1,1"),
                     ShopId = table.Column<int>(),
                     Key = table.Column<string>(maxLength: 100),
-                    Value = table.Column<string>()
+                    Value = table.Column<string>(),
+                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
+                    CreatedBy = table.Column<int>(nullable: true),
+                    UpdatedAt = table.Column<DateTime>(nullable: true),
+                    UpdatedBy = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -421,15 +467,28 @@ namespace Queue.Infrastructure.Migrations
                 {
                     Id = table.Column<int>().Annotation("SqlServer:Identity", "1,1"),
                     ShopId = table.Column<int>(),
+                    BranchId = table.Column<int>(),
                     DayOfWeek = table.Column<int>(),
                     OpenTime = table.Column<TimeSpan>(),
-                    CloseTime = table.Column<TimeSpan>()
+                    CloseTime = table.Column<TimeSpan>(),
+                    IsActive = table.Column<bool>(defaultValue: true),
+                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
+                    CreatedBy = table.Column<int>(nullable: true),
+                    UpdatedAt = table.Column<DateTime>(nullable: true),
+                    UpdatedBy = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ShopBusinessHours", x => x.Id);
                     table.ForeignKey("FK_ShopBusinessHours_Shop", x => x.ShopId, "Shops", "Id", onDelete: ReferentialAction.NoAction);
+                    table.ForeignKey("FK_ShopBusinessHours_Branch", x => x.BranchId, "ShopBranches", "Id", onDelete: ReferentialAction.NoAction);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ShopBusinessHours_BranchId_DayOfWeek",
+                table: "ShopBusinessHours",
+                columns: new[] { "BranchId", "DayOfWeek" },
+                unique: true);
 
             migrationBuilder.CreateTable(
                 name: "ShopHolidays",
@@ -438,7 +497,11 @@ namespace Queue.Infrastructure.Migrations
                     Id = table.Column<int>().Annotation("SqlServer:Identity", "1,1"),
                     ShopId = table.Column<int>(),
                     HolidayDate = table.Column<DateTime>(type: "date"),
-                    Reason = table.Column<string>(maxLength: 200)
+                    Reason = table.Column<string>(maxLength: 200),
+                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
+                    CreatedBy = table.Column<int>(nullable: true),
+                    UpdatedAt = table.Column<DateTime>(nullable: true),
+                    UpdatedBy = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -458,7 +521,11 @@ namespace Queue.Infrastructure.Migrations
                     Prefix = table.Column<string>(maxLength: 5),
                     Name = table.Column<string>(maxLength: 100),
                     Description = table.Column<string>(maxLength: 500, nullable: true),
-                    IsActive = table.Column<bool>(defaultValue: true)
+                    IsActive = table.Column<bool>(defaultValue: true),
+                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
+                    CreatedBy = table.Column<int>(nullable: true),
+                    UpdatedAt = table.Column<DateTime>(nullable: true),
+                    UpdatedBy = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -472,13 +539,23 @@ namespace Queue.Infrastructure.Migrations
                 {
                     Id = table.Column<int>().Annotation("SqlServer:Identity", "1,1"),
                     ShopId = table.Column<int>(),
-                    Name = table.Column<string>(maxLength: 150)
+                    Name = table.Column<string>(maxLength: 150),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
+                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
+                    CreatedBy = table.Column<int>(nullable: true),
+                    UpdatedAt = table.Column<DateTime>(nullable: true),
+                    UpdatedBy = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ServiceCategories", x => x.Id);
                     table.ForeignKey("FK_SC_Shop", x => x.ShopId, "Shops", "Id", onDelete: ReferentialAction.NoAction);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ServiceCategories_ShopId",
+                table: "ServiceCategories",
+                column: "ShopId");
 
             migrationBuilder.CreateTable(
                 name: "Services",
@@ -490,7 +567,11 @@ namespace Queue.Infrastructure.Migrations
                     Name = table.Column<string>(maxLength: 150),
                     Duration = table.Column<int>(),
                     Price = table.Column<decimal>(type: "decimal(10,2)"),
-                    IsActive = table.Column<bool>(defaultValue: true)
+                    IsActive = table.Column<bool>(defaultValue: true),
+                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
+                    CreatedBy = table.Column<int>(nullable: true),
+                    UpdatedAt = table.Column<DateTime>(nullable: true),
+                    UpdatedBy = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -507,7 +588,8 @@ namespace Queue.Infrastructure.Migrations
                 {
                     ServiceId = table.Column<int>(),
                     CategoryId = table.Column<int>(),
-                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()")
+                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
+                    CreatedBy = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -523,7 +605,8 @@ namespace Queue.Infrastructure.Migrations
                 {
                     ServiceId = table.Column<int>(),
                     StaffId = table.Column<int>(),
-                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()")
+                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
+                    CreatedBy = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -547,7 +630,12 @@ namespace Queue.Infrastructure.Migrations
                     StartTime = table.Column<TimeSpan>(),
                     EndTime = table.Column<TimeSpan>(),
                     MaxQueue = table.Column<int>(),
-                    CurrentUsage = table.Column<int>(defaultValue: 0)
+                    CurrentUsage = table.Column<int>(defaultValue: 0),
+                    IsActive = table.Column<bool>(defaultValue: true),
+                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
+                    CreatedBy = table.Column<int>(nullable: true),
+                    UpdatedAt = table.Column<DateTime>(nullable: true),
+                    UpdatedBy = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -578,7 +666,10 @@ namespace Queue.Infrastructure.Migrations
                     QueueNumber = table.Column<int>(nullable: true),
                     Remark = table.Column<string>(nullable: true),
                     StatusId = table.Column<int>(),
-                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()")
+                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
+                    CreatedBy = table.Column<int>(nullable: true),
+                    UpdatedAt = table.Column<DateTime>(nullable: true),
+                    UpdatedBy = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -604,7 +695,8 @@ namespace Queue.Infrastructure.Migrations
                 {
                     BookingId = table.Column<int>(),
                     ServiceId = table.Column<int>(),
-                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()")
+                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
+                    CreatedBy = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -624,7 +716,10 @@ namespace Queue.Infrastructure.Migrations
                     QueueNumber = table.Column<int>(),
                     StatusId = table.Column<int>(),
                     Type = table.Column<string>(maxLength: 20),
-                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()")
+                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
+                    CreatedBy = table.Column<int>(nullable: true),
+                    UpdatedAt = table.Column<DateTime>(nullable: true),
+                    UpdatedBy = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -645,7 +740,8 @@ namespace Queue.Infrastructure.Migrations
                     Id = table.Column<int>().Annotation("SqlServer:Identity", "1,1"),
                     QueueId = table.Column<int>(),
                     StatusId = table.Column<int>(),
-                    Timestamp = table.Column<DateTime>(defaultValueSql: "GETDATE()")
+                    Timestamp = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
+                    CreatedBy = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -666,7 +762,12 @@ namespace Queue.Infrastructure.Migrations
                     ShopId = table.Column<int>(),
                     UserId = table.Column<int>(),
                     Name = table.Column<string>(maxLength: 150),
-                    Phone = table.Column<string>(maxLength: 20)
+                    Phone = table.Column<string>(maxLength: 20),
+                    IsActive = table.Column<bool>(defaultValue: true),
+                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
+                    CreatedBy = table.Column<int>(nullable: true),
+                    UpdatedAt = table.Column<DateTime>(nullable: true),
+                    UpdatedBy = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -690,7 +791,11 @@ namespace Queue.Infrastructure.Migrations
                 {
                     Id = table.Column<int>().Annotation("SqlServer:Identity", "1,1"),
                     CustomerId = table.Column<int>(),
-                    Note = table.Column<string>()
+                    Note = table.Column<string>(),
+                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
+                    CreatedBy = table.Column<int>(nullable: true),
+                    UpdatedAt = table.Column<DateTime>(nullable: true),
+                    UpdatedBy = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -703,7 +808,12 @@ namespace Queue.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>().Annotation("SqlServer:Identity", "1,1"),
-                    Name = table.Column<string>(maxLength: 100)
+                    Name = table.Column<string>(maxLength: 100),
+                    IsActive = table.Column<bool>(defaultValue: true),
+                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
+                    CreatedBy = table.Column<int>(nullable: true),
+                    UpdatedAt = table.Column<DateTime>(nullable: true),
+                    UpdatedBy = table.Column<int>(nullable: true)
                 },
                 constraints: table => table.PrimaryKey("PK_CustomerTags", x => x.Id));
 
@@ -714,7 +824,8 @@ namespace Queue.Infrastructure.Migrations
                 {
                     CustomerId = table.Column<int>(),
                     TagId = table.Column<int>(),
-                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()")
+                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
+                    CreatedBy = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -735,7 +846,11 @@ namespace Queue.Infrastructure.Migrations
                     BookingId = table.Column<int>(),
                     Amount = table.Column<decimal>(type: "decimal(10,2)"),
                     Method = table.Column<string>(maxLength: 50),
-                    StatusId = table.Column<int>()
+                    StatusId = table.Column<int>(),
+                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
+                    CreatedBy = table.Column<int>(nullable: true),
+                    UpdatedAt = table.Column<DateTime>(nullable: true),
+                    UpdatedBy = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -751,7 +866,9 @@ namespace Queue.Infrastructure.Migrations
                     Id = table.Column<int>().Annotation("SqlServer:Identity", "1,1"),
                     PaymentId = table.Column<int>(),
                     Provider = table.Column<string>(maxLength: 50),
-                    TransactionRef = table.Column<string>(maxLength: 150)
+                    TransactionRef = table.Column<string>(maxLength: 150),
+                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
+                    CreatedBy = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -772,7 +889,9 @@ namespace Queue.Infrastructure.Migrations
                     Type = table.Column<string>(maxLength: 50),
                     Title = table.Column<string>(maxLength: 150),
                     Message = table.Column<string>(),
-                    StatusId = table.Column<int>()
+                    StatusId = table.Column<int>(),
+                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
+                    CreatedBy = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -788,7 +907,8 @@ namespace Queue.Infrastructure.Migrations
                     Id = table.Column<int>().Annotation("SqlServer:Identity", "1,1"),
                     NotificationId = table.Column<int>(),
                     StatusId = table.Column<int>(),
-                    SentAt = table.Column<DateTime>()
+                    SentAt = table.Column<DateTime>(),
+                    CreatedBy = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -805,7 +925,11 @@ namespace Queue.Infrastructure.Migrations
                 columns: table => new
                 {
                     Key = table.Column<string>(maxLength: 100),
-                    Value = table.Column<string>()
+                    Value = table.Column<string>(),
+                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
+                    CreatedBy = table.Column<int>(nullable: true),
+                    UpdatedAt = table.Column<DateTime>(nullable: true),
+                    UpdatedBy = table.Column<int>(nullable: true)
                 },
                 constraints: table => table.PrimaryKey("PK_SystemConfigs", x => x.Key));
 
@@ -819,7 +943,8 @@ namespace Queue.Infrastructure.Migrations
                     Action = table.Column<string>(maxLength: 50),
                     OldValue = table.Column<string>(nullable: true),
                     NewValue = table.Column<string>(nullable: true),
-                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()")
+                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
+                    CreatedBy = table.Column<int>(nullable: true)
                 },
                 constraints: table => table.PrimaryKey("PK_AuditLogs", x => x.Id));
 
@@ -836,7 +961,12 @@ namespace Queue.Infrastructure.Migrations
                     PlanName = table.Column<string>(maxLength: 100),
                     Price = table.Column<decimal>(type: "decimal(10,2)"),
                     StartDate = table.Column<DateTime>(),
-                    EndDate = table.Column<DateTime>()
+                    EndDate = table.Column<DateTime>(),
+                    IsActive = table.Column<bool>(defaultValue: true),
+                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
+                    CreatedBy = table.Column<int>(nullable: true),
+                    UpdatedAt = table.Column<DateTime>(nullable: true),
+                    UpdatedBy = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -853,7 +983,10 @@ namespace Queue.Infrastructure.Migrations
                     ShopId = table.Column<int>(),
                     Amount = table.Column<decimal>(type: "decimal(10,2)"),
                     StatusId = table.Column<int>(),
-                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()")
+                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
+                    CreatedBy = table.Column<int>(nullable: true),
+                    UpdatedAt = table.Column<DateTime>(nullable: true),
+                    UpdatedBy = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {

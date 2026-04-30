@@ -13,5 +13,9 @@ public partial class PaymentTransaction
 
     public string TransactionRef { get; set; } = null!;
 
+    public DateTime CreatedAt { get; set; }
+
+    public int? CreatedBy { get; set; }
+
     public virtual Payment Payment { get; set; } = null!;
 }

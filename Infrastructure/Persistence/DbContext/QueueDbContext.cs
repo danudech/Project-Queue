@@ -4,8 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Queue.Domain.Entities;
 
 namespace Queue.Infrastructure.Persistence;
-
-
 public partial class QueueDbContext : DbContext
 {
     public QueueDbContext()
@@ -97,10 +95,14 @@ public partial class QueueDbContext : DbContext
 
     public virtual DbSet<UserSession> UserSessions { get; set; }
 
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        => optionsBuilder.UseSqlServer("Name=ConnectionStrings:Default");
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Address>(entity =>
         {
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.HouseNo).HasMaxLength(50);
             entity.Property(e => e.Street).HasMaxLength(100);
             entity.Property(e => e.Zipcode).HasMaxLength(10);
@@ -199,7 +201,9 @@ public partial class QueueDbContext : DbContext
 
             entity.HasIndex(e => new { e.UserId, e.ShopId }, "IX_Customers_UserId_ShopId").IsUnique();
 
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Guid).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Name).HasMaxLength(150);
             entity.Property(e => e.Phone).HasMaxLength(20);
 
@@ -216,6 +220,8 @@ public partial class QueueDbContext : DbContext
 
         modelBuilder.Entity<CustomerNote>(entity =>
         {
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+
             entity.HasOne(d => d.Customer).WithMany(p => p.CustomerNotes)
                 .HasForeignKey(d => d.CustomerId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -224,6 +230,8 @@ public partial class QueueDbContext : DbContext
 
         modelBuilder.Entity<CustomerTag>(entity =>
         {
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Name).HasMaxLength(100);
         });
 
@@ -295,6 +303,7 @@ public partial class QueueDbContext : DbContext
             entity.HasIndex(e => new { e.Type, e.Code }, "IX_MasterStatuses_Type_Code").IsUnique();
 
             entity.Property(e => e.Code).HasMaxLength(50);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.NameEn).HasMaxLength(150);
             entity.Property(e => e.NameTh).HasMaxLength(150);
@@ -303,6 +312,7 @@ public partial class QueueDbContext : DbContext
 
         modelBuilder.Entity<Notification>(entity =>
         {
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Guid).HasDefaultValueSql("(newid())");
             entity.Property(e => e.Title).HasMaxLength(150);
             entity.Property(e => e.Type).HasMaxLength(50);
@@ -334,6 +344,7 @@ public partial class QueueDbContext : DbContext
         modelBuilder.Entity<Payment>(entity =>
         {
             entity.Property(e => e.Amount).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Guid).HasDefaultValueSql("(newid())");
             entity.Property(e => e.Method).HasMaxLength(50);
 
@@ -350,6 +361,7 @@ public partial class QueueDbContext : DbContext
 
         modelBuilder.Entity<PaymentTransaction>(entity =>
         {
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Provider).HasMaxLength(50);
             entity.Property(e => e.TransactionRef).HasMaxLength(150);
 
@@ -395,6 +407,7 @@ public partial class QueueDbContext : DbContext
 
         modelBuilder.Entity<QueueCategory>(entity =>
         {
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Description).HasMaxLength(500);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Name).HasMaxLength(100);
@@ -427,7 +440,9 @@ public partial class QueueDbContext : DbContext
 
             entity.HasIndex(e => e.Guid, "IX_QueueSlots_Guid").IsUnique();
 
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Guid).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
 
             entity.HasOne(d => d.Branch).WithMany(p => p.QueueSlots)
                 .HasForeignKey(d => d.BranchId)
@@ -442,6 +457,8 @@ public partial class QueueDbContext : DbContext
 
         modelBuilder.Entity<Role>(entity =>
         {
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Name).HasMaxLength(100);
         });
 
@@ -449,6 +466,7 @@ public partial class QueueDbContext : DbContext
         {
             entity.HasIndex(e => e.Guid, "IX_Services_Guid").IsUnique();
 
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Guid).HasDefaultValueSql("(newid())");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Name).HasMaxLength(150);
@@ -462,6 +480,10 @@ public partial class QueueDbContext : DbContext
 
         modelBuilder.Entity<ServiceCategory>(entity =>
         {
+            entity.HasIndex(e => e.ShopId, "IX_ServiceCategories_ShopId");
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Name).HasMaxLength(150);
 
             entity.HasOne(d => d.Shop).WithMany(p => p.ServiceCategories)
@@ -512,7 +534,9 @@ public partial class QueueDbContext : DbContext
 
             entity.HasIndex(e => e.TypeId, "IX_Shops_TypeId");
 
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Guid).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Name).HasMaxLength(150);
 
             entity.HasOne(d => d.Owner).WithMany(p => p.Shops)
@@ -534,7 +558,9 @@ public partial class QueueDbContext : DbContext
         {
             entity.HasIndex(e => e.Guid, "IX_ShopBranches_Guid").IsUnique();
 
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Guid).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Name).HasMaxLength(150);
             entity.Property(e => e.Phone).HasMaxLength(20);
 
@@ -551,6 +577,16 @@ public partial class QueueDbContext : DbContext
 
         modelBuilder.Entity<ShopBusinessHour>(entity =>
         {
+            entity.HasIndex(e => new { e.BranchId, e.DayOfWeek }, "IX_ShopBusinessHours_BranchId_DayOfWeek").IsUnique();
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+
+            entity.HasOne(d => d.Branch).WithMany(p => p.ShopBusinessHours)
+                .HasForeignKey(d => d.BranchId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ShopBusinessHours_Branch");
+
             entity.HasOne(d => d.Shop).WithMany(p => p.ShopBusinessHours)
                 .HasForeignKey(d => d.ShopId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -559,6 +595,7 @@ public partial class QueueDbContext : DbContext
 
         modelBuilder.Entity<ShopHoliday>(entity =>
         {
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Reason).HasMaxLength(200);
 
             entity.HasOne(d => d.Shop).WithMany(p => p.ShopHolidays)
@@ -569,6 +606,7 @@ public partial class QueueDbContext : DbContext
 
         modelBuilder.Entity<ShopSetting>(entity =>
         {
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Key).HasMaxLength(100);
 
             entity.HasOne(d => d.Shop).WithMany(p => p.ShopSettings)
@@ -581,6 +619,8 @@ public partial class QueueDbContext : DbContext
         {
             entity.HasIndex(e => new { e.ShopId, e.UserId }, "IX_ShopStaffs_ShopId_UserId").IsUnique();
 
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Role).HasMaxLength(50);
 
             entity.HasOne(d => d.Shop).WithMany(p => p.ShopStaffs)
@@ -608,7 +648,9 @@ public partial class QueueDbContext : DbContext
 
         modelBuilder.Entity<Subscription>(entity =>
         {
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Guid).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.PlanName).HasMaxLength(100);
             entity.Property(e => e.Price).HasColumnType("decimal(10, 2)");
 
@@ -623,6 +665,7 @@ public partial class QueueDbContext : DbContext
             entity.HasKey(e => e.Key);
 
             entity.Property(e => e.Key).HasMaxLength(100);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
         });
 
         modelBuilder.Entity<User>(entity =>
@@ -636,6 +679,7 @@ public partial class QueueDbContext : DbContext
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Email).HasMaxLength(150);
             entity.Property(e => e.Guid).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Name).HasMaxLength(150);
             entity.Property(e => e.Phone).HasMaxLength(20);
 
@@ -649,6 +693,7 @@ public partial class QueueDbContext : DbContext
         {
             entity.HasIndex(e => e.UserId, "IX_UserAuthentications_UserId");
 
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.PasswordHash).HasMaxLength(500);
             entity.Property(e => e.Provider).HasMaxLength(50);
             entity.Property(e => e.ProviderId).HasMaxLength(150);
@@ -696,6 +741,7 @@ public partial class QueueDbContext : DbContext
 
             entity.HasIndex(e => e.UserId, "IX_UserSessions_UserId");
 
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Guid).HasDefaultValueSql("(newid())");
             entity.Property(e => e.RefreshSalt).HasMaxLength(200);
 

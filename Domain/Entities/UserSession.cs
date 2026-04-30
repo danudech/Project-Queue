@@ -23,5 +23,9 @@ public partial class UserSession
 
     public DateTime ExpiredAt { get; set; }
 
+    public DateTime CreatedAt { get; set; }
+
+    public int? CreatedBy { get; set; }
+
     public virtual User User { get; set; } = null!;
 }

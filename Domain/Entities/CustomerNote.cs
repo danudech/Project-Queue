@@ -11,5 +11,13 @@ public partial class CustomerNote
 
     public string Note { get; set; } = null!;
 
+    public DateTime CreatedAt { get; set; }
+
+    public int? CreatedBy { get; set; }
+
+    public DateTime? UpdatedAt { get; set; }
+
+    public int? UpdatedBy { get; set; }
+
     public virtual Customer Customer { get; set; } = null!;
 }

@@ -13,6 +13,8 @@ public partial class NotificationLog
 
     public DateTime SentAt { get; set; }
 
+    public int? CreatedBy { get; set; }
+
     public virtual Notification Notification { get; set; } = null!;
 
     public virtual MasterStatus Status { get; set; } = null!;

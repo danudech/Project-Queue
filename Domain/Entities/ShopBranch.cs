@@ -17,6 +17,16 @@ public partial class ShopBranch
 
     public string Phone { get; set; } = null!;
 
+    public bool IsActive { get; set; }
+
+    public DateTime CreatedAt { get; set; }
+
+    public int? CreatedBy { get; set; }
+
+    public DateTime? UpdatedAt { get; set; }
+
+    public int? UpdatedBy { get; set; }
+
     public virtual Address Address { get; set; } = null!;
 
     public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
@@ -26,4 +36,6 @@ public partial class ShopBranch
     public virtual ICollection<Queue> Queues { get; set; } = new List<Queue>();
 
     public virtual Shop Shop { get; set; } = null!;
+
+    public virtual ICollection<ShopBusinessHour> ShopBusinessHours { get; set; } = new List<ShopBusinessHour>();
 }

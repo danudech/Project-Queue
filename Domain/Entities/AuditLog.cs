@@ -18,4 +18,6 @@ public partial class AuditLog
     public string? NewValue { get; set; }
 
     public DateTime CreatedAt { get; set; }
+
+    public int? CreatedBy { get; set; }
 }

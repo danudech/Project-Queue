@@ -395,10 +395,11 @@ function Step2({ onNext, onBack, saved }: { onNext: (v: Step2Values) => void; on
 // ─────────────────────────────────────────────────────────
 // Step 3 — เวลาทำการ
 // ─────────────────────────────────────────────────────────
-function Step3({ onSubmit, onBack, isSubmitting }: {
+function Step3({ onSubmit, onBack, isSubmitting, submitLabel = "สร้างร้านค้า" }: {
     onSubmit: (hours: BusinessHour[]) => void
     onBack: () => void
     isSubmitting: boolean
+    submitLabel?: string
 }) {
     const [hours, setHours] = React.useState<BusinessHour[]>(defaultHours)
 
@@ -468,7 +469,7 @@ function Step3({ onSubmit, onBack, isSubmitting }: {
                 </div>
                 <p className="text-[11px] text-muted-foreground pt-1">* แก้ไขเวลาทำการได้ในหน้าตั้งค่าร้าน</p>
             </div>
-            <StepFooter onBack={onBack} nextLabel="สร้างร้านค้า" isSubmitting={isSubmitting} isLastStep />
+            <StepFooter onBack={onBack} nextLabel={submitLabel} isSubmitting={isSubmitting} isLastStep />
         </form>
     )
 }
@@ -487,6 +488,7 @@ export default function TeamSwitcher({ className }: { className?: string }) {
     const [showDialog, setShowDialog] = React.useState(false)
     const [dialogMode, setDialogMode] = React.useState<"shop" | "branch">("shop")
     const [step, setStep] = React.useState(0)
+    const [branchStep, setBranchStep] = React.useState(0) // 0 = ข้อมูลสาขา, 1 = เวลาทำการ
     const [isSubmitting, setIsSubmitting] = React.useState(false)
     const [selectedShopId, setSelectedShopId] = React.useState<number | null>(null)
     const [selectedBranchId, setSelectedBranchId] = React.useState<number | null>(null)
@@ -510,6 +512,7 @@ export default function TeamSwitcher({ className }: { className?: string }) {
         setShowDialog(val)
         if (!val) {
             setStep(0)
+            setBranchStep(0)
             setStep1Data({})
             setStep2Data({})
             setIsSubmitting(false)
@@ -555,6 +558,44 @@ export default function TeamSwitcher({ className }: { className?: string }) {
         }
     }
 
+    const handleBranchSubmit = async (hours: BusinessHour[]) => {
+        setIsSubmitting(true)
+        try {
+            const payload: AddShop = {
+                shopname: shopData?.name!,
+                shoptype: shopData?.type!,
+                branch: {
+                    branchName: step2Data.branchName!,
+                    branchPhone: step2Data.branchPhone ?? "",
+                    branchAddress: {
+                        houseNo: step2Data.houseNo ?? "",
+                        street: step2Data.street ?? "",
+                        subdistrictId: step2Data.subdistrictId!,
+                        districtId: step2Data.districtId!,
+                        provinceId: step2Data.provinceId!,
+                        zipcode: step2Data.zipcode!,
+                    },
+                },
+                businessHours: hours,
+            }
+
+            const res = await http.post<ShopResponse>("newbranch", payload)
+
+            if (res != null) {
+                toast.success("เพิ่มสาขาสำเร็จ!")
+                await refetch()
+                handleClose(false)
+            } else {
+                toast.error("เพิ่มสาขาไม่สำเร็จ")
+            }
+        } catch (err) {
+            console.error(err)
+            toast.error("เกิดข้อผิดพลาด กรุณาลองใหม่")
+        } finally {
+            setIsSubmitting(false)
+        }
+    }
+
     if (config.showSwitcher === false || config.sidebar === "compact") return null
     if (isLoading)
         return <div className="p-4 flex justify-center"><Loader2 className="animate-spin h-5 w-5 text-muted-foreground" /></div>
@@ -582,7 +623,7 @@ export default function TeamSwitcher({ className }: { className?: string }) {
                                 className={cn("h-14 w-14 mx-auto p-0 md:p-0 dark:border-secondary ring-offset-sidebar", className)}
                             >
                                 <Avatar>
-                                    <AvatarImage
+                                    <StoreImage
                                         height={24}
                                         width={24}
                                         src="/images/icon/store.svg"
@@ -606,8 +647,8 @@ export default function TeamSwitcher({ className }: { className?: string }) {
                                 <div className="flex gap-2 flex-1 items-center">
                                     <Avatar className="flex-none">
                                         <StoreImage
-                                            height={24}
-                                            width={24}
+                                            height={28}
+                                            width={28}
                                             src="/images/icon/store.svg"
                                             alt="store icon"
                                             className="grayscale"
@@ -618,11 +659,11 @@ export default function TeamSwitcher({ className }: { className?: string }) {
                                     </Avatar>
                                     <div className="flex-1 text-start w-[100px]">
                                         <div className="text-sm font-semibold text-default-900 truncate">
-                                            {selectedShop?.name ?? "—"}
+                                            {selectedShop?.name ?? "ยังไม่มีร้านค้า"}
                                         </div>
                                         <div className="text-xs font-normal text-default-500 dark:text-default-700 truncate flex items-center gap-1">
                                             <GitBranch className="h-2.5 w-2.5 flex-shrink-0" />
-                                            {selectedBranch?.name ?? "—"}
+                                            {selectedBranch?.name ?? "ยังไม่มีสาขา"}
                                         </div>
                                     </div>
                                     <ChevronsUpDown className="ml-auto h-5 w-5 shrink-0 text-default-500 dark:text-default-700" />
@@ -735,7 +776,8 @@ export default function TeamSwitcher({ className }: { className?: string }) {
                             </DialogTitle>
                             <DialogDescription className="text-[11px] mt-0.5">
                                 {dialogMode === "branch"
-                                    ? "ระบุข้อมูลสาขาและเวลาทำการ"
+                                    ? branchStep === 0 ? "ระบุข้อมูลและที่อยู่สาขา"
+                                    : "กำหนดวันและเวลาทำการของสาขา"
                                     : step === 0 ? "กรอกข้อมูลเบื้องต้นของร้าน"
                                     : step === 1 ? "ระบุที่ตั้งสาขาแรก — เพิ่มสาขาอื่นได้ในภายหลัง"
                                     : "กำหนดวันและเวลาทำการเริ่มต้น"
@@ -749,50 +791,29 @@ export default function TeamSwitcher({ className }: { className?: string }) {
 
                 <AnimatePresence mode="wait">
                     <motion.div
-                        key={dialogMode === "branch" ? "branch" : step}
+                        key={dialogMode === "branch" ? `branch-${branchStep}` : step}
                         initial={{ opacity: 0, x: 12 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -12 }}
                         transition={{ duration: 0.16, ease: "easeOut" }}
                     >
-                        {/* ── Branch-only mode ── */}
-                        {dialogMode === "branch" && (
-                            <>
-                                <Step2
-                                    saved={step2Data}
-                                    onNext={async (v) => {
-                                        setStep2Data(v)
-                                        setIsSubmitting(true)
-                                        try {
-                                            const res = await http.post("newbranch", {
-                                                shopId: shopData?.id,
-                                                branchName: v.branchName,
-                                                branchPhone: v.branchPhone ?? "",
-                                                branchAddress: {
-                                                    houseNo: v.houseNo ?? "",
-                                                    street: v.street ?? "",
-                                                    subdistrictId: v.subdistrictId,
-                                                    districtId: v.districtId,
-                                                    provinceId: v.provinceId,
-                                                    zipcode: v.zipcode,
-                                                },
-                                            })
-                                            if (res != null) {
-                                                toast.success("เพิ่มสาขาสำเร็จ!")
-                                                await refetch()
-                                                handleClose(false)
-                                            } else {
-                                                toast.error("เพิ่มสาขาไม่สำเร็จ")
-                                            }
-                                        } catch {
-                                            toast.error("เกิดข้อผิดพลาด กรุณาลองใหม่")
-                                        } finally {
-                                            setIsSubmitting(false)
-                                        }
-                                    }}
-                                    onBack={() => handleClose(false)}
-                                />
-                            </>
+                        {/* ── Branch mode: Step 0 ข้อมูลสาขา ── */}
+                        {dialogMode === "branch" && branchStep === 0 && (
+                            <Step2
+                                saved={step2Data}
+                                onNext={(v) => { setStep2Data(v); setBranchStep(1) }}
+                                onBack={() => handleClose(false)}
+                            />
+                        )}
+
+                        {/* ── Branch mode: Step 1 เวลาทำการ ── */}
+                        {dialogMode === "branch" && branchStep === 1 && (
+                            <Step3
+                                onSubmit={handleBranchSubmit}
+                                onBack={() => setBranchStep(0)}
+                                isSubmitting={isSubmitting}
+                                submitLabel="เพิ่มสาขา"
+                            />
                         )}
 
                         {/* ── Full shop mode ── */}

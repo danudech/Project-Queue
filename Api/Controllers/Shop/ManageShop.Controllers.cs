@@ -39,6 +39,9 @@ public class ManageShopController : ControllerBase
         string userId = User.FindFirst("uid")?.Value ?? "0";
         try
         {
+            (bool status, string message, string refreshtoken) = await _istokenrefresh.UserHasConsent(HttpContext, ip, ua, ct);
+            if (!status)
+                return Unauthorized(ApiResponse<ShopResponse>.Fail(message));
             _actionLog.Info("Get shop request (UserId={UserId})", userId);
             ShopResponse? resp = await _shop.GetShopById(int.Parse(userId), ip, ua, ct);
 
@@ -61,6 +64,9 @@ public class ManageShopController : ControllerBase
         string userId = User.FindFirst("uid")?.Value ?? "0";
         try
         {
+            (bool status, string message, string refreshtoken) = await _istokenrefresh.UserHasConsent(HttpContext, ip, ua, ct);
+            if (!status)
+                return Unauthorized(ApiResponse<List<MasterStatus>>.Fail(message));
             _actionLog.Info("Get shop type request (UserId={UserId})", userId);
             List<MasterStatus>? resp = await _shop.MasterShopType(null, ip, ua, ct);
 

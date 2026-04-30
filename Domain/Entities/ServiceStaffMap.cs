@@ -11,6 +11,8 @@ public partial class ServiceStaffMap
 
     public DateTime CreatedAt { get; set; }
 
+    public int? CreatedBy { get; set; }
+
     public virtual Service Service { get; set; } = null!;
 
     public virtual ShopStaff Staff { get; set; } = null!;

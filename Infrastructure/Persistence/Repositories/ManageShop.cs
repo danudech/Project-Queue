@@ -134,12 +134,13 @@ public sealed class ManageShop : IManageShop
             List<ShopBusinessHour> businessHours = request.BusinessHours.Select(h => new ShopBusinessHour
             {
                 ShopId = newShop.Id,
+                BranchId = newBranch.Id,
                 DayOfWeek = h.DayOfWeek,
                 OpenTime = TimeOnly.Parse(h.OpenTime),
                 CloseTime = TimeOnly.Parse(h.CloseTime),
             }).ToList();
 
-            await _crud.InsertRangeAsync(businessHours, ct); // insert ทีเดียว
+            await _crud.InsertRangeAsync(businessHours, ct);
 
             await transaction.CommitAsync(ct);
 
@@ -153,6 +154,61 @@ public sealed class ManageShop : IManageShop
         }
     }
 
+    public async Task<ShopResponse?> CreateBranch(int userId, CreateShopRequest request, string ip, string userAgent, CancellationToken ct)
+    {
+        _actionLog.Info("Creating new branch (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, userAgent);
+        await using var transaction = await _db.Database.BeginTransactionAsync(ct);
+        try
+        {
+            Shop? shop = await _db.Shops.FirstOrDefaultAsync(s => s.OwnerId == userId, ct);
+            if (shop == null)
+            {
+                _actionLog.Warning("Shop not found for branch creation (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, userAgent);
+                return null;
+            }
+
+            Address newAddress = new Address
+            {
+                HouseNo = request.Branch?.BranchAddress?.HouseNo ?? string.Empty,
+                Street = request.Branch?.BranchAddress?.Street ?? string.Empty,
+                ProvinceId = request.Branch?.BranchAddress?.ProvinceId ?? 0,
+                DistrictId = request.Branch?.BranchAddress?.DistrictId ?? 0,
+                SubdistrictId = request.Branch?.BranchAddress?.SubdistrictId ?? 0,
+                Zipcode = request.Branch?.BranchAddress?.Zipcode ?? string.Empty
+            };
+            await _crud.InsertAsync(newAddress, ct);
+
+            ShopBranch newBranch = new ShopBranch
+            {
+                Guid = Guid.NewGuid(),
+                ShopId = shop.Id,
+                Name = request.Branch?.BranchName ?? "New Branch",
+                Phone = request.Branch?.BranchPhone ?? string.Empty,
+                AddressId = newAddress.Id
+            };
+            await _crud.InsertAsync(newBranch, ct);
+            List<ShopBusinessHour> businessHours = request.BusinessHours.Select(h => new ShopBusinessHour
+            {
+                ShopId = shop.Id,
+                BranchId = newBranch.Id,
+                DayOfWeek = h.DayOfWeek,
+                OpenTime = TimeOnly.Parse(h.OpenTime),
+                CloseTime = TimeOnly.Parse(h.CloseTime),
+            }).ToList();
+
+            await _crud.InsertRangeAsync(businessHours, ct);
+
+            await transaction.CommitAsync(ct);
+
+            return MapToResponse(shop);
+        }
+        catch (Exception ex)
+        {
+            _actionLog.Error(ex, "Error creating branch (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, userAgent);
+            await transaction.RollbackAsync(ct);
+            return null;
+        }
+    }
 
 
     // ================= Private Helper Methods =================
@@ -161,6 +217,7 @@ public sealed class ManageShop : IManageShop
     {
         Id = shop.Id,
         Name = shop.Name ?? string.Empty,
+        Type = shop.TypeId.ToString() ?? string.Empty,
         OwnerId = shop.OwnerId,
         Status = shop.StatusId,
 

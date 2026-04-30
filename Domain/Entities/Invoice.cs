@@ -17,6 +17,12 @@ public partial class Invoice
 
     public DateTime CreatedAt { get; set; }
 
+    public int? CreatedBy { get; set; }
+
+    public DateTime? UpdatedAt { get; set; }
+
+    public int? UpdatedBy { get; set; }
+
     public virtual Shop Shop { get; set; } = null!;
 
     public virtual MasterStatus Status { get; set; } = null!;

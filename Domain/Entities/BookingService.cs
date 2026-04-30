@@ -11,6 +11,8 @@ public partial class BookingService
 
     public DateTime CreatedAt { get; set; }
 
+    public int? CreatedBy { get; set; }
+
     public virtual Booking Booking { get; set; } = null!;
 
     public virtual Service Service { get; set; } = null!;

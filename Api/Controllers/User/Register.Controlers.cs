@@ -116,18 +116,22 @@ public class RegisterController : ControllerBase
     [HttpPost("resetpassword")]
     public async Task<ActionResult<ApiResponse<bool>>> ResetPassword([FromBody] ResetPasswordRequest req, CancellationToken ct)
     {
-        string? userId = User.FindFirst("uid")?.Value;
-        if (string.IsNullOrWhiteSpace(userId))
-            return Unauthorized(ApiResponse<bool>.Fail("User not found"));
+        string ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        string ua = HttpContext.Request.Headers.UserAgent.ToString();
+        string userId = User.FindFirst("uid")?.Value ?? "0";
         try
         {
+            (bool status, string message, string refreshtoken) = await _istokenrefresh.UserHasConsent(HttpContext, ip, ua, ct);
+            if (!status)
+                return Unauthorized(ApiResponse<bool>.Fail(message));
+
+            if (string.IsNullOrWhiteSpace(userId))
+                return Unauthorized(ApiResponse<bool>.Fail("User not found"));
+
             if (string.IsNullOrWhiteSpace(req.NewPassword))
                 return BadRequest(ApiResponse<bool>.Fail("new password is required"));
 
             _actionLog.Info("Reset password request");
-
-            string ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-            string ua = HttpContext.Request.Headers.UserAgent.ToString();
             bool? resp = await _user.ResetPassword(int.Parse(userId), req.NewPassword, ip, ua, ct);
             if (resp == null || !(resp ?? false))
             {

@@ -19,6 +19,10 @@ public partial class Notification
 
     public int StatusId { get; set; }
 
+    public DateTime CreatedAt { get; set; }
+
+    public int? CreatedBy { get; set; }
+
     public virtual ICollection<NotificationLog> NotificationLogs { get; set; } = new List<NotificationLog>();
 
     public virtual MasterStatus Status { get; set; } = null!;

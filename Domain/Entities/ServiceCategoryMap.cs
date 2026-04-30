@@ -11,6 +11,8 @@ public partial class ServiceCategoryMap
 
     public DateTime CreatedAt { get; set; }
 
+    public int? CreatedBy { get; set; }
+
     public virtual ServiceCategory Category { get; set; } = null!;
 
     public virtual Service Service { get; set; } = null!;

@@ -17,6 +17,16 @@ public partial class Shop
 
     public int StatusId { get; set; }
 
+    public bool IsActive { get; set; }
+
+    public DateTime CreatedAt { get; set; }
+
+    public int? CreatedBy { get; set; }
+
+    public DateTime? UpdatedAt { get; set; }
+
+    public int? UpdatedBy { get; set; }
+
     public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 
     public virtual ICollection<Customer> Customers { get; set; } = new List<Customer>();

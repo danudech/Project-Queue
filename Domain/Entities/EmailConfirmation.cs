@@ -21,5 +21,7 @@ public partial class EmailConfirmation
 
     public DateTime CreatedAt { get; set; }
 
+    public int? CreatedBy { get; set; }
+
     public virtual User User { get; set; } = null!;
 }

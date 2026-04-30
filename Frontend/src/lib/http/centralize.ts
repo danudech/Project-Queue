@@ -1,7 +1,6 @@
 import { externalEndpoints, internalEndpoints } from "@/config/endpoints";
 import { TokenType } from "@/types/auth/auth-response";
 import { env } from "@/config/env";
-import toast from "react-hot-toast";
 import { parseResponse } from "../parse-response";
 
 type Method = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
@@ -74,7 +73,7 @@ export function createHttp<K extends string>(
         const json =
           (await res.json().catch(() => null)) as RefreshResponse | null;
 
-        if (!res.ok || !json?.status || !json.data) {
+        if (!res.ok || !json?.status || !json.data || !json.data.accessToken || !json.data.refreshToken || !json.data.session) {
           return null;
         }
 
@@ -119,11 +118,9 @@ export function createHttp<K extends string>(
     });
 
     if (res.status === 401 && !retried && !opts.skipRefresh) {
-      console.warn(`⚠️ [API Warning] 401 Unauthorized ที่ ${url} -> กำลังพยายาม Refresh Token...`);
       const token = await tryRefresh();
 
       if (token) {
-        console.log(`✅ [API Success] Refresh Token สำเร็จ! กำลัง Retry ยิง API เดิมซ้ำ...`);
         return request<T>(
           method,
           url,
@@ -144,10 +141,8 @@ export function createHttp<K extends string>(
           },
         );
         setTimeout(() => {
-          window.location.href = "/auth/login"; 
+          window.location.href = "/auth/login";
         }, 1500);
-        console.error(`❌ [API Error] Refresh Token ล้มเหลว หรือ Token หมดอายุถาวร`);
-        toast.error("กรุณาเข้าสู่ระบบใหม่");
       }
     }
 

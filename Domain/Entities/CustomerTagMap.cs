@@ -11,6 +11,8 @@ public partial class CustomerTagMap
 
     public DateTime CreatedAt { get; set; }
 
+    public int? CreatedBy { get; set; }
+
     public virtual Customer Customer { get; set; } = null!;
 
     public virtual CustomerTag Tag { get; set; } = null!;

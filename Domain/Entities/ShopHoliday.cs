@@ -13,5 +13,13 @@ public partial class ShopHoliday
 
     public string Reason { get; set; } = null!;
 
+    public DateTime CreatedAt { get; set; }
+
+    public int? CreatedBy { get; set; }
+
+    public DateTime? UpdatedAt { get; set; }
+
+    public int? UpdatedBy { get; set; }
+
     public virtual Shop Shop { get; set; } = null!;
 }
