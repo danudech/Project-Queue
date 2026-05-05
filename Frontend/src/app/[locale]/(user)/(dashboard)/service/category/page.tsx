@@ -3,8 +3,11 @@
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { http } from "@/lib/http/client";
+import SiteBreadcrumb from "@/components/site-breadcrumb";
+import { Card, CardContent } from "@/components/ui/card";
+import ExampleTwo from "@/components/partials/react-table";
 
-const DashboardPage = () => {
+const CategoryPage = () => {
 
   const handleCheckMe = async () => {
     try {
@@ -19,26 +22,18 @@ const DashboardPage = () => {
   };
 
   return (
-    
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="bg-white p-8 rounded-xl shadow-md text-center space-y-6 w-[320px]">
 
-          <h1 className="text-2xl font-semibold">Category</h1>
-
-          <p className="text-gray-500">You are logged in 🎉</p>
-
-          {/* ✅ ปุ่ม Check Me */}
-          <Button
-            onClick={handleCheckMe}
-            className="w-full h-10"
-            variant="default"
-          >
-            Check Me
-          </Button>
-
-        </div>
+    <div>
+      <SiteBreadcrumb />
+      <div className='space-y-6'>
+        <Card>
+          <CardContent className="p-0">
+            <ExampleTwo />
+          </CardContent>
+        </Card>
       </div>
+    </div>
   );
 };
 
-export default DashboardPage;
+export default CategoryPage;

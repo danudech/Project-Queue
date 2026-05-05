@@ -25,6 +25,7 @@ const LayoutContentProvider = ({ children }: { children: React.ReactNode }) => {
             </main>
         )
     }
+    console.log("LAYOUT CONTENT PROVIDER RENDERED ",config.contentWidth)
 
     return (
         <>
