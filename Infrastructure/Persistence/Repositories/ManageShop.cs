@@ -210,6 +210,311 @@ public sealed class ManageShop : IManageShop
         }
     }
 
+    public async Task<List<ShopCategoryResponse>?> GetShopCategoryById(int userId, string ip, string userAgent, CancellationToken ct)
+    {
+        try
+        {
+            _actionLog.Info("Fetching shop categories (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, userAgent);
+
+            List<ServiceCategory>? categories = await _db.ServiceCategories
+                .Where(c => c.Shop.OwnerId == userId)
+                .Include(c => c.Shop)
+                .AsNoTracking()
+                .ToListAsync(ct);
+
+            return categories?.Select(c => new ShopCategoryResponse
+            {
+                Id = c.Id,
+                Name = c.Name,
+                ShopId = c.ShopId,
+                ShopName = c.Shop?.Name ?? string.Empty,
+                IsActive = c.IsActive,
+                CreatedAt = c.CreatedAt
+            }).ToList();
+        }
+        catch (Exception ex)
+        {
+            _actionLog.Error(ex, "Error fetching shop categories (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, userAgent);
+            return null;
+        }
+    }
+
+    public async Task<ShopCategoryResponse> AddShopCategory(int userId, ShopCategoryRequest request, string ip, string userAgent, CancellationToken ct)
+    {
+        _actionLog.Info("Adding shop category (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, userAgent);
+        try
+        {
+            Shop? shop = await _db.Shops.FirstOrDefaultAsync(s => s.OwnerId == userId, ct);
+            if (shop == null)
+            {
+                _actionLog.Warning("Shop not found for adding category (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, userAgent);
+                return null!;
+            }
+
+            ServiceCategory? existingCategory = await _db.ServiceCategories
+                .FirstOrDefaultAsync(c => c.ShopId == shop.Id && c.Name == request.Name, ct);
+
+            if (existingCategory != null)
+            {
+                _actionLog.Warning("Category already exists (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, userAgent);
+                return null!;
+            }
+
+            ServiceCategory newCategory = new ServiceCategory
+            {
+                Name = request.Name,
+                ShopId = shop.Id,
+                IsActive = request.IsActive,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _crud.InsertAsync(newCategory, ct);
+
+            return new ShopCategoryResponse
+            {
+                Id = newCategory.Id,
+                Name = newCategory.Name,
+                ShopId = newCategory.ShopId,
+                ShopName = shop.Name ?? string.Empty,
+                IsActive = newCategory.IsActive,
+                CreatedAt = newCategory.CreatedAt
+            };
+        }
+        catch (Exception ex)
+        {
+            _actionLog.Error(ex, "Error adding shop category (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, userAgent);
+            return null!;
+        }
+    }
+
+    public async Task<ShopCategoryResponse> UpdateShopCategory(int userId, ShopCategoryRequest request, string ip, string userAgent, CancellationToken ct)
+    {
+        _actionLog.Info("Updating shop category (UserId={UserId}, CategoryId={CategoryId}, IP={IP}, UserAgent={UserAgent})", userId, request.Id ?? 0, ip, userAgent);
+        try
+        {
+            ServiceCategory? category = await _db.ServiceCategories
+                .Include(c => c.Shop)
+                .FirstOrDefaultAsync(c => c.Id == request.Id && c.Shop.OwnerId == userId, ct);
+
+            if (category == null)
+            {
+                _actionLog.Warning("Category not found for update (UserId={UserId}, CategoryId={CategoryId}, IP={IP}, UserAgent={UserAgent})", userId, request.Id ?? 0, ip, userAgent);
+                return null!;
+            }
+
+            if (category.Name != request.Name) category.Name = request.Name;
+            if (category.IsActive != request.IsActive) category.IsActive = request.IsActive;
+
+            await _crud.UpdateAsync(category, ct);
+
+            return new ShopCategoryResponse
+            {
+                Id = category.Id,
+                Name = category.Name,
+                ShopId = category.ShopId,
+                ShopName = category.Shop?.Name ?? string.Empty,
+                IsActive = category.IsActive,
+                CreatedAt = category.CreatedAt
+            };
+        }
+        catch (Exception ex)
+        {
+            _actionLog.Error(ex, "Error updating shop category (UserId={UserId}, CategoryId={CategoryId}, IP={IP}, UserAgent={UserAgent})", userId, request.Id ?? 0, ip, userAgent);
+            return null!;
+        }
+    }
+
+    public async Task<bool> DeleteShopCategory(int userId, int categoryId, string ip, string userAgent, CancellationToken ct)
+    {
+        _actionLog.Info("Deleting shop category (UserId={UserId}, CategoryId={CategoryId}, IP={IP}, UserAgent={UserAgent})", userId, categoryId, ip, userAgent);
+        try
+        {
+            ServiceCategory? category = await _db.ServiceCategories
+                .Include(c => c.Shop)
+                .FirstOrDefaultAsync(c => c.Id == categoryId && c.Shop.OwnerId == userId, ct);
+
+            if (category == null)
+            {
+                _actionLog.Warning("Category not found for deletion (UserId={UserId}, CategoryId={CategoryId}, IP={IP}, UserAgent={UserAgent})", userId, categoryId, ip, userAgent);
+                return false;
+            }
+
+            await _crud.DeleteAsync(category, ct);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _actionLog.Error(ex, "Error deleting shop category (UserId={UserId}, CategoryId={CategoryId}, IP={IP}, UserAgent={UserAgent})", userId, categoryId, ip, userAgent);
+            return false;
+        }
+    }
+
+    public async Task<List<ShopServiceResponse>?> GetShopServicesById(int userId, string ip, string userAgent, CancellationToken ct)
+    {
+        try
+        {
+            _actionLog.Info("Fetching shop services (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, userAgent);
+
+            List<Domain.Entities.Service>? services = await _db.Services
+                .Where(s => s.Shop.OwnerId == userId)
+                .Include(s => s.Shop)
+                .Include(s => s.ServiceCategoryMaps)
+                    .ThenInclude(m => m.Category)
+                .AsNoTracking()
+                .ToListAsync(ct);
+
+            return services?.Select(s => new ShopServiceResponse
+            {
+                Id = s.Id,
+                Name = s.Name,
+                ShopId = s.ShopId,
+                ShopName = s.Shop?.Name ?? string.Empty,
+                Duration = s.Duration,
+                Price = s.Price,
+                CategoryId = s.ServiceCategoryMaps.FirstOrDefault()?.CategoryId ?? 0,
+                IsActive = s.IsActive,
+                CreatedAt = s.CreatedAt
+            }).ToList();
+        }
+        catch (Exception ex)
+        {
+            _actionLog.Error(ex, "Error fetching shop services (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, userAgent);
+            return null;
+        }
+    }
+
+    public async Task<ShopServiceResponse> AddShopService(int userId, ShopServiceRequest request, string ip, string userAgent, CancellationToken ct)
+    {
+        _actionLog.Info("Adding shop service (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, userAgent);
+        try
+        {
+            Shop? shop = await _db.Shops.FirstOrDefaultAsync(s => s.OwnerId == userId, ct);
+            if (shop == null)
+            {
+                _actionLog.Warning("Shop not found for adding service (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, userAgent);
+                return null!;
+            }
+
+            Domain.Entities.Service newService = new Domain.Entities.Service
+            {
+                Name = request.Name,
+                ShopId = shop.Id,
+                Duration = request.Duration,
+                Price = request.Price,
+                IsActive = request.IsActive,
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = userId
+            };
+
+            await _crud.InsertAsync(newService, ct);
+
+            ServiceCategoryMap _categoryMap = new ServiceCategoryMap
+            {
+                ServiceId = newService.Id,
+                CategoryId = request.CategoryId,
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = userId
+            };
+            await _crud.InsertAsync(_categoryMap, ct);
+
+            return new ShopServiceResponse
+            {
+                Id = newService.Id,
+                Name = newService.Name,
+                ShopId = newService.ShopId,
+                ShopName = shop.Name ?? string.Empty,
+                Duration = newService.Duration,
+                Price = newService.Price,
+                CategoryId = request.CategoryId,
+                IsActive = newService.IsActive,
+                CreatedAt = newService.CreatedAt
+            };
+        }
+        catch (Exception ex)
+        {
+            _actionLog.Error(ex, "Error adding shop service (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, userAgent);
+            return null!;
+        }
+    }
+
+    public async Task<ShopServiceResponse> UpdateShopService(int userId, ShopServiceRequest request, string ip, string userAgent, CancellationToken ct)
+    {
+        _actionLog.Info("Updating shop service (UserId={UserId}, ServiceId={ServiceId}, IP={IP}, UserAgent={UserAgent})", userId, request.Id ?? 0, ip, userAgent);
+        try
+        {
+            Domain.Entities.Service? service = await _db.Services
+                .Include(s => s.Shop)
+                .Include(s => s.ServiceCategoryMaps)
+                .FirstOrDefaultAsync(s => s.Id == request.Id && s.Shop.OwnerId == userId, ct);
+
+            if (service == null)
+            {
+                _actionLog.Warning("Service not found for update (UserId={UserId}, ServiceId={ServiceId}, IP={IP}, UserAgent={UserAgent})", userId, request.Id ?? 0, ip, userAgent);
+                return null!;
+            }
+
+            if (service.Name != request.Name) service.Name = request.Name;
+            if (service.Duration != request.Duration) service.Duration = request.Duration;
+            if (service.Price != request.Price) service.Price = request.Price;
+            if (service.IsActive != request.IsActive) service.IsActive = request.IsActive;
+
+            await _crud.UpdateAsync(service, ct);
+
+            ServiceCategoryMap? categoryMap = service.ServiceCategoryMaps.FirstOrDefault();
+            if (categoryMap != null && categoryMap.CategoryId != request.CategoryId)
+            {
+                categoryMap.CategoryId = request.CategoryId;
+                await _crud.UpdateAsync(categoryMap, ct);
+            }
+
+            return new ShopServiceResponse
+            {
+                Id = service.Id,
+                Name = service.Name,
+                ShopId = service.ShopId,
+                ShopName = service.Shop?.Name ?? string.Empty,
+                Duration = service.Duration,
+                Price = service.Price,
+                CategoryId = categoryMap?.CategoryId ?? 0,
+                IsActive = service.IsActive,
+                CreatedAt = service.CreatedAt
+            };
+        }
+        catch (Exception ex)
+        {
+            _actionLog.Error(ex, "Error updating shop service (UserId={UserId}, ServiceId={ServiceId}, IP={IP}, UserAgent={UserAgent})", userId, request.Id ?? 0, ip, userAgent);
+            return null!;
+        }
+    }
+
+    public async Task<bool> DeleteShopService(int userId, int serviceId, string ip, string userAgent, CancellationToken ct)
+    {
+        _actionLog.Info("Deleting shop service (UserId={UserId}, ServiceId={ServiceId}, IP={IP}, UserAgent={UserAgent})", userId, serviceId, ip, userAgent);
+        try
+        {
+            Domain.Entities.Service? service = await _db.Services
+                .Include(s => s.Shop)
+                .FirstOrDefaultAsync(s => s.Id == serviceId && s.Shop.OwnerId == userId, ct);
+
+            if (service == null)
+            {
+                _actionLog.Warning("Service not found for deletion (UserId={UserId}, ServiceId={ServiceId}, IP={IP}, UserAgent={UserAgent})", userId, serviceId, ip, userAgent);
+                return false;
+            }
+
+            ServiceCategoryMap? categoryMap = await _db.ServiceCategoryMaps.FirstOrDefaultAsync(m => m.ServiceId == serviceId, ct);
+
+            if (categoryMap != null) await _crud.DeleteAsync(categoryMap, ct);
+            await _crud.DeleteAsync(service, ct);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _actionLog.Error(ex, "Error deleting shop service (UserId={UserId}, ServiceId={ServiceId}, IP={IP}, UserAgent={UserAgent})", userId, serviceId, ip, userAgent);
+            return false;
+        }
+    }
 
     // ================= Private Helper Methods =================
 

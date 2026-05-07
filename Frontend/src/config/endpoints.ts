@@ -19,6 +19,9 @@ export const internalEndpoints = {
   newshop: "/api/shop/new-shop",
   newbranch : "/api/shop/new-branch",
 
+  shopcategory : "/api/shop-category",
+  shopservices: "/api/shop-services",
+
   addressbyzipcode: "/api/address/by-zipcode",
 } as const;
 
@@ -42,6 +45,16 @@ export const externalEndpoints = {
   shoptype: "/api/v1/shop/shop-type",
   newshop: "/api/v1/shop/new-shop",
   newbranch : "/api/v1/shop/new-branch",
+
+  shopcategory: "/api/v1/shop/category/get-category",
+  newshopcategory: "/api/v1/shop/category/add-category",
+  shopupdatecategory : "/api/v1/shop/category/update-category",
+  deleteshopcategory : "/api/v1/shop/category/delete-category",
+  
+  service : "/api/v1/shop/services/get-services",
+  newservices: "/api/v1/shop/services/add-service",
+  updateservices: "/api/v1/shop/services/update-service",
+  deleteservices: "/api/v1/shop/services/delete-service",
 
   addressbyzipcode: "/api/v1/address/by-zipcode",
 } as const;

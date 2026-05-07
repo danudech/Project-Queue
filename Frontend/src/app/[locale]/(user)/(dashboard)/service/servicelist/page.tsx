@@ -3,7 +3,7 @@
 import { toast } from "sonner";
 import { http } from "@/lib/http/client";
 import { Card, CardContent } from "@/components/ui/card";
-import ServiceCategoryPage from "./tb-category-list";
+import ServicePage from "./tb-sevice-list";
 
 const CategoryPage = () => {
 
@@ -11,7 +11,7 @@ const CategoryPage = () => {
     <div className='space-y-6'>
       <Card>
         <CardContent className="p-0">
-          <ServiceCategoryPage />
+          <ServicePage />
         </CardContent>
       </Card>
     </div>

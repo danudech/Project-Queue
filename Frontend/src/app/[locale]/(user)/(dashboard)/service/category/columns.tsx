@@ -12,17 +12,10 @@ import { SquarePen, Trash2, Power } from "lucide-react" // เพิ่ม Power
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils";
+import { ServiceCategoryType } from "@/types/shop/catgory"
 
-export type DataProps = {
-  id: number;
-  name: string;
-  shopId: number;
-  shopName: string;
-  isActive: boolean;
-  createdAt: string;
-};
 
-export const columns: ColumnDef<DataProps>[] = [
+export const columns: ColumnDef<ServiceCategoryType>[] = [
   {
     accessorKey: "id",
     header: "ID",
@@ -55,7 +48,7 @@ export const columns: ColumnDef<DataProps>[] = [
         <Badge
           color={active ? "success" : "destructive"}
           className="capitalize cursor-pointer hover:opacity-80"
-          onClick={() => meta?.toggleStatus(row.original.id)} // คลิกที่ Badge เพื่อ toggle ได้เช่นกัน
+          onClick={() => meta?.toggleStatus(row.original)}
         >
           {active ? "Active" : "Inactive"}
         </Badge>
@@ -90,7 +83,7 @@ export const columns: ColumnDef<DataProps>[] = [
                     "w-7 h-7 border-default-200 transition-colors",
                     isActive ? "text-success hover:bg-success/10" : "text-default-400 hover:bg-default-100"
                   )}
-                  onClick={() => meta?.toggleStatus(row.original.id)}
+                  onClick={() => meta?.toggleStatus(row.original)}
                 >
                   <Power className="w-3.5 h-3.5" />
                 </Button>

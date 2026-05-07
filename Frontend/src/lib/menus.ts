@@ -117,9 +117,9 @@ export function getMenuList(pathname: string, t: any): Group[] {
       menus: [
         {
           id: "service-list",
-          href: "/service/list",
+          href: "/service/servicelist",
           label: t("serviceList"),
-          active: pathname === "/service/list",
+          active: pathname === "/service/servicelist",
           icon: "heroicons-outline:briefcase",
           submenus: [],
         },
