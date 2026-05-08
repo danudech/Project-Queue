@@ -86,6 +86,7 @@ const ServicePage = () => {
     const [tableData, setTableData] = React.useState<SetService[] | null>(null)
     const [dialogOpen, setDialogOpen] = React.useState(false)
     const [editTarget, setEditTarget] = React.useState<SetService | null>(null)
+    const [btnLoading, setBtnLoading] = React.useState(false)
 
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -160,6 +161,7 @@ const ServicePage = () => {
     // ── Submit ─────────────────────────────────────────────────────────────
     const onSubmit = async (values: FormValues) => {
         if (!shopData) return
+        setBtnLoading(true)
         try {
             if (editTarget) {
                 const updated = await http.put<SetService>("shopservices", {
@@ -205,6 +207,8 @@ const ServicePage = () => {
         } catch (error) {
             console.error(error)
             toast.error("เกิดข้อผิดพลาดในการบันทึกข้อมูล")
+        } finally {
+            setBtnLoading(false)
         }
     }
 
@@ -415,7 +419,9 @@ const ServicePage = () => {
                                 >
                                     ยกเลิก
                                 </Button>
-                                <Button type="submit">บันทึก</Button>
+                                <Button type="submit" disabled={btnLoading}>
+                                    {btnLoading ? "กำลังบันทึก..." : "บันทึก"}
+                                </Button>
                             </DialogFooter>
                         </form>
                     </Form>

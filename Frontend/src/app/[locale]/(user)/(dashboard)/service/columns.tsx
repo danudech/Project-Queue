@@ -7,15 +7,14 @@ import {
 } from "@/components/ui/tooltip"
 
 import { ColumnDef } from "@tanstack/react-table"
-import { SquarePen, Trash2, Power } from "lucide-react" // เพิ่ม Power icon
+import { SquarePen, Trash2, Power } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { cn } from "@/lib/utils";
-import { ServiceCategoryType } from "@/types/shop/catgory"
+import { cn } from "@/lib/utils"
+import { SetService } from "@/types/shop/service"
 
-
-export const columns: ColumnDef<ServiceCategoryType>[] = [
+export const columns: ColumnDef<SetService>[] = [
   {
     accessorKey: "id",
     header: "ID",
@@ -25,24 +24,40 @@ export const columns: ColumnDef<ServiceCategoryType>[] = [
   },
   {
     accessorKey: "name",
-    header: "ชื่อ Category",
+    header: "ชื่อบริการ",
     cell: ({ row }) => (
       <span className="font-medium text-default-900">{row.getValue("name")}</span>
     ),
   },
   {
-    accessorKey: "shopName",
-    header: "Shop",
+    accessorKey: "duration",
+    header: "ระยะเวลา",
     cell: ({ row }) => (
-      <span className="text-default-600 text-sm">{row.getValue("shopName")}</span>
+      <span className="text-default-600 text-sm">{row.getValue("duration")} นาที</span>
     ),
+  },
+  {
+    accessorKey: "price",
+    header: "ราคา",
+    cell: ({ row }) => {
+      const price = row.getValue("price") as number
+      return (
+        <span className="text-default-600 text-sm">
+          {price.toLocaleString("th-TH", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}{" "}
+          ฿
+        </span>
+      )
+    },
   },
   {
     accessorKey: "isActive",
     header: "Status",
     cell: ({ row, table }) => {
-      const active = row.getValue("isActive") as boolean;
-      const meta = table.options.meta as any;
+      const active = row.getValue("isActive") as boolean
+      const meta = table.options.meta as any
 
       return (
         <Badge
@@ -52,7 +67,7 @@ export const columns: ColumnDef<ServiceCategoryType>[] = [
         >
           {active ? "Active" : "Inactive"}
         </Badge>
-      );
+      )
     },
   },
   {
@@ -89,12 +104,12 @@ export const columns: ColumnDef<ServiceCategoryType>[] = [
     header: "Action",
     enableHiding: false,
     cell: ({ row, table }) => {
-      const meta = table.options.meta as any;
-      const isActive = row.original.isActive;
+      const meta = table.options.meta as any
+      const isActive = row.original.isActive
 
       return (
         <div className="flex items-center gap-2">
-          {/* 1. ปุ่ม ปิด/เปิด การใช้งาน (Toggle Status) */}
+          {/* Toggle Status */}
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -103,7 +118,9 @@ export const columns: ColumnDef<ServiceCategoryType>[] = [
                   size="icon"
                   className={cn(
                     "w-7 h-7 border-default-200 transition-colors",
-                    isActive ? "text-success hover:bg-success/10" : "text-default-400 hover:bg-default-100"
+                    isActive
+                      ? "text-success hover:bg-success/10"
+                      : "text-default-400 hover:bg-default-100"
                   )}
                   onClick={() => meta?.toggleStatus(row.original)}
                 >
@@ -116,7 +133,7 @@ export const columns: ColumnDef<ServiceCategoryType>[] = [
             </Tooltip>
           </TooltipProvider>
 
-          {/* 2. ปุ่ม แก้ไข (Edit) */}
+          {/* Edit */}
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -133,7 +150,7 @@ export const columns: ColumnDef<ServiceCategoryType>[] = [
             </Tooltip>
           </TooltipProvider>
 
-          {/* 3. ปุ่ม ลบ (Delete) */}
+          {/* Delete */}
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -142,8 +159,8 @@ export const columns: ColumnDef<ServiceCategoryType>[] = [
                   size="icon"
                   className="w-7 h-7 border-default-200 text-destructive hover:bg-destructive/10"
                   onClick={() => {
-                    if (confirm("คุณต้องการลบข้อมูลนี้ใช่หรือไม่?")) {
-                      meta?.deleteRow(row.original.id);
+                    if (confirm("คุณต้องการลบบริการนี้ใช่หรือไม่?")) {
+                      meta?.deleteRow(row.original.id)
                     }
                   }}
                 >
@@ -156,7 +173,7 @@ export const columns: ColumnDef<ServiceCategoryType>[] = [
             </Tooltip>
           </TooltipProvider>
         </div>
-      );
+      )
     },
   },
-];
+]

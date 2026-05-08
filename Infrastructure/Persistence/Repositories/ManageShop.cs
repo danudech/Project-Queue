@@ -5,6 +5,7 @@ using Queue.Application.DTO.Request;
 using Queue.Application.Interfaces;
 using Queue.Domain.Entities;
 using Queue.Infrastructure.Service;
+using Queue.Infrastructure.Services;
 
 namespace Queue.Infrastructure.Persistence.Repositories;
 
@@ -14,14 +15,16 @@ public sealed class ManageShop : IManageShop
     private readonly QueueDbContext _db;
     private readonly ICrudService _crud;
     private readonly IConfiguration _config;
+    private readonly DateTimeService _dateTime;
 
 
-    public ManageShop(IActionLog actionLog, QueueDbContext db, ICrudService crud, IConfiguration config)
+    public ManageShop(IActionLog actionLog, QueueDbContext db, ICrudService crud, IConfiguration config, DateTimeService dateTime)
 
     {
         _actionLog = actionLog;
         _db = db;
         _config = config;
+        _dateTime = dateTime;
         _crud = crud;
 
     }
@@ -108,6 +111,7 @@ public sealed class ManageShop : IManageShop
                 OwnerId = userId,
                 TypeId = int.Parse(request.ShopType),
                 StatusId = 3,
+                CreatedAt = _dateTime.LocalNow()
             };
             await _crud.InsertAsync(newShop, ct);
 
@@ -118,7 +122,8 @@ public sealed class ManageShop : IManageShop
                 ProvinceId = request.Branch?.BranchAddress?.ProvinceId ?? 0,
                 DistrictId = request.Branch?.BranchAddress?.DistrictId ?? 0,
                 SubdistrictId = request.Branch?.BranchAddress?.SubdistrictId ?? 0,
-                Zipcode = request.Branch?.BranchAddress?.Zipcode ?? string.Empty
+                Zipcode = request.Branch?.BranchAddress?.Zipcode ?? string.Empty,
+                CreatedAt = _dateTime.LocalNow()
             };
             await _crud.InsertAsync(newAddress, ct);
 
@@ -128,7 +133,8 @@ public sealed class ManageShop : IManageShop
                 ShopId = newShop.Id,
                 Name = request.Branch?.BranchName ?? "Main Branch",
                 Phone = request.Branch?.BranchPhone ?? string.Empty,
-                AddressId = newAddress.Id
+                AddressId = newAddress.Id,
+                CreatedAt = _dateTime.LocalNow()
             };
             await _crud.InsertAsync(newBranch, ct);
             List<ShopBusinessHour> businessHours = request.BusinessHours.Select(h => new ShopBusinessHour
@@ -138,6 +144,7 @@ public sealed class ManageShop : IManageShop
                 DayOfWeek = h.DayOfWeek,
                 OpenTime = TimeOnly.Parse(h.OpenTime),
                 CloseTime = TimeOnly.Parse(h.CloseTime),
+                CreatedAt = _dateTime.LocalNow()
             }).ToList();
 
             await _crud.InsertRangeAsync(businessHours, ct);
@@ -174,7 +181,8 @@ public sealed class ManageShop : IManageShop
                 ProvinceId = request.Branch?.BranchAddress?.ProvinceId ?? 0,
                 DistrictId = request.Branch?.BranchAddress?.DistrictId ?? 0,
                 SubdistrictId = request.Branch?.BranchAddress?.SubdistrictId ?? 0,
-                Zipcode = request.Branch?.BranchAddress?.Zipcode ?? string.Empty
+                Zipcode = request.Branch?.BranchAddress?.Zipcode ?? string.Empty,
+                CreatedAt = _dateTime.LocalNow()
             };
             await _crud.InsertAsync(newAddress, ct);
 
@@ -184,7 +192,8 @@ public sealed class ManageShop : IManageShop
                 ShopId = shop.Id,
                 Name = request.Branch?.BranchName ?? "New Branch",
                 Phone = request.Branch?.BranchPhone ?? string.Empty,
-                AddressId = newAddress.Id
+                AddressId = newAddress.Id,
+                CreatedAt = _dateTime.LocalNow()
             };
             await _crud.InsertAsync(newBranch, ct);
             List<ShopBusinessHour> businessHours = request.BusinessHours.Select(h => new ShopBusinessHour
@@ -194,6 +203,7 @@ public sealed class ManageShop : IManageShop
                 DayOfWeek = h.DayOfWeek,
                 OpenTime = TimeOnly.Parse(h.OpenTime),
                 CloseTime = TimeOnly.Parse(h.CloseTime),
+                CreatedAt = _dateTime.LocalNow()
             }).ToList();
 
             await _crud.InsertRangeAsync(businessHours, ct);
@@ -265,7 +275,7 @@ public sealed class ManageShop : IManageShop
                 Name = request.Name,
                 ShopId = shop.Id,
                 IsActive = request.IsActive,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = _dateTime.LocalNow()
             };
 
             await _crud.InsertAsync(newCategory, ct);
@@ -277,7 +287,7 @@ public sealed class ManageShop : IManageShop
                 ShopId = newCategory.ShopId,
                 ShopName = shop.Name ?? string.Empty,
                 IsActive = newCategory.IsActive,
-                CreatedAt = newCategory.CreatedAt
+                CreatedAt = _dateTime.LocalNow()
             };
         }
         catch (Exception ex)
@@ -304,6 +314,8 @@ public sealed class ManageShop : IManageShop
 
             if (category.Name != request.Name) category.Name = request.Name;
             if (category.IsActive != request.IsActive) category.IsActive = request.IsActive;
+            category.UpdatedAt = _dateTime.LocalNow();
+            category.UpdatedBy = userId;
 
             await _crud.UpdateAsync(category, ct);
 
@@ -402,7 +414,7 @@ public sealed class ManageShop : IManageShop
                 Duration = request.Duration,
                 Price = request.Price,
                 IsActive = request.IsActive,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = _dateTime.LocalNow(),
                 CreatedBy = userId
             };
 
@@ -412,7 +424,7 @@ public sealed class ManageShop : IManageShop
             {
                 ServiceId = newService.Id,
                 CategoryId = request.CategoryId,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = _dateTime.LocalNow(),
                 CreatedBy = userId
             };
             await _crud.InsertAsync(_categoryMap, ct);
@@ -457,6 +469,8 @@ public sealed class ManageShop : IManageShop
             if (service.Duration != request.Duration) service.Duration = request.Duration;
             if (service.Price != request.Price) service.Price = request.Price;
             if (service.IsActive != request.IsActive) service.IsActive = request.IsActive;
+            service.UpdatedAt = _dateTime.LocalNow();
+            service.UpdatedBy = userId;
 
             await _crud.UpdateAsync(service, ct);
 

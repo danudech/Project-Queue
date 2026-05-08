@@ -12,6 +12,7 @@ using Queue.Infrastructure.Repositories;
 using Queue.Infrastructure.Identity.Jwt;
 using Queue.Infrastructure.Persistence.Repositories;
 using Queue.Infrastructure.Service;
+using Queue.Infrastructure.Services;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -135,6 +136,8 @@ builder.Services.AddScoped<IUsers, Users>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IManageShop, ManageShop>();
 builder.Services.AddScoped<IAddress, AddressRepository>();
+builder.Services.AddSingleton<DateTimeService>();
+builder.Services.AddScoped<IManageCustomer, ManageCustomer>();
 #endregion
 
 var app = builder.Build();

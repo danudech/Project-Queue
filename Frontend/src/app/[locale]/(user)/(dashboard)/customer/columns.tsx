@@ -12,9 +12,9 @@ import { SquarePen, Trash2, Power } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
-import { SetService } from "@/types/shop/service"
+import { CustomerType } from "@/types/shop/customer"
 
-export const columns: ColumnDef<SetService>[] = [
+export const columns: ColumnDef<CustomerType>[] = [
   {
     accessorKey: "id",
     header: "ID",
@@ -24,33 +24,17 @@ export const columns: ColumnDef<SetService>[] = [
   },
   {
     accessorKey: "name",
-    header: "ชื่อบริการ",
+    header: "ชื่อลูกค้า",
     cell: ({ row }) => (
       <span className="font-medium text-default-900">{row.getValue("name")}</span>
     ),
   },
   {
-    accessorKey: "duration",
-    header: "ระยะเวลา",
+    accessorKey: "phone",
+    header: "เบอร์โทรศัพท์",
     cell: ({ row }) => (
-      <span className="text-default-600 text-sm">{row.getValue("duration")} นาที</span>
+      <span className="text-default-600 text-sm">{row.getValue("phone")}</span>
     ),
-  },
-  {
-    accessorKey: "price",
-    header: "ราคา",
-    cell: ({ row }) => {
-      const price = row.getValue("price") as number
-      return (
-        <span className="text-default-600 text-sm">
-          {price.toLocaleString("th-TH", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}{" "}
-          ฿
-        </span>
-      )
-    },
   },
   {
     accessorKey: "isActive",
@@ -72,10 +56,26 @@ export const columns: ColumnDef<SetService>[] = [
   },
   {
     accessorKey: "createdAt",
-    header: "Created At",
-    cell: ({ row }) => (
-      <span className="text-default-500 text-sm">{row.getValue("createdAt")}</span>
-    ),
+    header: "วันที่สร้าง",
+    cell: ({ row }) => {
+      const dateValue = row.getValue("createdAt") as string
+      if (!dateValue) return <span className="text-default-400 text-sm">-</span>
+
+      const date = new Date(dateValue)
+      if (isNaN(date.getTime())) return <span className="text-default-400 text-sm">-</span>
+
+      const formatted = new Intl.DateTimeFormat("th-TH", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+      }).format(date)
+
+      return <span className="text-default-500 text-sm">{formatted} น.</span>
+    },
   },
   {
     id: "actions",
@@ -137,7 +137,7 @@ export const columns: ColumnDef<SetService>[] = [
                   size="icon"
                   className="w-7 h-7 border-default-200 text-destructive hover:bg-destructive/10"
                   onClick={() => {
-                    if (confirm("คุณต้องการลบบริการนี้ใช่หรือไม่?")) {
+                    if (confirm("คุณต้องการลบลูกค้านี้ใช่หรือไม่?")) {
                       meta?.deleteRow(row.original.id)
                     }
                   }}

@@ -22,7 +22,9 @@ export const internalEndpoints = {
   shopcategory : "/api/shop-category",
   shopservices: "/api/shop-services",
 
-  addressbyzipcode: "/api/address/by-zipcode",
+  customer : "/api/customer",
+
+  addressbyzipcode: "/api/address",
 } as const;
 
 export type InternalEndpointKey = keyof typeof internalEndpoints;
@@ -55,6 +57,11 @@ export const externalEndpoints = {
   newservices: "/api/v1/shop/services/add-service",
   updateservices: "/api/v1/shop/services/update-service",
   deleteservices: "/api/v1/shop/services/delete-service",
+
+  customer : "/api/v1/customer/get-customer",
+  newcustomer: "/api/v1/customer/add-customer",
+  updatecustomer: "/api/v1/customer/update-customer",
+  deletecustomer: "/api/v1/customer/delete-customer",
 
   addressbyzipcode: "/api/v1/address/by-zipcode",
 } as const;
