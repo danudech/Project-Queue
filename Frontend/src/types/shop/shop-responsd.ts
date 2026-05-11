@@ -1,3 +1,5 @@
+import { SetService } from "./service";
+
 export interface ShopResponse {
   id: number;
   name: string;
@@ -9,6 +11,7 @@ export interface ShopResponse {
   shopHours: ShopBusinessHour[];
   shopHolidays: ShopHoliday[];
   shopBranches: BranchDto[];
+  services: SetService[];
 }
 
 export interface ShopBusinessHour {

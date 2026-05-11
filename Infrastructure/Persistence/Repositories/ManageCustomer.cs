@@ -176,6 +176,7 @@ public sealed class ManageCustomer : IManageCustomer
 
             existingCustomer.Name = request.Name;
             existingCustomer.Phone = request.Phone;
+            existingCustomer.IsActive = request.IsActive;
             existingCustomer.UpdatedAt = _dateTime.LocalNow();
             existingCustomer.UpdatedBy = userId;
 

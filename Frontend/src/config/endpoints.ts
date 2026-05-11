@@ -17,12 +17,13 @@ export const internalEndpoints = {
   shopdata: "/api/shop/get-shop",
   shoptype: "/api/shop/shop-type",
   newshop: "/api/shop/new-shop",
-  newbranch : "/api/shop/new-branch",
+  newbranch: "/api/shop/new-branch",
 
-  shopcategory : "/api/shop-category",
+  shopcategory: "/api/shop-category",
   shopservices: "/api/shop-services",
 
-  customer : "/api/customer",
+  customer: "/api/customer",
+  booking: "/api/booking",
 
   addressbyzipcode: "/api/address",
 } as const;
@@ -46,19 +47,19 @@ export const externalEndpoints = {
   shopdata: "/api/v1/shop/get-shop",
   shoptype: "/api/v1/shop/shop-type",
   newshop: "/api/v1/shop/new-shop",
-  newbranch : "/api/v1/shop/new-branch",
+  newbranch: "/api/v1/shop/new-branch",
 
   shopcategory: "/api/v1/shop/category/get-category",
   newshopcategory: "/api/v1/shop/category/add-category",
-  shopupdatecategory : "/api/v1/shop/category/update-category",
-  deleteshopcategory : "/api/v1/shop/category/delete-category",
-  
-  service : "/api/v1/shop/services/get-services",
+  shopupdatecategory: "/api/v1/shop/category/update-category",
+  deleteshopcategory: "/api/v1/shop/category/delete-category",
+
+  service: "/api/v1/shop/services/get-services",
   newservices: "/api/v1/shop/services/add-service",
   updateservices: "/api/v1/shop/services/update-service",
   deleteservices: "/api/v1/shop/services/delete-service",
 
-  customer : "/api/v1/customer/get-customer",
+  customer: "/api/v1/customer/get-customer",
   newcustomer: "/api/v1/customer/add-customer",
   updatecustomer: "/api/v1/customer/update-customer",
   deletecustomer: "/api/v1/customer/delete-customer",

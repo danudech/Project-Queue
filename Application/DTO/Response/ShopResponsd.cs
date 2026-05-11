@@ -12,6 +12,7 @@ public class ShopResponse
     public List<ShopBusinessHour>? ShopHours { get; set; } = new List<ShopBusinessHour>();
     public List<ShopHoliday>? ShopHolidays { get; set; } = new List<ShopHoliday>();
     public List<BranchDto>? ShopBranches { get; set; } = new List<BranchDto>();
+    public List<Service>? Services { get; set; } = new List<Service>();
 }
 
 public class BranchDto

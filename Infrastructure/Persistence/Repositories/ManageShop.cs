@@ -38,6 +38,7 @@ public sealed class ManageShop : IManageShop
             Shop? shop = await _db.Shops
                 .AsNoTracking()
                 .Include(s => s.Status)
+                .Include(s => s.Services)
                 .Include(s => s.ShopBusinessHours)
                 .Include(s => s.ShopHolidays)
                 .Include(s => s.ShopBranches)
@@ -560,7 +561,16 @@ public sealed class ManageShop : IManageShop
         {
             HolidayDate = h.HolidayDate,
             Reason = h.Reason ?? string.Empty
-        }).OrderBy(h => h.HolidayDate).ToList() ?? new()
+        }).OrderBy(h => h.HolidayDate).ToList() ?? new(),
+
+        Services = shop.Services?.Select(s => new Domain.Entities.Service
+        {
+            Id = s.Id,
+            Name = s.Name ?? string.Empty,
+            Duration = s.Duration,
+            Price = s.Price,
+            IsActive = s.IsActive
+        }).ToList() ?? new()
     };
 
     private static AddressDto? MapAddress(Address? address)
