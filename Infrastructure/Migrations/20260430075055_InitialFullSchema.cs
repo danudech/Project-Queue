@@ -177,8 +177,6 @@ namespace Queue.Infrastructure.Migrations
 
             // =========================
             // USER ROLE MAPS
-            // ✅ FIX: เพิ่ม CreatedAt → Scaffold จะสร้าง Entity UserRoleMap ให้อัตโนมัติ
-            //         (pure junction table มีแค่ 2 FK → Scaffold ข้ามไปทำ implicit many-to-many แทน)
             // =========================
             migrationBuilder.CreateTable(
                 name: "UserRoleMaps",
@@ -414,13 +412,17 @@ namespace Queue.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateIndex("IX_ShopBranches_Guid", "ShopBranches", "Guid", unique: true);
+            migrationBuilder.CreateIndex("IX_ShopBranches_ShopId", "ShopBranches", "ShopId");
 
             migrationBuilder.CreateTable(
                 name: "ShopStaffs",
                 columns: table => new
                 {
                     Id = table.Column<int>().Annotation("SqlServer:Identity", "1,1"),
+                    // ✅ BRANCH-BASED: Staff ผูกกับ Branch แทน Shop โดยตรง
+                    //    ShopId เก็บไว้เพื่อ query ภาพรวมระดับ Shop ได้ง่าย
                     ShopId = table.Column<int>(),
+                    BranchId = table.Column<int>(),
                     UserId = table.Column<int>(),
                     Role = table.Column<string>(maxLength: 50),
                     IsActive = table.Column<bool>(defaultValue: true),
@@ -433,21 +435,28 @@ namespace Queue.Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_ShopStaffs", x => x.Id);
                     table.ForeignKey("FK_SS_Shop", x => x.ShopId, "Shops", "Id", onDelete: ReferentialAction.NoAction);
+                    table.ForeignKey("FK_SS_Branch", x => x.BranchId, "ShopBranches", "Id", onDelete: ReferentialAction.NoAction);
                     table.ForeignKey("FK_SS_User", x => x.UserId, "Users", "Id");
                 });
 
+            // ✅ Unique ต่อ Branch (ไม่ใช่ Shop) — Staff คนเดียวอาจอยู่หลาย Branch ได้
             migrationBuilder.CreateIndex(
-                name: "IX_ShopStaffs_ShopId_UserId",
+                name: "IX_ShopStaffs_BranchId_UserId",
                 table: "ShopStaffs",
-                columns: new[] { "ShopId", "UserId" },
+                columns: new[] { "BranchId", "UserId" },
                 unique: true);
 
+            migrationBuilder.CreateIndex("IX_ShopStaffs_ShopId", "ShopStaffs", "ShopId");
+
+            // ✅ BRANCH-BASED: ShopSettings แยกตาม Branch ได้
+            //    BranchId nullable → null = ระดับ Shop (global), มีค่า = เฉพาะ Branch นั้น
             migrationBuilder.CreateTable(
                 name: "ShopSettings",
                 columns: table => new
                 {
                     Id = table.Column<int>().Annotation("SqlServer:Identity", "1,1"),
                     ShopId = table.Column<int>(),
+                    BranchId = table.Column<int>(nullable: true),   // null = shop-level setting
                     Key = table.Column<string>(maxLength: 100),
                     Value = table.Column<string>(),
                     CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
@@ -459,14 +468,22 @@ namespace Queue.Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_ShopSettings", x => x.Id);
                     table.ForeignKey("FK_ShopSettings_Shop", x => x.ShopId, "Shops", "Id", onDelete: ReferentialAction.NoAction);
+                    table.ForeignKey("FK_ShopSettings_Branch", x => x.BranchId, "ShopBranches", "Id", onDelete: ReferentialAction.NoAction);
                 });
 
+            // ✅ Key unique ต่อ (Shop + Branch) — ถ้า Branch เป็น null ใช้ IS NULL เพิ่ม filtered index แยก
+            migrationBuilder.CreateIndex(
+                name: "IX_ShopSettings_ShopId_BranchId_Key",
+                table: "ShopSettings",
+                columns: new[] { "ShopId", "BranchId", "Key" });
+
+            // ✅ BRANCH-BASED: BusinessHours อิง Branch แต่เดิมมี ShopId ซ้ำซ้อน → ตัดออก
+            //    ดึง ShopId ผ่าน Branch ได้เสมอ
             migrationBuilder.CreateTable(
                 name: "ShopBusinessHours",
                 columns: table => new
                 {
                     Id = table.Column<int>().Annotation("SqlServer:Identity", "1,1"),
-                    ShopId = table.Column<int>(),
                     BranchId = table.Column<int>(),
                     DayOfWeek = table.Column<int>(),
                     OpenTime = table.Column<TimeSpan>(),
@@ -480,7 +497,6 @@ namespace Queue.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ShopBusinessHours", x => x.Id);
-                    table.ForeignKey("FK_ShopBusinessHours_Shop", x => x.ShopId, "Shops", "Id", onDelete: ReferentialAction.NoAction);
                     table.ForeignKey("FK_ShopBusinessHours_Branch", x => x.BranchId, "ShopBranches", "Id", onDelete: ReferentialAction.NoAction);
                 });
 
@@ -490,12 +506,15 @@ namespace Queue.Infrastructure.Migrations
                 columns: new[] { "BranchId", "DayOfWeek" },
                 unique: true);
 
+            // ✅ BRANCH-BASED: Holiday แยกตาม Branch
+            //    ShopId เก็บไว้เพื่อ query holiday ภาพรวม Shop ได้ง่าย
             migrationBuilder.CreateTable(
                 name: "ShopHolidays",
                 columns: table => new
                 {
                     Id = table.Column<int>().Annotation("SqlServer:Identity", "1,1"),
                     ShopId = table.Column<int>(),
+                    BranchId = table.Column<int>(),
                     HolidayDate = table.Column<DateTime>(type: "date"),
                     Reason = table.Column<string>(maxLength: 200),
                     CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
@@ -507,17 +526,30 @@ namespace Queue.Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_ShopHolidays", x => x.Id);
                     table.ForeignKey("FK_Holidays_Shop", x => x.ShopId, "Shops", "Id", onDelete: ReferentialAction.NoAction);
+                    table.ForeignKey("FK_Holidays_Branch", x => x.BranchId, "ShopBranches", "Id", onDelete: ReferentialAction.NoAction);
                 });
 
+            migrationBuilder.CreateIndex(
+                name: "IX_ShopHolidays_BranchId_HolidayDate",
+                table: "ShopHolidays",
+                columns: new[] { "BranchId", "HolidayDate" },
+                unique: true);
+
+            migrationBuilder.CreateIndex("IX_ShopHolidays_ShopId", "ShopHolidays", "ShopId");
+
             // =========================
-            // SERVICE
+            // SERVICE  (ทั้งหมดอิง Branch)
             // =========================
+
+            // ✅ BRANCH-BASED: QueueCategory แยกตาม Branch
+            //    แต่ละสาขาอาจมี prefix/หมวดคิวต่างกัน เช่น สาขา A ใช้ A001 / สาขา B ใช้ B001
             migrationBuilder.CreateTable(
                 name: "QueueCategories",
                 columns: table => new
                 {
                     Id = table.Column<int>().Annotation("SqlServer:Identity", "1,1"),
-                    ShopId = table.Column<int>(),
+                    ShopId = table.Column<int>(),     // เก็บไว้เพื่อ query ระดับ Shop
+                    BranchId = table.Column<int>(),   // ✅ เพิ่ม: owner หลักคือ Branch
                     Prefix = table.Column<string>(maxLength: 5),
                     Name = table.Column<string>(maxLength: 100),
                     Description = table.Column<string>(maxLength: 500, nullable: true),
@@ -531,14 +563,26 @@ namespace Queue.Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_QueueCategories", x => x.Id);
                     table.ForeignKey("FK_QC_Shop", x => x.ShopId, "Shops", "Id", onDelete: ReferentialAction.NoAction);
+                    table.ForeignKey("FK_QC_Branch", x => x.BranchId, "ShopBranches", "Id", onDelete: ReferentialAction.NoAction);
                 });
 
+            // ✅ Prefix unique ต่อ Branch (ไม่ใช่ Shop)
+            migrationBuilder.CreateIndex(
+                name: "IX_QueueCategories_BranchId_Prefix",
+                table: "QueueCategories",
+                columns: new[] { "BranchId", "Prefix" },
+                unique: true);
+
+            migrationBuilder.CreateIndex("IX_QueueCategories_ShopId", "QueueCategories", "ShopId");
+
+            // ✅ BRANCH-BASED: ServiceCategory แยกตาม Branch
             migrationBuilder.CreateTable(
                 name: "ServiceCategories",
                 columns: table => new
                 {
                     Id = table.Column<int>().Annotation("SqlServer:Identity", "1,1"),
-                    ShopId = table.Column<int>(),
+                    ShopId = table.Column<int>(),     // เก็บไว้เพื่อ query ระดับ Shop
+                    BranchId = table.Column<int>(),   // ✅ เพิ่ม: owner หลักคือ Branch
                     Name = table.Column<string>(maxLength: 150),
                     IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
                     CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
@@ -550,20 +594,22 @@ namespace Queue.Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_ServiceCategories", x => x.Id);
                     table.ForeignKey("FK_SC_Shop", x => x.ShopId, "Shops", "Id", onDelete: ReferentialAction.NoAction);
+                    table.ForeignKey("FK_SC_Branch", x => x.BranchId, "ShopBranches", "Id", onDelete: ReferentialAction.NoAction);
                 });
 
-            migrationBuilder.CreateIndex(
-                name: "IX_ServiceCategories_ShopId",
-                table: "ServiceCategories",
-                column: "ShopId");
+            migrationBuilder.CreateIndex("IX_ServiceCategories_BranchId", "ServiceCategories", "BranchId");
+            migrationBuilder.CreateIndex("IX_ServiceCategories_ShopId", "ServiceCategories", "ShopId");
 
+            // ✅ BRANCH-BASED: Service แยกตาม Branch
+            //    แต่ละสาขาอาจมีบริการ/ราคา/ระยะเวลาต่างกัน
             migrationBuilder.CreateTable(
                 name: "Services",
                 columns: table => new
                 {
                     Id = table.Column<int>().Annotation("SqlServer:Identity", "1,1"),
                     Guid = table.Column<Guid>(defaultValueSql: "NEWID()"),
-                    ShopId = table.Column<int>(),
+                    ShopId = table.Column<int>(),     // เก็บไว้เพื่อ query ระดับ Shop
+                    BranchId = table.Column<int>(),   // ✅ เปลี่ยน: owner หลักคือ Branch
                     Name = table.Column<string>(maxLength: 150),
                     Duration = table.Column<int>(),
                     Price = table.Column<decimal>(type: "decimal(10,2)"),
@@ -577,11 +623,13 @@ namespace Queue.Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_Services", x => x.Id);
                     table.ForeignKey("FK_Services_Shop", x => x.ShopId, "Shops", "Id", onDelete: ReferentialAction.NoAction);
+                    table.ForeignKey("FK_Services_Branch", x => x.BranchId, "ShopBranches", "Id", onDelete: ReferentialAction.NoAction);
                 });
 
             migrationBuilder.CreateIndex("IX_Services_Guid", "Services", "Guid", unique: true);
+            migrationBuilder.CreateIndex("IX_Services_BranchId", "Services", "BranchId");
+            migrationBuilder.CreateIndex("IX_Services_ShopId", "Services", "ShopId");
 
-            // ✅ FIX: เพิ่ม CreatedAt ใน ServiceCategoryMaps → Scaffold สร้าง Entity ให้
             migrationBuilder.CreateTable(
                 name: "ServiceCategoryMaps",
                 columns: table => new
@@ -598,7 +646,7 @@ namespace Queue.Infrastructure.Migrations
                     table.ForeignKey("FK_SCM_Category", x => x.CategoryId, "ServiceCategories", "Id", onDelete: ReferentialAction.NoAction);
                 });
 
-            // ✅ FIX: เพิ่ม CreatedAt ใน ServiceStaffMaps → Scaffold สร้าง Entity ให้
+            // ✅ ServiceStaffMaps: Staff ผูกกับ Service ซึ่งผูกกับ Branch อยู่แล้ว
             migrationBuilder.CreateTable(
                 name: "ServiceStaffMaps",
                 columns: table => new
@@ -616,8 +664,10 @@ namespace Queue.Infrastructure.Migrations
                 });
 
             // =========================
-            // BOOKING / QUEUE
+            // BOOKING / QUEUE  (อิง Branch)
             // =========================
+
+            // ✅ QueueSlots อิง Branch อยู่แล้ว — คง ShopId ไว้เพื่อ query ระดับ Shop
             migrationBuilder.CreateTable(
                 name: "QueueSlots",
                 columns: table => new
@@ -652,6 +702,8 @@ namespace Queue.Infrastructure.Migrations
                 columns: new[] { "BranchId", "Date", "StartTime" },
                 unique: true);
 
+            // ✅ BRANCH-BASED: Booking อิง Branch เป็นหลัก
+            //    ตัด ShopId ออก — ดึงผ่าน Branch.ShopId ได้เสมอ
             migrationBuilder.CreateTable(
                 name: "Bookings",
                 columns: table => new
@@ -659,8 +711,7 @@ namespace Queue.Infrastructure.Migrations
                     Id = table.Column<int>().Annotation("SqlServer:Identity", "1,1"),
                     Guid = table.Column<Guid>(defaultValueSql: "NEWID()"),
                     UserId = table.Column<int>(),
-                    ShopId = table.Column<int>(),
-                    BranchId = table.Column<int>(),
+                    BranchId = table.Column<int>(),         // ✅ owner หลักคือ Branch
                     QueueSlotId = table.Column<int>(),
                     QueueCategoryId = table.Column<int>(nullable: true),
                     QueueNumber = table.Column<int>(nullable: true),
@@ -675,7 +726,6 @@ namespace Queue.Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_Bookings", x => x.Id);
                     table.ForeignKey("FK_Bookings_User", x => x.UserId, "Users", "Id");
-                    table.ForeignKey("FK_Bookings_Shop", x => x.ShopId, "Shops", "Id");
                     table.ForeignKey("FK_Bookings_Branch", x => x.BranchId, "ShopBranches", "Id");
                     table.ForeignKey("FK_Bookings_Slot", x => x.QueueSlotId, "QueueSlots", "Id");
                     table.ForeignKey("FK_Bookings_Category", x => x.QueueCategoryId, "QueueCategories", "Id");
@@ -683,12 +733,12 @@ namespace Queue.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateIndex("IX_Bookings_Guid", "Bookings", "Guid", unique: true);
+            migrationBuilder.CreateIndex("IX_Bookings_BranchId", "Bookings", "BranchId");
             migrationBuilder.CreateIndex("IX_Bookings_StatusId", "Bookings", "StatusId");
             migrationBuilder.CreateIndex("IX_Bookings_QueueSlotId", "Bookings", "QueueSlotId");
             migrationBuilder.CreateIndex("IX_Bookings_QueueCategoryId", "Bookings", "QueueCategoryId");
             migrationBuilder.CreateIndex("IX_Bookings_QueueNumber", "Bookings", "QueueNumber");
 
-            // ✅ FIX: เพิ่ม CreatedAt ใน BookingServices → Scaffold สร้าง Entity ให้
             migrationBuilder.CreateTable(
                 name: "BookingServices",
                 columns: table => new
@@ -705,14 +755,15 @@ namespace Queue.Infrastructure.Migrations
                     table.ForeignKey("FK_BS_Service", x => x.ServiceId, "Services", "Id");
                 });
 
+            // ✅ BRANCH-BASED: Queue อิง Branch
+            //    ตัด ShopId ออก — ดึงผ่าน Branch.ShopId ได้
             migrationBuilder.CreateTable(
                 name: "Queues",
                 columns: table => new
                 {
                     Id = table.Column<int>().Annotation("SqlServer:Identity", "1,1"),
                     Guid = table.Column<Guid>(defaultValueSql: "NEWID()"),
-                    ShopId = table.Column<int>(),
-                    BranchId = table.Column<int>(),
+                    BranchId = table.Column<int>(),   // ✅ owner หลักคือ Branch
                     QueueNumber = table.Column<int>(),
                     StatusId = table.Column<int>(),
                     Type = table.Column<string>(maxLength: 20),
@@ -724,14 +775,13 @@ namespace Queue.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Queues", x => x.Id);
-                    table.ForeignKey("FK_Queues_Shop", x => x.ShopId, "Shops", "Id");
                     table.ForeignKey("FK_Queues_Branch", x => x.BranchId, "ShopBranches", "Id");
                     table.ForeignKey("FK_Queues_Status", x => x.StatusId, "MasterStatuses", "Id");
                 });
 
             migrationBuilder.CreateIndex("IX_Queues_Guid", "Queues", "Guid", unique: true);
             migrationBuilder.CreateIndex("IX_Queues_StatusId", "Queues", "StatusId");
-            migrationBuilder.CreateIndex("IX_Queues_ShopId", "Queues", "ShopId");
+            migrationBuilder.CreateIndex("IX_Queues_BranchId", "Queues", "BranchId");
 
             migrationBuilder.CreateTable(
                 name: "QueueLogs",
@@ -817,7 +867,6 @@ namespace Queue.Infrastructure.Migrations
                 },
                 constraints: table => table.PrimaryKey("PK_CustomerTags", x => x.Id));
 
-            // ✅ FIX: เพิ่ม CreatedAt ใน CustomerTagMaps → Scaffold สร้าง Entity ให้
             migrationBuilder.CreateTable(
                 name: "CustomerTagMaps",
                 columns: table => new
