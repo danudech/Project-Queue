@@ -9,6 +9,8 @@ public partial class QueueCategory
 
     public int ShopId { get; set; }
 
+    public int BranchId { get; set; }
+
     public string Prefix { get; set; } = null!;
 
     public string Name { get; set; } = null!;
@@ -26,6 +28,8 @@ public partial class QueueCategory
     public int? UpdatedBy { get; set; }
 
     public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+
+    public virtual ShopBranch Branch { get; set; } = null!;
 
     public virtual Shop Shop { get; set; } = null!;
 }

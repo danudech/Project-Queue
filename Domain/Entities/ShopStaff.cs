@@ -9,6 +9,8 @@ public partial class ShopStaff
 
     public int ShopId { get; set; }
 
+    public int BranchId { get; set; }
+
     public int UserId { get; set; }
 
     public string Role { get; set; } = null!;
@@ -22,6 +24,8 @@ public partial class ShopStaff
     public DateTime? UpdatedAt { get; set; }
 
     public int? UpdatedBy { get; set; }
+
+    public virtual ShopBranch Branch { get; set; } = null!;
 
     public virtual ICollection<ServiceStaffMap> ServiceStaffMaps { get; set; } = new List<ServiceStaffMap>();
 

@@ -45,6 +45,7 @@ import { columns } from "./columns"
 import { useShop } from "@/hooks/use-me"
 import { http } from "@/lib/http/client"
 import toast from "react-hot-toast"
+import { storage } from "@/services/localstorage"
 
 const formSchema = z.object({
     name: z.string().min(1, "กรุณากรอกชื่อ category").max(150, "ชื่อยาวเกิน 150 ตัวอักษร"),
@@ -72,8 +73,14 @@ const ServiceCategoryPage = () => {
     React.useEffect(() => {
         const fetchData = async () => {
             try {
+                const branch: number | null = await storage.get("branch") || shopData?.shopBranches?.[0]?.id || null;
                 if (shopData) {
-                    const shopcategory = await http.get<ServiceCategoryType[]>("shopcategory");
+                    const shopcategory = await http.get<ServiceCategoryType[]>("shopcategory", {
+                        params: {
+                            shopId: shopData.id,
+                            branchId: branch
+                        },
+                    });
                     setTableData(shopcategory);
                 }
             } catch (error) {
@@ -134,8 +141,8 @@ const ServiceCategoryPage = () => {
         if (!shopData) return;
 
         try {
+            const branch: number | null = await storage.get("branch") || shopData?.shopBranches?.[0]?.id || null;
             if (editTarget) {
-                // กรณีแก้ไข
                 const update = await http.put<ServiceCategoryType>("shopcategory", {
                     id: editTarget.id,
                     name: values.name,
@@ -153,10 +160,10 @@ const ServiceCategoryPage = () => {
                     toast.success("แก้ไข Category สำเร็จ");
                 }
             } else {
-                // กรณีเพิ่มใหม่
                 const payload = {
                     name: values.name,
                     shopId: shopData.id,
+                    branchId: branch,
                     isActive: values.isActive,
                 };
 

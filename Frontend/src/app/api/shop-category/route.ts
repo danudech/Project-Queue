@@ -27,7 +27,16 @@ export async function GET(req: NextRequest) {
 
     if (!req.cookies.get("access_token")?.value) return unauthorized();
 
-    const shopcategory = await api.get<ServiceCategoryType[]>("shopcategory");
+    const { searchParams } = new URL(req.url);
+    const shopId = searchParams.get("shopId");
+    const branchId = searchParams.get("branchId");
+
+    const shopcategory = await api.get<ServiceCategoryType[]>("shopcategory", {
+      params: {
+        ...(shopId && { shopId }),
+        ...(branchId && { branchId }),
+      },
+    });
 
     return NextResponse.json({ status: true, message: "ok", data: shopcategory });
   } catch (e: any) {

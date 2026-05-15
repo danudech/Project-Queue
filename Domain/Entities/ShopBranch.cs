@@ -31,11 +31,23 @@ public partial class ShopBranch
 
     public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 
+    public virtual ICollection<QueueCategory> QueueCategories { get; set; } = new List<QueueCategory>();
+
     public virtual ICollection<QueueSlot> QueueSlots { get; set; } = new List<QueueSlot>();
 
     public virtual ICollection<Queue> Queues { get; set; } = new List<Queue>();
 
+    public virtual ICollection<ServiceCategory> ServiceCategories { get; set; } = new List<ServiceCategory>();
+
+    public virtual ICollection<Service> Services { get; set; } = new List<Service>();
+
     public virtual Shop Shop { get; set; } = null!;
 
     public virtual ICollection<ShopBusinessHour> ShopBusinessHours { get; set; } = new List<ShopBusinessHour>();
+
+    public virtual ICollection<ShopHoliday> ShopHolidays { get; set; } = new List<ShopHoliday>();
+
+    public virtual ICollection<ShopSetting> ShopSettings { get; set; } = new List<ShopSetting>();
+
+    public virtual ICollection<ShopStaff> ShopStaffs { get; set; } = new List<ShopStaff>();
 }

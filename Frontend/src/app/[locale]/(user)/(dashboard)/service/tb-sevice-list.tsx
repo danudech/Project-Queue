@@ -45,13 +45,15 @@ import { CommonTable } from "@/components/partials/react-table/common-table"
 // Logic & Types
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
+import { set, z } from "zod"
 import { ServiceCategoryType } from "@/types/shop/catgory"
 import { SetService } from "@/types/shop/service"
 import { columns } from "./columns"
 import { useShop } from "@/hooks/use-me"
 import { http } from "@/lib/http/client"
 import toast from "react-hot-toast"
+import { storage } from "@/services/localstorage"
+import { is } from "date-fns/locale"
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
 
@@ -87,6 +89,7 @@ const ServicePage = () => {
     const [dialogOpen, setDialogOpen] = React.useState(false)
     const [editTarget, setEditTarget] = React.useState<SetService | null>(null)
     const [btnLoading, setBtnLoading] = React.useState(false)
+    const [isLoading, setIsLoading] = React.useState(true)
 
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -107,17 +110,31 @@ const ServicePage = () => {
 
     // ── Fetch Categories & Services ────────────────────────────────────────
     React.useEffect(() => {
-        if (!shopData) return
+        if (!shopData) return;
         const fetchAll = async () => {
             try {
+                setIsLoading(true)
+                const branch: number | null = await storage.get("branch") || shopData?.shopBranches?.[0]?.id || null;
                 const [categories, services] = await Promise.all([
-                    http.get<ServiceCategoryType[]>("shopcategory"),
-                    http.get<SetService[]>("shopservices"),
+                    http.get<ServiceCategoryType[]>("shopcategory", {
+                        params: {
+                            shopId: shopData.id,
+                            branchId: branch
+                        },
+                    }),
+                    http.get<SetService[]>("shopservices", {
+                        params: {
+                            shopId: shopData.id,
+                            branchId: branch
+                        },
+                    }),
                 ])
                 setCategoryData(categories)
                 setTableData(services)
             } catch {
                 toast.error("โหลดข้อมูลไม่สำเร็จ")
+            } finally {
+                setIsLoading(false)
             }
         }
         fetchAll()
@@ -177,19 +194,20 @@ const ServicePage = () => {
                         prev?.map((r) =>
                             r.id === editTarget.id
                                 ? {
-                                      ...r,
-                                      name: values.name,
-                                      duration: values.duration,
-                                      price: values.price,
-                                      categoryId: values.categoryId!,
-                                      isActive: values.isActive,
-                                  }
+                                    ...r,
+                                    name: values.name,
+                                    duration: values.duration,
+                                    price: values.price,
+                                    categoryId: values.categoryId!,
+                                    isActive: values.isActive,
+                                }
                                 : r
                         ) ?? null
                     )
                     toast.success("แก้ไขบริการสำเร็จ")
                 }
             } else {
+                const branch: number | null = await storage.get("branch") || shopData?.shopBranches?.[0]?.id || null;
                 const newService = await http.post<SetService>("shopservices", {
                     name: values.name,
                     shopId: shopData.id,
@@ -197,6 +215,7 @@ const ServicePage = () => {
                     price: values.price,
                     categoryId: values.categoryId,
                     isActive: values.isActive,
+                    branchId: branch,
                 })
                 if (newService) {
                     setTableData((prev) => [...(prev ?? []), newService])
@@ -252,6 +271,14 @@ const ServicePage = () => {
         getSortedRowModel: getSortedRowModel(),
         meta: { openEdit, deleteRow, toggleStatus },
     })
+
+    if(isLoading) {
+        return (
+            <div className="w-full h-40 flex items-center justify-center">
+                <span className="text-sm text-gray-500">กำลังโหลดข้อมูล...</span>
+            </div>
+        )
+    }
 
     // ── Render ─────────────────────────────────────────────────────────────
     return (

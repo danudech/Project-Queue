@@ -432,7 +432,6 @@ const CustomerPage = () => {
                                                         ? "border-primary/50 bg-primary/5"
                                                         : "hover:bg-muted/50",
                                                 )}
-                                                onClick={() => setWithBooking((v) => !v)}
                                             >
                                                 <div className="flex items-center gap-2">
                                                     <div className={cn(

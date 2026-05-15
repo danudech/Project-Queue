@@ -11,8 +11,6 @@ public partial class Booking
 
     public int UserId { get; set; }
 
-    public int ShopId { get; set; }
-
     public int BranchId { get; set; }
 
     public int QueueSlotId { get; set; }
@@ -42,8 +40,6 @@ public partial class Booking
     public virtual QueueCategory? QueueCategory { get; set; }
 
     public virtual QueueSlot QueueSlot { get; set; } = null!;
-
-    public virtual Shop Shop { get; set; } = null!;
 
     public virtual MasterStatus Status { get; set; } = null!;
 

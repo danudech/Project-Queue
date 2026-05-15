@@ -11,6 +11,8 @@ public partial class Service
 
     public int ShopId { get; set; }
 
+    public int BranchId { get; set; }
+
     public string Name { get; set; } = null!;
 
     public int Duration { get; set; }
@@ -28,6 +30,8 @@ public partial class Service
     public int? UpdatedBy { get; set; }
 
     public virtual ICollection<BookingService> BookingServices { get; set; } = new List<BookingService>();
+
+    public virtual ShopBranch Branch { get; set; } = null!;
 
     public virtual ICollection<ServiceCategoryMap> ServiceCategoryMaps { get; set; } = new List<ServiceCategoryMap>();
 

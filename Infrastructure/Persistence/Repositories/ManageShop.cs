@@ -39,13 +39,15 @@ public sealed class ManageShop : IManageShop
                 .AsNoTracking()
                 .Include(s => s.Status)
                 .Include(s => s.Services)
-                .Include(s => s.ShopBusinessHours)
-                .Include(s => s.ShopHolidays)
                 .Include(s => s.ShopBranches)
                     .ThenInclude(b => b.Address)
                         .ThenInclude(a => a.Subdistrict)
                             .ThenInclude(sd => sd.District)
                                 .ThenInclude(d => d.Province)
+                .Include(s => s.ShopBranches)
+                    .ThenInclude(b => b.ShopBusinessHours)
+                .Include(s => s.ShopBranches)
+                    .ThenInclude(b => b.ShopHolidays)
                 .FirstOrDefaultAsync(s => s.OwnerId == userId, ct);
 
             if (shop == null)
@@ -106,16 +108,18 @@ public sealed class ManageShop : IManageShop
         await using var transaction = await _db.Database.BeginTransactionAsync(ct);
         try
         {
+            // 1. สร้าง Shop หลัก
             Shop newShop = new Shop
             {
                 Name = request.ShopName,
                 OwnerId = userId,
                 TypeId = int.Parse(request.ShopType),
-                StatusId = 3,
+                StatusId = 3, // กำหนดสถานะเริ่มต้น
                 CreatedAt = _dateTime.LocalNow()
             };
             await _crud.InsertAsync(newShop, ct);
 
+            // 2. สร้าง Address สำหรับสาขาแรก
             Address newAddress = new Address
             {
                 HouseNo = request.Branch?.BranchAddress?.HouseNo ?? string.Empty,
@@ -128,6 +132,7 @@ public sealed class ManageShop : IManageShop
             };
             await _crud.InsertAsync(newAddress, ct);
 
+            // 3. สร้าง Branch หลัก
             ShopBranch newBranch = new ShopBranch
             {
                 Guid = Guid.NewGuid(),
@@ -138,25 +143,27 @@ public sealed class ManageShop : IManageShop
                 CreatedAt = _dateTime.LocalNow()
             };
             await _crud.InsertAsync(newBranch, ct);
-            List<ShopBusinessHour> businessHours = request.BusinessHours.Select(h => new ShopBusinessHour
-            {
-                ShopId = newShop.Id,
-                BranchId = newBranch.Id,
-                DayOfWeek = h.DayOfWeek,
-                OpenTime = TimeOnly.Parse(h.OpenTime),
-                CloseTime = TimeOnly.Parse(h.CloseTime),
-                CreatedAt = _dateTime.LocalNow()
-            }).ToList();
 
-            await _crud.InsertRangeAsync(businessHours, ct);
+            // 4. สร้าง Business Hours ผูกกับ Branch
+            if (request.BusinessHours != null)
+            {
+                List<ShopBusinessHour> businessHours = request.BusinessHours.Select(h => new ShopBusinessHour
+                {
+                    BranchId = newBranch.Id, // อ้างอิงตาม BranchId ใน Schema ใหม่
+                    DayOfWeek = h.DayOfWeek,
+                    OpenTime = TimeOnly.Parse(h.OpenTime),
+                    CloseTime = TimeOnly.Parse(h.CloseTime),
+                    CreatedAt = _dateTime.LocalNow()
+                }).ToList();
+                await _crud.InsertRangeAsync(businessHours, ct);
+            }
 
             await transaction.CommitAsync(ct);
-
-            return MapToResponse(newShop);
+            return await GetShopById(userId, ip, userAgent, ct);
         }
         catch (Exception ex)
         {
-            _actionLog.Error(ex, "Error creating shop (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, userAgent);
+            _actionLog.Error(ex, "Error creating shop (UserId={UserId})", userId);
             await transaction.RollbackAsync(ct);
             return null;
         }
@@ -199,7 +206,6 @@ public sealed class ManageShop : IManageShop
             await _crud.InsertAsync(newBranch, ct);
             List<ShopBusinessHour> businessHours = request.BusinessHours.Select(h => new ShopBusinessHour
             {
-                ShopId = shop.Id,
                 BranchId = newBranch.Id,
                 DayOfWeek = h.DayOfWeek,
                 OpenTime = TimeOnly.Parse(h.OpenTime),
@@ -221,14 +227,14 @@ public sealed class ManageShop : IManageShop
         }
     }
 
-    public async Task<List<ShopCategoryResponse>?> GetShopCategoryById(int userId, string ip, string userAgent, CancellationToken ct)
+    public async Task<List<ShopCategoryResponse>?> GetShopCategoryById(int shopId, int? branchId, string ip, string userAgent, CancellationToken ct)
     {
         try
         {
-            _actionLog.Info("Fetching shop categories (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, userAgent);
+            _actionLog.Info("Fetching shop categories (ShopId={ShopId}, BranchId={BranchId}, IP={IP}, UserAgent={UserAgent})", shopId, branchId ?? 0, ip, userAgent);
 
             List<ServiceCategory>? categories = await _db.ServiceCategories
-                .Where(c => c.Shop.OwnerId == userId)
+                .Where(c => c.ShopId == shopId && (branchId == null || c.BranchId == branchId))
                 .Include(c => c.Shop)
                 .AsNoTracking()
                 .ToListAsync(ct);
@@ -245,42 +251,29 @@ public sealed class ManageShop : IManageShop
         }
         catch (Exception ex)
         {
-            _actionLog.Error(ex, "Error fetching shop categories (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, userAgent);
+            _actionLog.Error(ex, "Error fetching shop categories (ShopId={ShopId}, BranchId={BranchId}, IP={IP}, UserAgent={UserAgent})", shopId, branchId ?? 0, ip, userAgent);
             return null;
         }
     }
 
     public async Task<ShopCategoryResponse> AddShopCategory(int userId, ShopCategoryRequest request, string ip, string userAgent, CancellationToken ct)
     {
-        _actionLog.Info("Adding shop category (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, userAgent);
         try
         {
             Shop? shop = await _db.Shops.FirstOrDefaultAsync(s => s.OwnerId == userId, ct);
-            if (shop == null)
-            {
-                _actionLog.Warning("Shop not found for adding category (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, userAgent);
-                return null!;
-            }
-
-            ServiceCategory? existingCategory = await _db.ServiceCategories
-                .FirstOrDefaultAsync(c => c.ShopId == shop.Id && c.Name == request.Name, ct);
-
-            if (existingCategory != null)
-            {
-                _actionLog.Warning("Category already exists (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, userAgent);
-                return null!;
-            }
+            if (shop == null) return null!;
 
             ServiceCategory newCategory = new ServiceCategory
             {
                 Name = request.Name,
                 ShopId = shop.Id,
+                BranchId = request.BranchId ?? 0,
                 IsActive = request.IsActive,
+                CreatedBy = userId,
                 CreatedAt = _dateTime.LocalNow()
             };
 
             await _crud.InsertAsync(newCategory, ct);
-
             return new ShopCategoryResponse
             {
                 Id = newCategory.Id,
@@ -288,12 +281,13 @@ public sealed class ManageShop : IManageShop
                 ShopId = newCategory.ShopId,
                 ShopName = shop.Name ?? string.Empty,
                 IsActive = newCategory.IsActive,
-                CreatedAt = _dateTime.LocalNow()
+                CreatedAt = newCategory.CreatedAt,
+                BranchId = newCategory.BranchId
             };
         }
         catch (Exception ex)
         {
-            _actionLog.Error(ex, "Error adding shop category (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, userAgent);
+            _actionLog.Error(ex, "Error adding category");
             return null!;
         }
     }
@@ -362,14 +356,14 @@ public sealed class ManageShop : IManageShop
         }
     }
 
-    public async Task<List<ShopServiceResponse>?> GetShopServicesById(int userId, string ip, string userAgent, CancellationToken ct)
+    public async Task<List<ShopServiceResponse>?> GetShopServicesById(int shopId, int? branchId, int userId, string ip, string userAgent, CancellationToken ct)
     {
         try
         {
-            _actionLog.Info("Fetching shop services (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, userAgent);
+            _actionLog.Info("Fetching shop services (UserId={UserId}, ShopId={ShopId}, BranchId={BranchId}, IP={IP}, UserAgent={UserAgent})", userId, shopId, branchId ?? 0, ip, userAgent);
 
             List<Domain.Entities.Service>? services = await _db.Services
-                .Where(s => s.Shop.OwnerId == userId)
+                .Where(s => s.Shop.OwnerId == userId && s.ShopId == shopId && s.BranchId == branchId)
                 .Include(s => s.Shop)
                 .Include(s => s.ServiceCategoryMaps)
                     .ThenInclude(m => m.Category)
@@ -412,6 +406,7 @@ public sealed class ManageShop : IManageShop
             {
                 Name = request.Name,
                 ShopId = shop.Id,
+                BranchId = request.BranchId ?? 0,
                 Duration = request.Duration,
                 Price = request.Price,
                 IsActive = request.IsActive,
@@ -435,6 +430,7 @@ public sealed class ManageShop : IManageShop
                 Id = newService.Id,
                 Name = newService.Name,
                 ShopId = newService.ShopId,
+                BranchId = newService.BranchId,
                 ShopName = shop.Name ?? string.Empty,
                 Duration = newService.Duration,
                 Price = newService.Price,
@@ -487,6 +483,7 @@ public sealed class ManageShop : IManageShop
                 Id = service.Id,
                 Name = service.Name,
                 ShopId = service.ShopId,
+                BranchId = service.BranchId,
                 ShopName = service.Shop?.Name ?? string.Empty,
                 Duration = service.Duration,
                 Price = service.Price,
@@ -540,22 +537,19 @@ public sealed class ManageShop : IManageShop
         Type = shop.TypeId.ToString() ?? string.Empty,
         OwnerId = shop.OwnerId,
         Status = shop.StatusId,
-
         ShopBranches = shop.ShopBranches?.Select(b => new BranchDto
         {
             Id = b.Id,
-            Guid = b.Guid,
             Name = b.Name ?? string.Empty,
             Phone = b.Phone ?? string.Empty,
-            Address = MapAddress(b.Address)
+            Address = MapAddress(b.Address),
+            BusinessHours = b.ShopBusinessHours?.Select(h => new ShopBusinessHour
+            {
+                DayOfWeek = h.DayOfWeek,
+                OpenTime = h.OpenTime,
+                CloseTime = h.CloseTime
+            }).ToList() ?? new()
         }).ToList() ?? new(),
-
-        ShopHours = shop.ShopBusinessHours?.Select(h => new ShopBusinessHour
-        {
-            DayOfWeek = h.DayOfWeek,
-            OpenTime = h.OpenTime,
-            CloseTime = h.CloseTime
-        }).OrderBy(h => h.DayOfWeek).ToList() ?? new(),
 
         ShopHolidays = shop.ShopHolidays?.Select(h => new ShopHoliday
         {
@@ -576,16 +570,13 @@ public sealed class ManageShop : IManageShop
     private static AddressDto? MapAddress(Address? address)
     {
         if (address == null) return null;
-
-        Subdistrict? subdistrict = address.Subdistrict;
-        District? district = subdistrict?.District;
         return new AddressDto
         {
             HouseNo = address.HouseNo ?? string.Empty,
             Street = address.Street ?? string.Empty,
-            Subdistrict = subdistrict?.NameTh ?? string.Empty,
-            District = district?.NameTh ?? string.Empty,
-            Province = district?.Province?.NameTh ?? string.Empty,
+            Subdistrict = address.Subdistrict?.NameTh ?? string.Empty,
+            District = address.Subdistrict?.District?.NameTh ?? string.Empty,
+            Province = address.Subdistrict?.District?.Province?.NameTh ?? string.Empty,
             Zipcode = address.Zipcode ?? string.Empty
         };
     }

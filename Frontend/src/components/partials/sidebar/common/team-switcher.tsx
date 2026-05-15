@@ -42,6 +42,7 @@ import { http } from "@/lib/http/client"
 import { AddressType } from "@/types/address/address-type"
 import { ShopResponse } from "@/types/shop/shop-responsd"
 import toast from "react-hot-toast"
+import { storage } from "@/services/localstorage"
 
 // ─────────────────────────────────────────────────────────
 // Constants
@@ -498,11 +499,14 @@ export default function TeamSwitcher({ className }: { className?: string }) {
 
     // ตั้งค่า selectedShopId และ selectedBranchId จากร้านแรกที่โหลดมา
     React.useEffect(() => {
-        if (shopData && !selectedShopId) {
-            setSelectedShopId(shopData.id ?? null)
-            const firstBranch = shopData.shopBranches?.[0]
-            if (firstBranch) setSelectedBranchId(firstBranch.id)
+        const freshdata = async () => {
+            if (shopData && !selectedShopId) {
+                const branchselect: number | null = await storage.get("branch") || shopData.shopBranches?.[0]?.id || null;
+                setSelectedShopId(shopData.id ?? null)
+                setSelectedBranchId(branchselect)
+            }
         }
+        freshdata()
     }, [shopData])
 
     const selectedShop = shopData
@@ -601,6 +605,14 @@ export default function TeamSwitcher({ className }: { className?: string }) {
         return <div className="p-4 flex justify-center"><Loader2 className="animate-spin h-5 w-5 text-muted-foreground" /></div>
 
     const isCollapsed = config.collapsed && !hovered
+
+    const handleBranchSelect = async (id: number) => {
+        setOpen(false)
+        if (id === selectedBranchId) return;
+        setSelectedBranchId(id);
+        await storage.set("branch", id)
+        window.location.reload();
+    }
 
     return (
         <Dialog open={showDialog} onOpenChange={handleClose}>
@@ -702,7 +714,7 @@ export default function TeamSwitcher({ className }: { className?: string }) {
                                         {shopData.shopBranches.map((branch) => (
                                             <CommandItem
                                                 key={branch.id}
-                                                onSelect={() => { setSelectedBranchId(branch.id); setOpen(false) }}
+                                                onSelect={() => { handleBranchSelect(branch.id) }}
                                                 className="text-sm gap-2.5 mx-1 rounded-md"
                                             >
                                                 <div className={cn(
@@ -777,10 +789,10 @@ export default function TeamSwitcher({ className }: { className?: string }) {
                             <DialogDescription className="text-[11px] mt-0.5">
                                 {dialogMode === "branch"
                                     ? branchStep === 0 ? "ระบุข้อมูลและที่อยู่สาขา"
-                                    : "กำหนดวันและเวลาทำการของสาขา"
+                                        : "กำหนดวันและเวลาทำการของสาขา"
                                     : step === 0 ? "กรอกข้อมูลเบื้องต้นของร้าน"
-                                    : step === 1 ? "ระบุที่ตั้งสาขาแรก — เพิ่มสาขาอื่นได้ในภายหลัง"
-                                    : "กำหนดวันและเวลาทำการเริ่มต้น"
+                                        : step === 1 ? "ระบุที่ตั้งสาขาแรก — เพิ่มสาขาอื่นได้ในภายหลัง"
+                                            : "กำหนดวันและเวลาทำการเริ่มต้น"
                                 }
                             </DialogDescription>
                         </div>

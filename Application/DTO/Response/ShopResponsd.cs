@@ -22,6 +22,7 @@ public class BranchDto
     public string Name { get; set; } = string.Empty;
     public string Phone { get; set; } = string.Empty;
     public AddressDto? Address { get; set; }
+    public List<ShopBusinessHour>? BusinessHours { get; set; } = new List<ShopBusinessHour>();
 }
 
 public class AddressDto

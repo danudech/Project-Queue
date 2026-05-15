@@ -27,8 +27,6 @@ public partial class Shop
 
     public int? UpdatedBy { get; set; }
 
-    public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
-
     public virtual ICollection<Customer> Customers { get; set; } = new List<Customer>();
 
     public virtual ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();
@@ -39,15 +37,11 @@ public partial class Shop
 
     public virtual ICollection<QueueSlot> QueueSlots { get; set; } = new List<QueueSlot>();
 
-    public virtual ICollection<Queue> Queues { get; set; } = new List<Queue>();
-
     public virtual ICollection<ServiceCategory> ServiceCategories { get; set; } = new List<ServiceCategory>();
 
     public virtual ICollection<Service> Services { get; set; } = new List<Service>();
 
     public virtual ICollection<ShopBranch> ShopBranches { get; set; } = new List<ShopBranch>();
-
-    public virtual ICollection<ShopBusinessHour> ShopBusinessHours { get; set; } = new List<ShopBusinessHour>();
 
     public virtual ICollection<ShopHoliday> ShopHolidays { get; set; } = new List<ShopHoliday>();
 

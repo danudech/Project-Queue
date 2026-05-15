@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Queue.Domain.Entities;
 
 namespace Queue.Infrastructure.Persistence;
+
 public partial class QueueDbContext : DbContext
 {
     public QueueDbContext()
@@ -95,9 +96,6 @@ public partial class QueueDbContext : DbContext
 
     public virtual DbSet<UserSession> UserSessions { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseSqlServer("Name=ConnectionStrings:Default");
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Address>(entity =>
@@ -133,6 +131,8 @@ public partial class QueueDbContext : DbContext
 
         modelBuilder.Entity<Booking>(entity =>
         {
+            entity.HasIndex(e => e.BranchId, "IX_Bookings_BranchId");
+
             entity.HasIndex(e => e.Guid, "IX_Bookings_Guid").IsUnique();
 
             entity.HasIndex(e => e.QueueCategoryId, "IX_Bookings_QueueCategoryId");
@@ -159,11 +159,6 @@ public partial class QueueDbContext : DbContext
                 .HasForeignKey(d => d.QueueSlotId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Bookings_Slot");
-
-            entity.HasOne(d => d.Shop).WithMany(p => p.Bookings)
-                .HasForeignKey(d => d.ShopId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Bookings_Shop");
 
             entity.HasOne(d => d.Status).WithMany(p => p.Bookings)
                 .HasForeignKey(d => d.StatusId)
@@ -379,9 +374,9 @@ public partial class QueueDbContext : DbContext
 
         modelBuilder.Entity<Domain.Entities.Queue>(entity =>
         {
-            entity.HasIndex(e => e.Guid, "IX_Queues_Guid").IsUnique();
+            entity.HasIndex(e => e.BranchId, "IX_Queues_BranchId");
 
-            entity.HasIndex(e => e.ShopId, "IX_Queues_ShopId");
+            entity.HasIndex(e => e.Guid, "IX_Queues_Guid").IsUnique();
 
             entity.HasIndex(e => e.StatusId, "IX_Queues_StatusId");
 
@@ -394,11 +389,6 @@ public partial class QueueDbContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Queues_Branch");
 
-            entity.HasOne(d => d.Shop).WithMany(p => p.Queues)
-                .HasForeignKey(d => d.ShopId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Queues_Shop");
-
             entity.HasOne(d => d.Status).WithMany(p => p.Queues)
                 .HasForeignKey(d => d.StatusId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -407,11 +397,20 @@ public partial class QueueDbContext : DbContext
 
         modelBuilder.Entity<QueueCategory>(entity =>
         {
+            entity.HasIndex(e => new { e.BranchId, e.Prefix }, "IX_QueueCategories_BranchId_Prefix").IsUnique();
+
+            entity.HasIndex(e => e.ShopId, "IX_QueueCategories_ShopId");
+
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Description).HasMaxLength(500);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Name).HasMaxLength(100);
             entity.Property(e => e.Prefix).HasMaxLength(5);
+
+            entity.HasOne(d => d.Branch).WithMany(p => p.QueueCategories)
+                .HasForeignKey(d => d.BranchId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_QC_Branch");
 
             entity.HasOne(d => d.Shop).WithMany(p => p.QueueCategories)
                 .HasForeignKey(d => d.ShopId)
@@ -464,13 +463,22 @@ public partial class QueueDbContext : DbContext
 
         modelBuilder.Entity<Domain.Entities.Service>(entity =>
         {
+            entity.HasIndex(e => e.BranchId, "IX_Services_BranchId");
+
             entity.HasIndex(e => e.Guid, "IX_Services_Guid").IsUnique();
+
+            entity.HasIndex(e => e.ShopId, "IX_Services_ShopId");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Guid).HasDefaultValueSql("(newid())");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Name).HasMaxLength(150);
             entity.Property(e => e.Price).HasColumnType("decimal(10, 2)");
+
+            entity.HasOne(d => d.Branch).WithMany(p => p.Services)
+                .HasForeignKey(d => d.BranchId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Services_Branch");
 
             entity.HasOne(d => d.Shop).WithMany(p => p.Services)
                 .HasForeignKey(d => d.ShopId)
@@ -480,11 +488,18 @@ public partial class QueueDbContext : DbContext
 
         modelBuilder.Entity<ServiceCategory>(entity =>
         {
+            entity.HasIndex(e => e.BranchId, "IX_ServiceCategories_BranchId");
+
             entity.HasIndex(e => e.ShopId, "IX_ServiceCategories_ShopId");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Name).HasMaxLength(150);
+
+            entity.HasOne(d => d.Branch).WithMany(p => p.ServiceCategories)
+                .HasForeignKey(d => d.BranchId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_SC_Branch");
 
             entity.HasOne(d => d.Shop).WithMany(p => p.ServiceCategories)
                 .HasForeignKey(d => d.ShopId)
@@ -558,6 +573,8 @@ public partial class QueueDbContext : DbContext
         {
             entity.HasIndex(e => e.Guid, "IX_ShopBranches_Guid").IsUnique();
 
+            entity.HasIndex(e => e.ShopId, "IX_ShopBranches_ShopId");
+
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Guid).HasDefaultValueSql("(newid())");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
@@ -586,17 +603,21 @@ public partial class QueueDbContext : DbContext
                 .HasForeignKey(d => d.BranchId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_ShopBusinessHours_Branch");
-
-            entity.HasOne(d => d.Shop).WithMany(p => p.ShopBusinessHours)
-                .HasForeignKey(d => d.ShopId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_ShopBusinessHours_Shop");
         });
 
         modelBuilder.Entity<ShopHoliday>(entity =>
         {
+            entity.HasIndex(e => new { e.BranchId, e.HolidayDate }, "IX_ShopHolidays_BranchId_HolidayDate").IsUnique();
+
+            entity.HasIndex(e => e.ShopId, "IX_ShopHolidays_ShopId");
+
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Reason).HasMaxLength(200);
+
+            entity.HasOne(d => d.Branch).WithMany(p => p.ShopHolidays)
+                .HasForeignKey(d => d.BranchId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Holidays_Branch");
 
             entity.HasOne(d => d.Shop).WithMany(p => p.ShopHolidays)
                 .HasForeignKey(d => d.ShopId)
@@ -606,8 +627,14 @@ public partial class QueueDbContext : DbContext
 
         modelBuilder.Entity<ShopSetting>(entity =>
         {
+            entity.HasIndex(e => new { e.ShopId, e.BranchId, e.Key }, "IX_ShopSettings_ShopId_BranchId_Key");
+
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Key).HasMaxLength(100);
+
+            entity.HasOne(d => d.Branch).WithMany(p => p.ShopSettings)
+                .HasForeignKey(d => d.BranchId)
+                .HasConstraintName("FK_ShopSettings_Branch");
 
             entity.HasOne(d => d.Shop).WithMany(p => p.ShopSettings)
                 .HasForeignKey(d => d.ShopId)
@@ -617,11 +644,18 @@ public partial class QueueDbContext : DbContext
 
         modelBuilder.Entity<ShopStaff>(entity =>
         {
-            entity.HasIndex(e => new { e.ShopId, e.UserId }, "IX_ShopStaffs_ShopId_UserId").IsUnique();
+            entity.HasIndex(e => new { e.BranchId, e.UserId }, "IX_ShopStaffs_BranchId_UserId").IsUnique();
+
+            entity.HasIndex(e => e.ShopId, "IX_ShopStaffs_ShopId");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Role).HasMaxLength(50);
+
+            entity.HasOne(d => d.Branch).WithMany(p => p.ShopStaffs)
+                .HasForeignKey(d => d.BranchId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_SS_Branch");
 
             entity.HasOne(d => d.Shop).WithMany(p => p.ShopStaffs)
                 .HasForeignKey(d => d.ShopId)

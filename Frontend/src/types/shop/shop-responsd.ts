@@ -34,6 +34,7 @@ export interface BranchDto {
   name: string;
   phone: string;
   address?: AddressDto;
+  isSelected?: boolean;
 }
 
 export interface AddressDto {

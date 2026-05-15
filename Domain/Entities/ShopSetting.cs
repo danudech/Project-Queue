@@ -9,6 +9,8 @@ public partial class ShopSetting
 
     public int ShopId { get; set; }
 
+    public int? BranchId { get; set; }
+
     public string Key { get; set; } = null!;
 
     public string Value { get; set; } = null!;
@@ -20,6 +22,8 @@ public partial class ShopSetting
     public DateTime? UpdatedAt { get; set; }
 
     public int? UpdatedBy { get; set; }
+
+    public virtual ShopBranch? Branch { get; set; }
 
     public virtual Shop Shop { get; set; } = null!;
 }

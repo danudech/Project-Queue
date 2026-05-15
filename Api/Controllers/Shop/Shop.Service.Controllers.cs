@@ -31,7 +31,7 @@ public class ShopServiceController : ControllerBase
 
     [Authorize]
     [HttpGet("get-services")]
-    public async Task<ActionResult<ApiResponse<List<ShopServiceResponse>?>>> GetShopServices(CancellationToken ct)
+    public async Task<ActionResult<ApiResponse<List<ShopServiceResponse>?>>> GetShopServices([FromQuery] int shopId, [FromQuery] int branchId,CancellationToken ct)
     {
 
         string ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
@@ -42,14 +42,14 @@ public class ShopServiceController : ControllerBase
             (bool status, string message, string refreshtoken) = await _istokenrefresh.UserHasConsent(HttpContext, ip, ua, ct);
             if (!status)
                 return Unauthorized(ApiResponse<List<ShopServiceResponse>>.Fail(message));
-            _actionLog.Info("Get shop services request (UserId={UserId})", userId);
-            List<ShopServiceResponse>? resp = await _shop.GetShopServicesById(int.Parse(userId), ip, ua, ct);
+            _actionLog.Info("Get shop services request (UserId={UserId}, ShopId={ShopId}, BranchId={BranchId})", userId, shopId, branchId);
+            List<ShopServiceResponse>? resp = await _shop.GetShopServicesById(shopId, branchId, int.Parse(userId), ip, ua, ct);
 
             return Ok(ApiResponse<List<ShopServiceResponse>?>.Ok(resp));
         }
         catch (Exception ex)
         {
-            _actionLog.Error(ex, "Get shop services failed (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, ua);
+            _actionLog.Error(ex, "Get shop services failed (UserId={UserId}, ShopId={ShopId}, BranchId={BranchId}, IP={IP}, UserAgent={UserAgent})", userId, shopId, branchId, ip, ua);
             return StatusCode(500, ApiResponse<List<ShopServiceResponse>>.Fail(ex.Message));
         }
     }

@@ -31,9 +31,8 @@ public class ShopCategoryController : ControllerBase
 
     [Authorize]
     [HttpGet("get-category")]
-    public async Task<ActionResult<ApiResponse<List<ShopCategoryResponse>?>>> GetShopCategory(CancellationToken ct)
+    public async Task<ActionResult<ApiResponse<List<ShopCategoryResponse>?>>> GetShopCategory([FromQuery] int shopId, [FromQuery] int? branchId, CancellationToken ct)
     {
-
         string ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
         string ua = HttpContext.Request.Headers.UserAgent.ToString();
         string userId = User.FindFirst("uid")?.Value ?? "0";
@@ -42,8 +41,9 @@ public class ShopCategoryController : ControllerBase
             (bool status, string message, string refreshtoken) = await _istokenrefresh.UserHasConsent(HttpContext, ip, ua, ct);
             if (!status)
                 return Unauthorized(ApiResponse<List<ShopCategoryResponse>>.Fail(message));
-            _actionLog.Info("Get shop category request (UserId={UserId})", userId);
-            List<ShopCategoryResponse>? resp = await _shop.GetShopCategoryById(int.Parse(userId), ip, ua, ct);
+
+            _actionLog.Info("Get shop category request (UserId={UserId}, ShopId={ShopId}, BranchId={BranchId})", userId, shopId, branchId ?? 0);
+            List<ShopCategoryResponse>? resp = await _shop.GetShopCategoryById(shopId, branchId, ip, ua, ct);
 
             return Ok(ApiResponse<List<ShopCategoryResponse>?>.Ok(resp));
         }
@@ -79,7 +79,7 @@ public class ShopCategoryController : ControllerBase
 
     [Authorize]
     [HttpPut("update-category")]
-    public async Task<ActionResult<ApiResponse<ShopCategoryResponse>>> UpdateShopCategory([FromBody ] ShopCategoryRequest request, CancellationToken ct)
+    public async Task<ActionResult<ApiResponse<ShopCategoryResponse>>> UpdateShopCategory([FromBody] ShopCategoryRequest request, CancellationToken ct)
     {
         string ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
         string ua = HttpContext.Request.Headers.UserAgent.ToString();
