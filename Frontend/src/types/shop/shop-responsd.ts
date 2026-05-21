@@ -12,6 +12,8 @@ export interface ShopResponse {
   shopHolidays: ShopHoliday[];
   shopBranches: BranchDto[];
   services: SetService[];
+  logo : string;
+  isActive : boolean;
 }
 
 export interface ShopBusinessHour {

@@ -31,6 +31,10 @@ public partial class User
 
     public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 
+    public virtual ICollection<BranchUserRoleMap> BranchUserRoleMapGrantedByNavigations { get; set; } = new List<BranchUserRoleMap>();
+
+    public virtual ICollection<BranchUserRoleMap> BranchUserRoleMapUsers { get; set; } = new List<BranchUserRoleMap>();
+
     public virtual ICollection<Customer> Customers { get; set; } = new List<Customer>();
 
     public virtual ICollection<EmailConfirmation> EmailConfirmations { get; set; } = new List<EmailConfirmation>();
@@ -38,6 +42,10 @@ public partial class User
     public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
 
     public virtual ICollection<ShopStaff> ShopStaffs { get; set; } = new List<ShopStaff>();
+
+    public virtual ICollection<ShopUserRoleMap> ShopUserRoleMapGrantedByNavigations { get; set; } = new List<ShopUserRoleMap>();
+
+    public virtual ICollection<ShopUserRoleMap> ShopUserRoleMapUsers { get; set; } = new List<ShopUserRoleMap>();
 
     public virtual ICollection<Shop> Shops { get; set; } = new List<Shop>();
 

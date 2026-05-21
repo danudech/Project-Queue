@@ -94,10 +94,6 @@ namespace Queue.Infrastructure.Migrations
                     migrationBuilder.Sql(sqlbuild.ToString());
                 }
             }
-            else
-            {
-                throw new Exception($"SeedData Failed: File not found at {distPath}");
-            }
 
             // --- 1.3 Insert Subdistricts ---
             if (File.Exists(subPath))
@@ -142,8 +138,6 @@ namespace Queue.Infrastructure.Migrations
                 ('SHOP_STATUS',         'INACTIVE',         N'ปิดใช้งาน',                       'Inactive',             1, GETDATE()),
 
                 -- ─── BOOKING_STATUS ──────────────────────────────────────────
-                -- flow: WAITING → CONFIRMED → CHECKED_IN → DONE
-                --                           → CANCELLED / NO_SHOW
                 ('BOOKING_STATUS',      'WAITING',          N'รอการยืนยัน',                     'Waiting',              1, GETDATE()),
                 ('BOOKING_STATUS',      'CONFIRMED',        N'ยืนยันแล้ว',                      'Confirmed',            1, GETDATE()),
                 ('BOOKING_STATUS',      'CHECKED_IN',       N'เช็คอินแล้ว',                     'Checked In',           1, GETDATE()),
@@ -152,8 +146,6 @@ namespace Queue.Infrastructure.Migrations
                 ('BOOKING_STATUS',      'NO_SHOW',          N'ไม่มาตามนัด',                     'No Show',              1, GETDATE()),
 
                 -- ─── QUEUE_STATUS ─────────────────────────────────────────────
-                -- flow: WAITING → SERVING → DONE
-                --                         → CANCELLED / SKIPPED
                 ('QUEUE_STATUS',        'WAITING',          N'รอ',                              'Waiting',              1, GETDATE()),
                 ('QUEUE_STATUS',        'SERVING',          N'กำลังให้บริการ',                  'Serving',              1, GETDATE()),
                 ('QUEUE_STATUS',        'DONE',             N'เสร็จแล้ว',                       'Done',                 1, GETDATE()),
@@ -177,7 +169,6 @@ namespace Queue.Infrastructure.Migrations
                 ('INVOICE_STATUS',      'OVERDUE',          N'เกินกำหนดชำระ',                   'Overdue',              1, GETDATE()),
 
                 -- ─── SHOP_TYPE ───────────────────────────────────────────────
-                -- สุขภาพ & ความงาม
                 ('SHOP_TYPE', 'CLINIC',         N'🏥 คลินิก / สถานพยาบาล',         N'🏥 Clinic',                1, GETDATE()),
                 ('SHOP_TYPE', 'HOSPITAL',       N'🏨 โรงพยาบาล',                   N'🏨 Hospital',              1, GETDATE()),
                 ('SHOP_TYPE', 'DENTAL',         N'🦷 คลินิกทันตกรรม',              N'🦷 Dental Clinic',         1, GETDATE()),
@@ -187,19 +178,15 @@ namespace Queue.Infrastructure.Migrations
                 ('SHOP_TYPE', 'NAIL',           N'💅 ร้านทำเล็บ',                  N'💅 Nail Studio',           1, GETDATE()),
                 ('SHOP_TYPE', 'FITNESS',        N'💪 ฟิตเนส / โยคะ',               N'💪 Fitness & Yoga',        1, GETDATE()),
                 ('SHOP_TYPE', 'HOSPITAL_GOV',   N'🏥 โรงพยาบาลรัฐ',                N'🏥 Public Hospital',       1, GETDATE()),
-                -- อาหาร & เครื่องดื่ม
                 ('SHOP_TYPE', 'RESTAURANT',     N'🍴 ร้านอาหาร',                   N'🍴 Restaurant',            1, GETDATE()),
                 ('SHOP_TYPE', 'CAFE',           N'☕ คาเฟ่ / เครื่องดื่ม',         N'☕ Café',                  1, GETDATE()),
                 ('SHOP_TYPE', 'BAKERY',         N'🥐 เบเกอรี่',                    N'🥐 Bakery',                1, GETDATE()),
-                -- ยานยนต์
                 ('SHOP_TYPE', 'CAR_SERVICE',    N'🚗 ศูนย์บริการรถยนต์',           N'🚗 Car Service',           1, GETDATE()),
                 ('SHOP_TYPE', 'MOTORCYCLE',     N'🏍️ ร้านซ่อมมอเตอร์ไซค์',         N'🏍️ Motorcycle Repair',    1, GETDATE()),
                 ('SHOP_TYPE', 'CAR_WASH',       N'🧼 ร้านล้างรถ',                  N'🧼 Car Wash',              1, GETDATE()),
-                -- การเงิน & ราชการ
                 ('SHOP_TYPE', 'BANK',           N'💰 ธนาคาร / การเงิน',            N'💰 Bank',                  1, GETDATE()),
                 ('SHOP_TYPE', 'GOVERNMENT',     N'🏛️ หน่วยงานราชการ',              N'🏛️ Government',            1, GETDATE()),
                 ('SHOP_TYPE', 'INSURANCE',      N'🛡️ ประกันภัย',                   N'🛡️ Insurance',             1, GETDATE()),
-                -- การศึกษา & บริการส่วนตัว
                 ('SHOP_TYPE', 'TUTOR',          N'📚 ติวเตอร์ / สอนพิเศษ',         N'📚 Tutoring',              1, GETDATE()),
                 ('SHOP_TYPE', 'STUDIO',         N'📸 สตูดิโอ / ถ่ายภาพ',           N'📸 Studio',                1, GETDATE()),
                 ('SHOP_TYPE', 'LAWYER',         N'⚖️ ทนายความ / กฎหมาย',           N'⚖️ Legal Service',         1, GETDATE()),
@@ -207,10 +194,9 @@ namespace Queue.Infrastructure.Migrations
                 ('SHOP_TYPE', 'CONSULTANT',     N'🤝 ที่ปรึกษา',                   N'🤝 Consultant',            1, GETDATE()),
                 ('SHOP_TYPE', 'PET',            N'🐾 ร้านสัตว์เลี้ยง / สัตวแพทย์', N'🐾 Pet & Vet',             1, GETDATE()),
                 ('SHOP_TYPE', 'ONLINE',         N'🌐 บริการออนไลน์',               N'🌐 Online Service',        1, GETDATE()),
-                -- อื่น ๆ
                 ('SHOP_TYPE', 'OTHER',          N'✨ อื่น ๆ',                      N'✨ Other',                 1, GETDATE());
             END
-        ");
+            ");
 
             // --- 3. Mock Data ---
             var guids = new
@@ -237,21 +223,113 @@ namespace Queue.Infrastructure.Migrations
 
             string sqlMock = $@"
                 -- =====================================================
-                -- ROLES
+                -- ROLES (System Level - ระบบนี้จะเก็บเฉพาะสิทธิ์ผู้ใช้ระดับระบบ)
                 -- =====================================================
                 SET IDENTITY_INSERT Roles ON;
                 IF NOT EXISTS (SELECT 1 FROM Roles WHERE Id = 1)
                 BEGIN
                     INSERT INTO Roles (Id, Name, IsActive, CreatedAt, CreatedBy) VALUES
                     (1, 'Admin',     1, GETDATE(), NULL),
-                    (2, 'ShopOwner', 1, GETDATE(), NULL),
-                    (3, 'Staff',     1, GETDATE(), NULL),
-                    (4, 'Customer',  1, GETDATE(), NULL);
+                    (2, 'Customer',  1, GETDATE(), NULL);
                 END
                 SET IDENTITY_INSERT Roles OFF;
 
                 -- =====================================================
-                -- ADDRESSES (3 ที่อยู่: สาขาหลัก + สาขา 2 + สาขา 3)
+                -- SHOP ROLES (Shop & Branch Level)
+                -- =====================================================
+                SET IDENTITY_INSERT ShopRoles ON;
+                IF NOT EXISTS (SELECT 1 FROM ShopRoles WHERE Id = 1)
+                BEGIN
+                    INSERT INTO ShopRoles (Id, Code, Label, Scope, IsSystem, IsActive, CreatedAt) VALUES
+                    (1, 'ShopOwner',     N'เจ้าของร้าน',           'Shop',   1, 1, GETDATE()),
+                    (2, 'ShopManager',   N'ผู้จัดการร้าน',          'Shop',   1, 1, GETDATE()),
+                    (3, 'BranchManager', N'ผู้จัดการสาขา',          'Branch', 1, 1, GETDATE()),
+                    (4, 'Staff',         N'พนักงาน',               'Branch', 1, 1, GETDATE());
+                END
+                SET IDENTITY_INSERT ShopRoles OFF;
+
+                -- =====================================================
+                -- SHOP ROLE PERMISSIONS (Default Permissions)
+                -- =====================================================
+                IF NOT EXISTS (SELECT 1 FROM ShopRolePermissions WHERE RoleCode = 'ShopOwner')
+                BEGIN
+                    INSERT INTO ShopRolePermissions (ShopId, RoleCode, PermissionCode, IsGranted, CreatedAt) VALUES
+                    -- --- ShopOwner: ทุกอย่าง ---
+                    (NULL, 'ShopOwner', 'shop.view',            1, GETDATE()),
+                    (NULL, 'ShopOwner', 'shop.edit',            1, GETDATE()),
+                    (NULL, 'ShopOwner', 'shop.delete',          1, GETDATE()),
+                    (NULL, 'ShopOwner', 'branch.view',          1, GETDATE()),
+                    (NULL, 'ShopOwner', 'branch.create',        1, GETDATE()),
+                    (NULL, 'ShopOwner', 'branch.edit',          1, GETDATE()),
+                    (NULL, 'ShopOwner', 'branch.delete',        1, GETDATE()),
+                    (NULL, 'ShopOwner', 'staff.view',           1, GETDATE()),
+                    (NULL, 'ShopOwner', 'staff.invite',         1, GETDATE()),
+                    (NULL, 'ShopOwner', 'staff.edit',           1, GETDATE()),
+                    (NULL, 'ShopOwner', 'staff.remove',         1, GETDATE()),
+                    (NULL, 'ShopOwner', 'role.assign',          1, GETDATE()),
+                    (NULL, 'ShopOwner', 'service.view',         1, GETDATE()),
+                    (NULL, 'ShopOwner', 'service.create',       1, GETDATE()),
+                    (NULL, 'ShopOwner', 'service.edit',         1, GETDATE()),
+                    (NULL, 'ShopOwner', 'service.delete',       1, GETDATE()),
+                    (NULL, 'ShopOwner', 'booking.view',         1, GETDATE()),
+                    (NULL, 'ShopOwner', 'booking.manage',       1, GETDATE()),
+                    (NULL, 'ShopOwner', 'queue.view',           1, GETDATE()),
+                    (NULL, 'ShopOwner', 'queue.manage',         1, GETDATE()),
+                    (NULL, 'ShopOwner', 'report.view',          1, GETDATE()),
+                    (NULL, 'ShopOwner', 'setting.view',         1, GETDATE()),
+                    (NULL, 'ShopOwner', 'setting.edit',         1, GETDATE()),
+                    (NULL, 'ShopOwner', 'subscription.view',    1, GETDATE()),
+                    (NULL, 'ShopOwner', 'subscription.manage',  1, GETDATE()),
+
+                    -- --- ShopManager: จัดการร้านได้ แต่ไม่ลบ shop/subscription ---
+                    (NULL, 'ShopManager', 'shop.view',          1, GETDATE()),
+                    (NULL, 'ShopManager', 'shop.edit',          1, GETDATE()),
+                    (NULL, 'ShopManager', 'branch.view',        1, GETDATE()),
+                    (NULL, 'ShopManager', 'branch.create',      1, GETDATE()),
+                    (NULL, 'ShopManager', 'branch.edit',        1, GETDATE()),
+                    (NULL, 'ShopManager', 'staff.view',         1, GETDATE()),
+                    (NULL, 'ShopManager', 'staff.invite',       1, GETDATE()),
+                    (NULL, 'ShopManager', 'staff.edit',         1, GETDATE()),
+                    (NULL, 'ShopManager', 'staff.remove',       1, GETDATE()),
+                    (NULL, 'ShopManager', 'role.assign',        1, GETDATE()),
+                    (NULL, 'ShopManager', 'service.view',       1, GETDATE()),
+                    (NULL, 'ShopManager', 'service.create',     1, GETDATE()),
+                    (NULL, 'ShopManager', 'service.edit',       1, GETDATE()),
+                    (NULL, 'ShopManager', 'service.delete',     1, GETDATE()),
+                    (NULL, 'ShopManager', 'booking.view',       1, GETDATE()),
+                    (NULL, 'ShopManager', 'booking.manage',     1, GETDATE()),
+                    (NULL, 'ShopManager', 'queue.view',         1, GETDATE()),
+                    (NULL, 'ShopManager', 'queue.manage',       1, GETDATE()),
+                    (NULL, 'ShopManager', 'report.view',        1, GETDATE()),
+                    (NULL, 'ShopManager', 'setting.view',       1, GETDATE()),
+                    (NULL, 'ShopManager', 'setting.edit',       1, GETDATE()),
+
+                    -- --- BranchManager: จัดการเฉพาะสาขาที่ได้รับมอบหมาย ---
+                    (NULL, 'BranchManager', 'branch.view',      1, GETDATE()),
+                    (NULL, 'BranchManager', 'branch.edit',      1, GETDATE()),
+                    (NULL, 'BranchManager', 'staff.view',       1, GETDATE()),
+                    (NULL, 'BranchManager', 'staff.invite',     1, GETDATE()),
+                    (NULL, 'BranchManager', 'staff.edit',       1, GETDATE()),
+                    (NULL, 'BranchManager', 'staff.remove',     1, GETDATE()),
+                    (NULL, 'BranchManager', 'service.view',     1, GETDATE()),
+                    (NULL, 'BranchManager', 'service.edit',     1, GETDATE()),
+                    (NULL, 'BranchManager', 'booking.view',     1, GETDATE()),
+                    (NULL, 'BranchManager', 'booking.manage',   1, GETDATE()),
+                    (NULL, 'BranchManager', 'queue.view',       1, GETDATE()),
+                    (NULL, 'BranchManager', 'queue.manage',     1, GETDATE()),
+                    (NULL, 'BranchManager', 'report.view',      1, GETDATE()),
+                    (NULL, 'BranchManager', 'setting.view',     1, GETDATE()),
+
+                    -- --- Staff: ดู/จัดการ queue และ booking เท่านั้น ---
+                    (NULL, 'Staff', 'branch.view',              1, GETDATE()),
+                    (NULL, 'Staff', 'service.view',             1, GETDATE()),
+                    (NULL, 'Staff', 'booking.view',             1, GETDATE()),
+                    (NULL, 'Staff', 'queue.view',               1, GETDATE()),
+                    (NULL, 'Staff', 'queue.manage',             1, GETDATE());
+                END
+
+                -- =====================================================
+                -- ADDRESSES
                 -- =====================================================
                 SET IDENTITY_INSERT Addresses ON;
                 IF NOT EXISTS (SELECT 1 FROM Addresses WHERE Id = 1)
@@ -300,9 +378,9 @@ namespace Queue.Infrastructure.Migrations
                     INSERT INTO UserAuthentications (Id, UserId, Provider, ProviderId, PasswordHash, LastLoginAt) VALUES
                     (1, 4, 'Local',  'admin@demo.com',    'PBKDF2$sha256$200000$zZ2ILwM1/pS1lRHdsHtr5g==$5BxeuArlWToEcGLuoTr3XmsIKH3OCswTjOtyE/77Rhk=', GETDATE()),
                     (2, 1, 'Local',  'owner@demo.com',    'PBKDF2$sha256$200000$aB3CDwM1/pS2lRHdsItr5g==$6CyeuBrlXToFcHMuoUs4YntJLI4PDtwUkPuzF/88Sil=',  GETDATE()),
-                    (3, 2, 'Google', 'google_uid_000002', NULL,                                                                                             GETDATE()),
+                    (3, 2, 'Google', 'google_uid_000002', NULL,                                                                                         GETDATE()),
                     (4, 3, 'Local',  'staff@demo.com',    'PBKDF2$sha256$200000$cD4EFxN2/qT3mSIetJus6h==$7DzfvCsmYUpGdINvoVt5ZouKMJ5QEuxVlQvgG/99Tjm=',  GETDATE()),
-                    (5, 5, 'Line',   'line_uid_000005',   NULL,                                                                                             GETDATE());
+                    (5, 5, 'Line',   'line_uid_000005',   NULL,                                                                                         GETDATE());
                 END
                 SET IDENTITY_INSERT UserAuthentications OFF;
 
@@ -321,17 +399,17 @@ namespace Queue.Infrastructure.Migrations
                 END
 
                 -- =====================================================
-                -- USER ROLE MAPS
+                -- USER ROLE MAPS (System Level)
+                -- ทุกคนเป็น Customer โดยปริยาย แต่คนที่เป็น Admin จะได้ Role Admin
                 -- =====================================================
                 IF NOT EXISTS (SELECT 1 FROM UserRoleMaps WHERE UserId = 1)
                 BEGIN
                     INSERT INTO UserRoleMaps (UserId, RoleId, CreatedAt, CreatedBy) VALUES
-                    (1, 2, GETDATE(), 4), -- Owner    → ShopOwner
-                    (2, 4, GETDATE(), 4), -- Customer → Customer
-                    (3, 3, GETDATE(), 4), -- Staff    → Staff
-                    (4, 1, GETDATE(), 4), -- Admin    → Admin
-                    (4, 2, GETDATE(), 4), -- Admin    → ShopOwner (multi-role)
-                    (5, 4, GETDATE(), 4); -- Customer2→ Customer
+                    (1, 2, GETDATE(), 4), -- Owner (User 1)   -> Customer
+                    (2, 2, GETDATE(), 4), -- Customer (User 2)-> Customer
+                    (3, 2, GETDATE(), 4), -- Staff (User 3)   -> Customer
+                    (4, 1, GETDATE(), 4), -- Admin (User 4)   -> Admin
+                    (5, 2, GETDATE(), 4); -- Customer2(User 5)-> Customer
                 END
 
                 -- =====================================================
@@ -352,7 +430,7 @@ namespace Queue.Infrastructure.Migrations
                 IF NOT EXISTS (SELECT 1 FROM Shops WHERE Id = 1)
                 BEGIN
                     INSERT INTO Shops (Id, Guid, Name, OwnerId, StatusId, TypeId, IsActive, CreatedAt, CreatedBy) VALUES
-                    (1, '{guids.Shop}', N'คลินิกสุขภาพดี Demo', 1,
+                    (1, '{guids.Shop}', N'คลินิกสุขภาพดี Demo', 1, 
                         (SELECT TOP 1 Id FROM MasterStatuses WHERE Type='SHOP_STATUS' AND Code='ACTIVE'),
                         (SELECT TOP 1 Id FROM MasterStatuses WHERE Type='SHOP_TYPE'   AND Code='CLINIC'),
                         1, GETDATE(), 1);
@@ -360,24 +438,28 @@ namespace Queue.Infrastructure.Migrations
                 SET IDENTITY_INSERT Shops OFF;
 
                 -- =====================================================
-                -- SHOP BRANCHES (2 สาขา)
-                --   Branch 1: สุขุมวิท (สาขาหลัก)
-                --   Branch 2: สีลม
+                -- SHOP USER ROLE MAPS (Shop Level)
+                -- =====================================================
+                IF NOT EXISTS (SELECT 1 FROM ShopUserRoleMaps WHERE ShopId = 1 AND UserId = 1)
+                BEGIN
+                    INSERT INTO ShopUserRoleMaps (ShopId, UserId, RoleCode, IsActive, GrantedBy, CreatedAt, CreatedBy) VALUES
+                    (1, 1, 'ShopOwner', 1, 4, GETDATE(), 4); -- กำหนดให้ User 1 เป็น ShopOwner ของร้านนี้
+                END
+
+                -- =====================================================
+                -- SHOP BRANCHES
                 -- =====================================================
                 SET IDENTITY_INSERT ShopBranches ON;
                 IF NOT EXISTS (SELECT 1 FROM ShopBranches WHERE Id = 1)
                 BEGIN
                     INSERT INTO ShopBranches (Id, Guid, ShopId, Name, AddressId, Phone, IsActive, CreatedAt, CreatedBy) VALUES
                     (1, NEWID(), 1, N'สาขาสุขุมวิท (สาขาหลัก)', 1, '021111111', 1, GETDATE(), 1),
-                    (2, NEWID(), 1, N'สาขาสีลม',                 2, '022222222', 1, GETDATE(), 1);
+                    (2, NEWID(), 1, N'สาขาสีลม',                2, '022222222', 1, GETDATE(), 1);
                 END
                 SET IDENTITY_INSERT ShopBranches OFF;
 
                 -- =====================================================
-                -- SHOP STAFFS
-                -- ✅ BRANCH-BASED: Staff ผูกกับ Branch
-                --   Staff 1 (Owner) อยู่สาขา 1
-                --   Staff 2 (Staff) อยู่สาขา 1 และ สาขา 2 (2 rows)
+                -- SHOP STAFFS (บันทึกรายชื่อพนักงานเข้าสาขา)
                 -- =====================================================
                 SET IDENTITY_INSERT ShopStaffs ON;
                 IF NOT EXISTS (SELECT 1 FROM ShopStaffs WHERE Id = 1)
@@ -390,37 +472,36 @@ namespace Queue.Infrastructure.Migrations
                 SET IDENTITY_INSERT ShopStaffs OFF;
 
                 -- =====================================================
+                -- BRANCH USER ROLE MAPS (Branch Level Permissions)
+                -- =====================================================
+                IF NOT EXISTS (SELECT 1 FROM BranchUserRoleMaps WHERE UserId = 3)
+                BEGIN
+                    INSERT INTO BranchUserRoleMaps (BranchId, UserId, RoleCode, IsActive, GrantedBy, CreatedAt, CreatedBy) VALUES
+                    (1, 3, 'Staff', 1, 1, GETDATE(), 1), -- ให้สิทธิ์ Staff แก่ User 3 ในสาขา 1
+                    (2, 3, 'Staff', 1, 1, GETDATE(), 1); -- ให้สิทธิ์ Staff แก่ User 3 ในสาขา 2
+                END
+
+                -- =====================================================
                 -- SHOP SETTINGS
-                -- ✅ BRANCH-BASED: BranchId nullable
-                --   NULL     = shop-level (ทุกสาขาใช้ร่วม)
-                --   มีค่า   = branch-level override เฉพาะสาขานั้น
                 -- =====================================================
                 IF NOT EXISTS (SELECT 1 FROM ShopSettings WHERE ShopId = 1)
                 BEGIN
                     INSERT INTO ShopSettings (ShopId, BranchId, [Key], Value, CreatedAt, CreatedBy) VALUES
-                    -- Shop-level settings (ใช้กับทุกสาขา)
                     (1, NULL, 'QUEUE_RESET_DAILY',     'true',       GETDATE(), 1),
                     (1, NULL, 'NOTIFY_BEFORE_MINUTES', '15',         GETDATE(), 1),
                     (1, NULL, 'CURRENCY',              'THB',        GETDATE(), 1),
-                    -- Branch-level override: สาขา 1 รับคิวได้มากกว่า
                     (1, 1,    'MAX_QUEUE_PER_SLOT',    '50',         GETDATE(), 1),
                     (1, 1,    'ALLOW_WALK_IN',         'true',       GETDATE(), 1),
-                    -- Branch-level override: สาขา 2 รับคิวน้อยกว่า ไม่รับ Walk-in
                     (1, 2,    'MAX_QUEUE_PER_SLOT',    '20',         GETDATE(), 1),
                     (1, 2,    'ALLOW_WALK_IN',         'false',      GETDATE(), 1);
                 END
 
                 -- =====================================================
                 -- SHOP BUSINESS HOURS
-                -- ✅ BRANCH-BASED: ไม่มี ShopId (ดึงผ่าน Branch)
-                --   สาขา 1: จ-ศ 09:00-18:00, ส 10:00-16:00, อา 10:00-14:00
-                --   สาขา 2: จ-ศ 09:00-18:00, ส 10:00-16:00 (หยุดวันอาทิตย์)
-                --   DayOfWeek: 0=Sun, 1=Mon, ... 6=Sat
                 -- =====================================================
                 IF NOT EXISTS (SELECT 1 FROM ShopBusinessHours WHERE BranchId = 1)
                 BEGIN
                     INSERT INTO ShopBusinessHours (BranchId, DayOfWeek, OpenTime, CloseTime, IsActive, CreatedAt, CreatedBy) VALUES
-                    -- สาขา 1 สุขุมวิท
                     (1, 1, '09:00', '18:00', 1, GETDATE(), 1),
                     (1, 2, '09:00', '18:00', 1, GETDATE(), 1),
                     (1, 3, '09:00', '18:00', 1, GETDATE(), 1),
@@ -428,7 +509,6 @@ namespace Queue.Infrastructure.Migrations
                     (1, 5, '09:00', '18:00', 1, GETDATE(), 1),
                     (1, 6, '10:00', '16:00', 1, GETDATE(), 1),
                     (1, 0, '10:00', '14:00', 1, GETDATE(), 1),
-                    -- สาขา 2 สีลม (หยุดวันอาทิตย์ = ไม่ insert DayOfWeek=0)
                     (2, 1, '09:00', '18:00', 1, GETDATE(), 1),
                     (2, 2, '09:00', '18:00', 1, GETDATE(), 1),
                     (2, 3, '09:00', '18:00', 1, GETDATE(), 1),
@@ -439,9 +519,6 @@ namespace Queue.Infrastructure.Migrations
 
                 -- =====================================================
                 -- SHOP HOLIDAYS
-                -- ✅ BRANCH-BASED: แต่ละสาขาหยุดไม่เหมือนกันได้
-                --   สาขา 1: หยุด 2 วัน (ปีใหม่ + สงกรานต์)
-                --   สาขา 2: หยุด 1 วัน (ปีใหม่เท่านั้น)
                 -- =====================================================
                 IF NOT EXISTS (SELECT 1 FROM ShopHolidays WHERE ShopId = 1)
                 BEGIN
@@ -453,19 +530,14 @@ namespace Queue.Infrastructure.Migrations
 
                 -- =====================================================
                 -- QUEUE CATEGORIES
-                -- ✅ BRANCH-BASED: Prefix unique ต่อ Branch
-                --   สาขา 1: A=ทั่วไป, B=เร่งด่วน, P=VIP
-                --   สาขา 2: A=ทั่วไป, U=เร่งด่วน (prefix ต่างกันได้)
                 -- =====================================================
                 SET IDENTITY_INSERT QueueCategories ON;
                 IF NOT EXISTS (SELECT 1 FROM QueueCategories WHERE Id = 1)
                 BEGIN
                     INSERT INTO QueueCategories (Id, ShopId, BranchId, Prefix, Name, Description, IsActive, CreatedAt, CreatedBy) VALUES
-                    -- สาขา 1
                     (1, 1, 1, 'A', N'คิวทั่วไป',   N'คิวสำหรับผู้ป่วยทั่วไป',   1, GETDATE(), 1),
                     (2, 1, 1, 'B', N'คิวเร่งด่วน', N'คิวสำหรับเคสเร่งด่วน',     1, GETDATE(), 1),
                     (3, 1, 1, 'P', N'คิว VIP',      N'คิวสำหรับสมาชิก Premium',   1, GETDATE(), 1),
-                    -- สาขา 2
                     (4, 1, 2, 'A', N'คิวทั่วไป',   N'คิวสำหรับผู้ป่วยทั่วไป',   1, GETDATE(), 1),
                     (5, 1, 2, 'U', N'คิวเร่งด่วน', N'คิวสำหรับเคสเร่งด่วน',     1, GETDATE(), 1);
                 END
@@ -473,19 +545,14 @@ namespace Queue.Infrastructure.Migrations
 
                 -- =====================================================
                 -- SERVICE CATEGORIES
-                -- ✅ BRANCH-BASED: แต่ละสาขามีหมวดบริการของตัวเอง
-                --   สาขา 1: ทั่วไป / เฉพาะทาง / พรีเมียม
-                --   สาขา 2: ทั่วไป / เฉพาะทาง (ไม่มีพรีเมียม)
                 -- =====================================================
                 SET IDENTITY_INSERT ServiceCategories ON;
                 IF NOT EXISTS (SELECT 1 FROM ServiceCategories WHERE Id = 1)
                 BEGIN
                     INSERT INTO ServiceCategories (Id, ShopId, BranchId, Name, IsActive, CreatedAt, CreatedBy) VALUES
-                    -- สาขา 1
                     (1, 1, 1, N'บริการทั่วไป',   1, GETDATE(), 1),
                     (2, 1, 1, N'บริการเฉพาะทาง', 1, GETDATE(), 1),
                     (3, 1, 1, N'บริการพรีเมียม',  1, GETDATE(), 1),
-                    -- สาขา 2
                     (4, 1, 2, N'บริการทั่วไป',   1, GETDATE(), 1),
                     (5, 1, 2, N'บริการเฉพาะทาง', 1, GETDATE(), 1);
                 END
@@ -493,19 +560,14 @@ namespace Queue.Infrastructure.Migrations
 
                 -- =====================================================
                 -- SERVICES
-                -- ✅ BRANCH-BASED: บริการผูกกับ Branch
-                --   สาขา 1: 3 บริการ (ตรวจทั่วไป / ตรวจเลือด / ปรึกษาเฉพาะทาง)
-                --   สาขา 2: 2 บริการ (ตรวจทั่วไป / ตรวจเลือด — ราคาต่างกัน)
                 -- =====================================================
                 SET IDENTITY_INSERT Services ON;
                 IF NOT EXISTS (SELECT 1 FROM Services WHERE Id = 1)
                 BEGIN
                     INSERT INTO Services (Id, Guid, ShopId, BranchId, Name, Duration, Price, IsActive, CreatedAt, CreatedBy) VALUES
-                    -- สาขา 1 สุขุมวิท
                     (1, '{guids.Service1}', 1, 1, N'ตรวจร่างกายทั่วไป',     30,    0.00, 1, GETDATE(), 1),
                     (2, '{guids.Service2}', 1, 1, N'ตรวจเลือด / Lab',       60,  500.00, 1, GETDATE(), 1),
                     (3, '{guids.Service3}', 1, 1, N'ปรึกษาแพทย์เฉพาะทาง',  45,  800.00, 1, GETDATE(), 1),
-                    -- สาขา 2 สีลม (ราคาและระยะเวลาต่างกัน)
                     (4, '{guids.Service4}', 1, 2, N'ตรวจร่างกายทั่วไป',     30,    0.00, 1, GETDATE(), 1),
                     (5, NEWID(),            1, 2, N'ตรวจเลือด / Lab',       60,  450.00, 1, GETDATE(), 1);
                 END
@@ -513,52 +575,43 @@ namespace Queue.Infrastructure.Migrations
 
                 -- =====================================================
                 -- SERVICE CATEGORY MAPS
-                -- (ServiceId ผูกกับ CategoryId ที่อยู่ Branch เดียวกัน)
                 -- =====================================================
                 IF NOT EXISTS (SELECT 1 FROM ServiceCategoryMaps WHERE ServiceId = 1)
                 BEGIN
                     INSERT INTO ServiceCategoryMaps (ServiceId, CategoryId, CreatedAt, CreatedBy) VALUES
-                    -- สาขา 1
-                    (1, 1, GETDATE(), 1), -- ตรวจทั่วไป   → บริการทั่วไป (Branch 1)
-                    (2, 2, GETDATE(), 1), -- ตรวจเลือด   → บริการเฉพาะทาง (Branch 1)
-                    (3, 2, GETDATE(), 1), -- ปรึกษาแพทย์ → บริการเฉพาะทาง (Branch 1)
-                    (3, 3, GETDATE(), 1), -- ปรึกษาแพทย์ → บริการพรีเมียม (Branch 1) multi-cat
-                    -- สาขา 2
-                    (4, 4, GETDATE(), 1), -- ตรวจทั่วไป  → บริการทั่วไป (Branch 2)
-                    (5, 5, GETDATE(), 1); -- ตรวจเลือด   → บริการเฉพาะทาง (Branch 2)
+                    (1, 1, GETDATE(), 1),
+                    (2, 2, GETDATE(), 1),
+                    (3, 2, GETDATE(), 1),
+                    (3, 3, GETDATE(), 1),
+                    (4, 4, GETDATE(), 1),
+                    (5, 5, GETDATE(), 1);
                 END
 
                 -- =====================================================
                 -- SERVICE STAFF MAPS
-                -- (StaffId อ้างอิง ShopStaffs.Id ซึ่งผูกกับ Branch อยู่แล้ว)
                 -- =====================================================
                 IF NOT EXISTS (SELECT 1 FROM ServiceStaffMaps WHERE ServiceId = 1)
                 BEGIN
                     INSERT INTO ServiceStaffMaps (ServiceId, StaffId, CreatedAt, CreatedBy) VALUES
-                    -- Services ของ Branch 1 → Staff ของ Branch 1 (StaffId 1, 2)
-                    (1, 1, GETDATE(), 1), -- ตรวจทั่วไป  (B1) → Owner (B1)
-                    (1, 2, GETDATE(), 1), -- ตรวจทั่วไป  (B1) → Staff (B1)
-                    (2, 2, GETDATE(), 1), -- ตรวจเลือด   (B1) → Staff (B1)
-                    (3, 1, GETDATE(), 1), -- ปรึกษาแพทย์ (B1) → Owner (B1)
-                    -- Services ของ Branch 2 → Staff ของ Branch 2 (StaffId 3)
-                    (4, 3, GETDATE(), 1), -- ตรวจทั่วไป  (B2) → Staff (B2)
-                    (5, 3, GETDATE(), 1); -- ตรวจเลือด   (B2) → Staff (B2)
+                    (1, 1, GETDATE(), 1),
+                    (1, 2, GETDATE(), 1),
+                    (2, 2, GETDATE(), 1),
+                    (3, 1, GETDATE(), 1),
+                    (4, 3, GETDATE(), 1),
+                    (5, 3, GETDATE(), 1);
                 END
 
                 -- =====================================================
-                -- QUEUE SLOTS (วันนี้ + พรุ่งนี้, แยกตาม Branch)
+                -- QUEUE SLOTS
                 -- =====================================================
                 SET IDENTITY_INSERT QueueSlots ON;
                 IF NOT EXISTS (SELECT 1 FROM QueueSlots WHERE Id = 1)
                 BEGIN
                     INSERT INTO QueueSlots (Id, Guid, ShopId, BranchId, Date, StartTime, EndTime, MaxQueue, CurrentUsage, IsActive, CreatedAt, CreatedBy) VALUES
-                    -- Branch 1 วันนี้
                     (1, NEWID(), 1, 1, CAST(GETDATE() AS DATE),                '09:00', '12:00', 50, 2, 1, GETDATE(), 1),
                     (2, NEWID(), 1, 1, CAST(GETDATE() AS DATE),                '13:00', '18:00', 50, 0, 1, GETDATE(), 1),
-                    -- Branch 2 วันนี้
                     (3, NEWID(), 1, 2, CAST(GETDATE() AS DATE),                '09:00', '12:00', 20, 1, 1, GETDATE(), 1),
                     (4, NEWID(), 1, 2, CAST(GETDATE() AS DATE),                '13:00', '18:00', 20, 0, 1, GETDATE(), 1),
-                    -- Branch 1 พรุ่งนี้
                     (5, NEWID(), 1, 1, CAST(DATEADD(day, 1, GETDATE()) AS DATE), '09:00', '12:00', 50, 0, 1, GETDATE(), 1),
                     (6, NEWID(), 1, 1, CAST(DATEADD(day, 1, GETDATE()) AS DATE), '13:00', '18:00', 50, 0, 1, GETDATE(), 1);
                 END
@@ -566,42 +619,33 @@ namespace Queue.Infrastructure.Migrations
 
                 -- =====================================================
                 -- BOOKINGS
-                -- ✅ BRANCH-BASED: ตัด ShopId ออก ดึงผ่าน Branch ได้
-                --   Booking 1,2,4: Branch 1 สุขุมวิท
-                --   Booking 3:     Branch 2 สีลม
                 -- =====================================================
                 SET IDENTITY_INSERT Bookings ON;
                 IF NOT EXISTS (SELECT 1 FROM Bookings WHERE Id = 1)
                 BEGIN
                     INSERT INTO Bookings (Id, Guid, UserId, BranchId, QueueSlotId, QueueCategoryId, QueueNumber, Remark, StatusId, CreatedAt, CreatedBy) VALUES
-                    (1, '{guids.Booking1}', 2, 1, 1, 1, 1, N'ขอนัดคุณหมอด้านอายุรกรรม',
-                        (SELECT TOP 1 Id FROM MasterStatuses WHERE Type='BOOKING_STATUS' AND Code='CONFIRMED'), GETDATE(), 2),
-                    (2, '{guids.Booking2}', 5, 1, 1, 1, 2, NULL,
-                        (SELECT TOP 1 Id FROM MasterStatuses WHERE Type='BOOKING_STATUS' AND Code='WAITING'), GETDATE(), 5),
-                    (3, '{guids.Booking3}', 2, 2, 3, 4, 1, N'เร่งด่วน - ปวดท้องรุนแรง',
-                        (SELECT TOP 1 Id FROM MasterStatuses WHERE Type='BOOKING_STATUS' AND Code='DONE'), DATEADD(day, -1, GETDATE()), 2),
-                    (4, '{guids.Booking4}', 5, 1, 2, 1, 3, NULL,
-                        (SELECT TOP 1 Id FROM MasterStatuses WHERE Type='BOOKING_STATUS' AND Code='CANCELLED'), GETDATE(), 5);
+                    (1, '{guids.Booking1}', 2, 1, 1, 1, 1, N'ขอนัดคุณหมอด้านอายุรกรรม', (SELECT TOP 1 Id FROM MasterStatuses WHERE Type='BOOKING_STATUS' AND Code='CONFIRMED'), GETDATE(), 2),
+                    (2, '{guids.Booking2}', 5, 1, 1, 1, 2, NULL,                        (SELECT TOP 1 Id FROM MasterStatuses WHERE Type='BOOKING_STATUS' AND Code='WAITING'), GETDATE(), 5),
+                    (3, '{guids.Booking3}', 2, 2, 3, 4, 1, N'เร่งด่วน - ปวดท้องรุนแรง', (SELECT TOP 1 Id FROM MasterStatuses WHERE Type='BOOKING_STATUS' AND Code='DONE'), DATEADD(day, -1, GETDATE()), 2),
+                    (4, '{guids.Booking4}', 5, 1, 2, 1, 3, NULL,                        (SELECT TOP 1 Id FROM MasterStatuses WHERE Type='BOOKING_STATUS' AND Code='CANCELLED'), GETDATE(), 5);
                 END
                 SET IDENTITY_INSERT Bookings OFF;
 
                 -- =====================================================
                 -- BOOKING SERVICES
-                -- (ServiceId ต้องอยู่ Branch เดียวกับ Booking.BranchId)
                 -- =====================================================
                 IF NOT EXISTS (SELECT 1 FROM BookingServices WHERE BookingId = 1)
                 BEGIN
                     INSERT INTO BookingServices (BookingId, ServiceId, CreatedAt, CreatedBy) VALUES
-                    (1, 1, GETDATE(), 2), -- Booking 1 (B1) → ตรวจทั่วไป  (B1:Svc1)
-                    (1, 3, GETDATE(), 2), -- Booking 1 (B1) → ปรึกษาแพทย์ (B1:Svc3) multi-service
-                    (2, 1, GETDATE(), 5), -- Booking 2 (B1) → ตรวจทั่วไป  (B1:Svc1)
-                    (3, 5, GETDATE(), 2), -- Booking 3 (B2) → ตรวจเลือด   (B2:Svc5)
-                    (4, 1, GETDATE(), 5); -- Booking 4 (B1) → ตรวจทั่วไป  (B1:Svc1)
+                    (1, 1, GETDATE(), 2),
+                    (1, 3, GETDATE(), 2),
+                    (2, 1, GETDATE(), 5),
+                    (3, 5, GETDATE(), 2),
+                    (4, 1, GETDATE(), 5);
                 END
 
                 -- =====================================================
-                -- QUEUES (Walk-in)
-                -- ✅ BRANCH-BASED: ตัด ShopId ออก ดึงผ่าน Branch ได้
+                -- QUEUES
                 -- =====================================================
                 SET IDENTITY_INSERT Queues ON;
                 IF NOT EXISTS (SELECT 1 FROM Queues WHERE Id = 1)
@@ -629,7 +673,7 @@ namespace Queue.Infrastructure.Migrations
                 END
 
                 -- =====================================================
-                -- CUSTOMERS (ผูกระดับ Shop — ลูกค้าคนเดียวใช้ได้ทุกสาขา)
+                -- CUSTOMERS
                 -- =====================================================
                 SET IDENTITY_INSERT Customers ON;
                 IF NOT EXISTS (SELECT 1 FROM Customers WHERE Id = 1)
@@ -641,19 +685,16 @@ namespace Queue.Infrastructure.Migrations
                 SET IDENTITY_INSERT Customers OFF;
 
                 -- =====================================================
-                -- CUSTOMER NOTES
+                -- CUSTOMER NOTES & TAGS
                 -- =====================================================
                 IF NOT EXISTS (SELECT 1 FROM CustomerNotes WHERE CustomerId = 1)
                 BEGIN
                     INSERT INTO CustomerNotes (CustomerId, Note, CreatedAt, CreatedBy) VALUES
                     (1, N'แพ้ยาเพนิซิลิน - ห้ามจ่ายยากลุ่มนี้',        GETDATE(), 1),
                     (1, N'ผู้ป่วยโรคเบาหวาน ต้องตรวจน้ำตาลทุกครั้ง',   GETDATE(), 3),
-                    (2, N'ลูกค้า VIP - ให้บริการก่อน',                   GETDATE(), 1);
+                    (2, N'ลูกค้า VIP - ให้บริการก่อน',                  GETDATE(), 1);
                 END
 
-                -- =====================================================
-                -- CUSTOMER TAGS
-                -- =====================================================
                 SET IDENTITY_INSERT CustomerTags ON;
                 IF NOT EXISTS (SELECT 1 FROM CustomerTags WHERE Id = 1)
                 BEGIN
@@ -666,30 +707,23 @@ namespace Queue.Infrastructure.Migrations
                 END
                 SET IDENTITY_INSERT CustomerTags OFF;
 
-                -- =====================================================
-                -- CUSTOMER TAG MAPS
-                -- =====================================================
                 IF NOT EXISTS (SELECT 1 FROM CustomerTagMaps WHERE CustomerId = 1)
                 BEGIN
                     INSERT INTO CustomerTagMaps (CustomerId, TagId, CreatedAt, CreatedBy) VALUES
-                    (1, 2, GETDATE(), 1), -- วรรณา    → แพ้ยา
-                    (1, 3, GETDATE(), 1), -- วรรณา    → โรคเรื้อรัง
-                    (2, 1, GETDATE(), 1); -- ประเสริฐ → VIP
+                    (1, 2, GETDATE(), 1),
+                    (1, 3, GETDATE(), 1),
+                    (2, 1, GETDATE(), 1);
                 END
 
                 -- =====================================================
-                -- PAYMENTS (สำหรับ Booking 3 ที่ DONE)
+                -- PAYMENTS & TRANSACTIONS
                 -- =====================================================
                 IF NOT EXISTS (SELECT 1 FROM Payments WHERE BookingId = 3)
                 BEGIN
                     INSERT INTO Payments (Guid, BookingId, Amount, Method, StatusId, CreatedAt, CreatedBy) VALUES
-                    (NEWID(), 3, 450.00, 'QR_CODE',
-                        (SELECT TOP 1 Id FROM MasterStatuses WHERE Type='PAYMENT_STATUS' AND Code='PAID'), GETDATE(), 3);
+                    (NEWID(), 3, 450.00, 'QR_CODE', (SELECT TOP 1 Id FROM MasterStatuses WHERE Type='PAYMENT_STATUS' AND Code='PAID'), GETDATE(), 3);
                 END
 
-                -- =====================================================
-                -- PAYMENT TRANSACTIONS
-                -- =====================================================
                 IF NOT EXISTS (SELECT 1 FROM PaymentTransactions WHERE Provider = 'PromptPay')
                 BEGIN
                     INSERT INTO PaymentTransactions (PaymentId, Provider, TransactionRef, CreatedAt, CreatedBy)
@@ -698,36 +732,25 @@ namespace Queue.Infrastructure.Migrations
                 END
 
                 -- =====================================================
-                -- NOTIFICATIONS
+                -- NOTIFICATIONS & LOGS
                 -- =====================================================
                 IF NOT EXISTS (SELECT 1 FROM Notifications WHERE UserId = 2)
                 BEGIN
                     INSERT INTO Notifications (Guid, UserId, Type, Title, Message, StatusId, CreatedAt, CreatedBy) VALUES
-                    (NEWID(), 2, 'BOOKING', N'ยืนยันการจอง',
-                        N'การจองคิวหมายเลข A001 ของคุณได้รับการยืนยันแล้ว วันที่ ' + CONVERT(NVARCHAR, CAST(GETDATE() AS DATE), 107),
-                        (SELECT TOP 1 Id FROM MasterStatuses WHERE Type='NOTIFICATION_STATUS' AND Code='READ'),   GETDATE(), NULL),
-                    (NEWID(), 2, 'QUEUE',   N'ใกล้ถึงคิวของคุณแล้ว',
-                        N'คุณเป็นคิวที่ 2 อีกประมาณ 15 นาที กรุณาเตรียมตัว',
-                        (SELECT TOP 1 Id FROM MasterStatuses WHERE Type='NOTIFICATION_STATUS' AND Code='UNREAD'), GETDATE(), NULL),
-                    (NEWID(), 5, 'BOOKING', N'การจองถูกยกเลิก',
-                        N'การจองคิวหมายเลข A003 ของคุณถูกยกเลิกแล้ว',
-                        (SELECT TOP 1 Id FROM MasterStatuses WHERE Type='NOTIFICATION_STATUS' AND Code='UNREAD'), GETDATE(), NULL);
+                    (NEWID(), 2, 'BOOKING', N'ยืนยันการจอง',          N'การจองคิวหมายเลข A001 ของคุณได้รับการยืนยันแล้ว', (SELECT TOP 1 Id FROM MasterStatuses WHERE Type='NOTIFICATION_STATUS' AND Code='READ'),   GETDATE(), NULL),
+                    (NEWID(), 2, 'QUEUE',   N'ใกล้ถึงคิวของคุณแล้ว',  N'คุณเป็นคิวที่ 2 อีกประมาณ 15 นาที กรุณาเตรียมตัว', (SELECT TOP 1 Id FROM MasterStatuses WHERE Type='NOTIFICATION_STATUS' AND Code='UNREAD'), GETDATE(), NULL),
+                    (NEWID(), 5, 'BOOKING', N'การจองถูกยกเลิก',       N'การจองคิวหมายเลข A003 ของคุณถูกยกเลิกแล้ว', (SELECT TOP 1 Id FROM MasterStatuses WHERE Type='NOTIFICATION_STATUS' AND Code='UNREAD'), GETDATE(), NULL);
                 END
 
-                -- =====================================================
-                -- NOTIFICATION LOGS
-                -- =====================================================
                 IF NOT EXISTS (SELECT 1 FROM NotificationLogs WHERE NotificationId IN (SELECT Id FROM Notifications WHERE UserId = 2))
                 BEGIN
                     INSERT INTO NotificationLogs (NotificationId, StatusId, SentAt, CreatedBy)
-                    SELECT n.Id,
-                           (SELECT TOP 1 Id FROM MasterStatuses WHERE Type='NOTIFICATION_STATUS' AND Code='READ'),
-                           GETDATE(), NULL
+                    SELECT n.Id, (SELECT TOP 1 Id FROM MasterStatuses WHERE Type='NOTIFICATION_STATUS' AND Code='READ'), GETDATE(), NULL
                     FROM Notifications n WHERE n.UserId = 2 AND n.Type = 'BOOKING';
                 END
 
                 -- =====================================================
-                -- SUBSCRIPTIONS (SaaS Plan — ผูกระดับ Shop)
+                -- SUBSCRIPTIONS & INVOICES
                 -- =====================================================
                 IF NOT EXISTS (SELECT 1 FROM Subscriptions WHERE ShopId = 1)
                 BEGIN
@@ -735,9 +758,6 @@ namespace Queue.Infrastructure.Migrations
                     (NEWID(), 1, 'Professional', 999.00, DATEADD(month, -1, GETDATE()), DATEADD(month, 11, GETDATE()), 1, GETDATE(), 4);
                 END
 
-                -- =====================================================
-                -- INVOICES
-                -- =====================================================
                 IF NOT EXISTS (SELECT 1 FROM Invoices WHERE ShopId = 1)
                 BEGIN
                     INSERT INTO Invoices (Guid, ShopId, Amount, StatusId, CreatedAt, CreatedBy) VALUES
@@ -746,21 +766,18 @@ namespace Queue.Infrastructure.Migrations
                 END
 
                 -- =====================================================
-                -- SYSTEM CONFIGS
+                -- SYSTEM CONFIGS & AUDIT LOGS
                 -- =====================================================
                 IF NOT EXISTS (SELECT 1 FROM SystemConfigs WHERE [Key] = 'APP_VERSION')
                 BEGIN
                     INSERT INTO SystemConfigs ([Key], Value, CreatedAt, CreatedBy) VALUES
-                    ('APP_VERSION',         '1.0.0',        GETDATE(), 4),
-                    ('MAINTENANCE_MODE',    'false',         GETDATE(), 4),
-                    ('MAX_BOOKING_DAYS',    '30',            GETDATE(), 4),
+                    ('APP_VERSION',         '1.0.0',            GETDATE(), 4),
+                    ('MAINTENANCE_MODE',    'false',             GETDATE(), 4),
+                    ('MAX_BOOKING_DAYS',    '30',                GETDATE(), 4),
                     ('DEFAULT_TIMEZONE',    'Asia/Bangkok',  GETDATE(), 4),
                     ('SMTP_FROM',           'noreply@demo.com', GETDATE(), 4);
                 END
 
-                -- =====================================================
-                -- AUDIT LOGS
-                -- =====================================================
                 IF NOT EXISTS (SELECT 1 FROM AuditLogs WHERE TableName = 'Users')
                 BEGIN
                     INSERT INTO AuditLogs (TableName, RecordId, Action, OldValue, NewValue, CreatedAt, CreatedBy) VALUES
@@ -808,6 +825,10 @@ namespace Queue.Infrastructure.Migrations
                 DELETE FROM ShopHolidays;
                 DELETE FROM ShopBusinessHours;
                 DELETE FROM ShopSettings;
+                DELETE FROM BranchUserRoleMaps;
+                DELETE FROM ShopUserRoleMaps;
+                DELETE FROM ShopRolePermissions;
+                DELETE FROM ShopRoles;
                 DELETE FROM ShopStaffs;
                 DELETE FROM ShopBranches;
                 DELETE FROM Shops;

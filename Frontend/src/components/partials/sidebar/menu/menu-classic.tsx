@@ -85,64 +85,71 @@ export function MenuClassic({ }) {
                 )}
                 {shopData ? (
                     <nav className="mt-8 h-full w-full">
-                        <ul className=" h-full flex flex-col min-h-[calc(100vh-48px-36px-16px-32px)] lg:min-h-[calc(100vh-32px-40px-32px)] items-start space-y-1 px-4">
-                            {menuList?.map(({ groupLabel, menus }, index) => (
-                                <li className={cn("w-full", groupLabel ? "" : "")} key={index}>
-                                    {(!collapsed || hovered) && groupLabel || !collapsed === undefined ? (
-                                        <MenuLabel label={groupLabel} />
-                                    ) : collapsed && !hovered && !collapsed !== undefined && groupLabel ? (
-                                        <TooltipProvider>
-                                            <Tooltip delayDuration={100}>
-                                                <TooltipTrigger className="w-full">
-                                                    <div className="w-full flex justify-center items-center">
-                                                        <Ellipsis className="h-5 w-5 text-default-700" />
-                                                    </div>
-                                                </TooltipTrigger>
-                                                <TooltipContent side="right">
-                                                    <p>{groupLabel}</p>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </TooltipProvider>
-                                    ) : (
-                                        null
+                        <ul className="h-full flex flex-col min-h-[calc(100vh-48px-36px-16px-32px)] lg:min-h-[calc(100vh-32px-40px-32px)] items-start space-y-1 px-4">
+                            {menuList?.map(({ groupLabel, menus, id: groupId }, groupIndex) => (
+                                <li className="w-full" key={groupId || groupIndex}>
+
+                                    {/* Render Group Label or Ellipsis (เมื่อมี groupLabel) */}
+                                    {groupLabel && (
+                                        (!collapsed || hovered) ? (
+                                            <MenuLabel label={groupLabel} />
+                                        ) : (
+                                            <TooltipProvider>
+                                                <Tooltip delayDuration={100}>
+                                                    <TooltipTrigger className="w-full">
+                                                        <div className="w-full flex justify-center items-center">
+                                                            <Ellipsis className="h-5 w-5 text-default-700" />
+                                                        </div>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent side="right">
+                                                        <p>{groupLabel}</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
+                                        )
                                     )}
 
-                                    {menus.map(
-                                        ({ href, label, icon, active, id, submenus }, index) =>
-                                            submenus.length === 0 ? (
-                                                <div className="w-full mb-2 last:mb-0" key={index}>
-                                                    <TooltipProvider disableHoverableContent>
-                                                        <Tooltip delayDuration={100}>
-                                                            <TooltipTrigger asChild>
-
-                                                                <div>
-
-                                                                    <MenuItem label={label} icon={icon} href={href} active={active} id={id} collapsed={collapsed} />
-                                                                </div>
-                                                            </TooltipTrigger>
-                                                            {collapsed && (
-                                                                <TooltipContent side="right">
-                                                                    {label}
-                                                                </TooltipContent>
-                                                            )}
-                                                        </Tooltip>
-                                                    </TooltipProvider>
-                                                </div>
-                                            ) : (
-                                                <div className="w-full mb-2" key={index}>
-                                                    <CollapseMenuButton
-                                                        icon={icon}
-                                                        label={label}
-                                                        active={active}
-                                                        submenus={submenus}
-                                                        collapsed={collapsed}
-                                                        id={id}
-
-                                                    />
-                                                </div>
-                                            )
-                                    )}
-
+                                    {/* Render Menu Items */}
+                                    {menus.map(({ href, label, icon, active, id, submenus }) => (
+                                        (!submenus || submenus.length === 0) ? (
+                                            // แบบไม่มี Submenu
+                                            <div className="w-full mb-2 last:mb-0" key={id}>
+                                                <TooltipProvider disableHoverableContent>
+                                                    <Tooltip delayDuration={100}>
+                                                        <TooltipTrigger asChild>
+                                                            <div>
+                                                                <MenuItem
+                                                                    label={label}
+                                                                    icon={icon}
+                                                                    href={href}
+                                                                    active={active}
+                                                                    id={id}
+                                                                    collapsed={collapsed}
+                                                                />
+                                                            </div>
+                                                        </TooltipTrigger>
+                                                        {collapsed && (
+                                                            <TooltipContent side="right">
+                                                                {label}
+                                                            </TooltipContent>
+                                                        )}
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                            </div>
+                                        ) : (
+                                            // แบบมี Submenu (Collapse)
+                                            <div className="w-full mb-2" key={id}>
+                                                <CollapseMenuButton
+                                                    icon={icon}
+                                                    label={label}
+                                                    active={active}
+                                                    submenus={submenus}
+                                                    collapsed={collapsed}
+                                                    id={id}
+                                                />
+                                            </div>
+                                        )
+                                    ))}
                                 </li>
                             ))}
                         </ul>
@@ -153,14 +160,12 @@ export function MenuClassic({ }) {
                             <div className="text-lg font-semibold text-default-800">
                                 ยังไม่มีข้อมูลร้าน
                             </div>
-
                             <p className="text-sm text-default-500 mt-2">
-                                กรุณาเพิ่มข้อมูลร้าน
+                                กรุณาเพิ่มข้อมูลร้านเพื่อเริ่มใช้งาน
                             </p>
                         </div>
                     </nav>
                 )}
-
             </ScrollArea>
         </>
     );

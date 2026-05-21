@@ -31,6 +31,8 @@ public partial class ShopBranch
 
     public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 
+    public virtual ICollection<BranchUserRoleMap> BranchUserRoleMaps { get; set; } = new List<BranchUserRoleMap>();
+
     public virtual ICollection<QueueCategory> QueueCategories { get; set; } = new List<QueueCategory>();
 
     public virtual ICollection<QueueSlot> QueueSlots { get; set; } = new List<QueueSlot>();

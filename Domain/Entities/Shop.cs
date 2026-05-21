@@ -45,9 +45,13 @@ public partial class Shop
 
     public virtual ICollection<ShopHoliday> ShopHolidays { get; set; } = new List<ShopHoliday>();
 
+    public virtual ICollection<ShopRolePermission> ShopRolePermissions { get; set; } = new List<ShopRolePermission>();
+
     public virtual ICollection<ShopSetting> ShopSettings { get; set; } = new List<ShopSetting>();
 
     public virtual ICollection<ShopStaff> ShopStaffs { get; set; } = new List<ShopStaff>();
+
+    public virtual ICollection<ShopUserRoleMap> ShopUserRoleMaps { get; set; } = new List<ShopUserRoleMap>();
 
     public virtual MasterStatus Status { get; set; } = null!;
 

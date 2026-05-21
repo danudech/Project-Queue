@@ -115,6 +115,8 @@ public sealed class ManageShop : IManageShop
                 OwnerId = userId,
                 TypeId = int.Parse(request.ShopType),
                 StatusId = 3, // กำหนดสถานะเริ่มต้น
+                IsActive = true,
+                CreatedBy = userId,
                 CreatedAt = _dateTime.LocalNow()
             };
             await _crud.InsertAsync(newShop, ct);
@@ -128,6 +130,7 @@ public sealed class ManageShop : IManageShop
                 DistrictId = request.Branch?.BranchAddress?.DistrictId ?? 0,
                 SubdistrictId = request.Branch?.BranchAddress?.SubdistrictId ?? 0,
                 Zipcode = request.Branch?.BranchAddress?.Zipcode ?? string.Empty,
+                CreatedBy = userId,
                 CreatedAt = _dateTime.LocalNow()
             };
             await _crud.InsertAsync(newAddress, ct);
@@ -140,6 +143,7 @@ public sealed class ManageShop : IManageShop
                 Name = request.Branch?.BranchName ?? "Main Branch",
                 Phone = request.Branch?.BranchPhone ?? string.Empty,
                 AddressId = newAddress.Id,
+                CreatedBy = userId,
                 CreatedAt = _dateTime.LocalNow()
             };
             await _crud.InsertAsync(newBranch, ct);
@@ -153,6 +157,7 @@ public sealed class ManageShop : IManageShop
                     DayOfWeek = h.DayOfWeek,
                     OpenTime = TimeOnly.Parse(h.OpenTime),
                     CloseTime = TimeOnly.Parse(h.CloseTime),
+                    CreatedBy = userId,
                     CreatedAt = _dateTime.LocalNow()
                 }).ToList();
                 await _crud.InsertRangeAsync(businessHours, ct);
@@ -537,6 +542,7 @@ public sealed class ManageShop : IManageShop
         Type = shop.TypeId.ToString() ?? string.Empty,
         OwnerId = shop.OwnerId,
         Status = shop.StatusId,
+        IsActive = shop.IsActive,
         ShopBranches = shop.ShopBranches?.Select(b => new BranchDto
         {
             Id = b.Id,

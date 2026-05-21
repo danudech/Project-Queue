@@ -24,6 +24,8 @@ public partial class QueueDbContext : DbContext
 
     public virtual DbSet<BookingService> BookingServices { get; set; }
 
+    public virtual DbSet<BranchUserRoleMap> BranchUserRoleMaps { get; set; }
+
     public virtual DbSet<Customer> Customers { get; set; }
 
     public virtual DbSet<CustomerNote> CustomerNotes { get; set; }
@@ -76,9 +78,15 @@ public partial class QueueDbContext : DbContext
 
     public virtual DbSet<ShopHoliday> ShopHolidays { get; set; }
 
+    public virtual DbSet<ShopRole> ShopRoles { get; set; }
+
+    public virtual DbSet<ShopRolePermission> ShopRolePermissions { get; set; }
+
     public virtual DbSet<ShopSetting> ShopSettings { get; set; }
 
     public virtual DbSet<ShopStaff> ShopStaffs { get; set; }
+
+    public virtual DbSet<ShopUserRoleMap> ShopUserRoleMaps { get; set; }
 
     public virtual DbSet<Subdistrict> Subdistricts { get; set; }
 
@@ -186,6 +194,33 @@ public partial class QueueDbContext : DbContext
                 .HasForeignKey(d => d.ServiceId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_BS_Service");
+        });
+
+        modelBuilder.Entity<BranchUserRoleMap>(entity =>
+        {
+            entity.HasIndex(e => e.BranchId, "IX_BranchUserRoleMaps_BranchId");
+
+            entity.HasIndex(e => new { e.BranchId, e.UserId, e.RoleCode }, "IX_BranchUserRoleMaps_BranchId_UserId_RoleCode").IsUnique();
+
+            entity.HasIndex(e => e.UserId, "IX_BranchUserRoleMaps_UserId");
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.RoleCode).HasMaxLength(50);
+
+            entity.HasOne(d => d.Branch).WithMany(p => p.BranchUserRoleMaps)
+                .HasForeignKey(d => d.BranchId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_BURM_Branch");
+
+            entity.HasOne(d => d.GrantedByNavigation).WithMany(p => p.BranchUserRoleMapGrantedByNavigations)
+                .HasForeignKey(d => d.GrantedBy)
+                .HasConstraintName("FK_BURM_GrantedBy");
+
+            entity.HasOne(d => d.User).WithMany(p => p.BranchUserRoleMapUsers)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_BURM_User");
         });
 
         modelBuilder.Entity<Customer>(entity =>
@@ -625,6 +660,33 @@ public partial class QueueDbContext : DbContext
                 .HasConstraintName("FK_Holidays_Shop");
         });
 
+        modelBuilder.Entity<ShopRole>(entity =>
+        {
+            entity.HasIndex(e => e.Code, "IX_ShopRoles_Code").IsUnique();
+
+            entity.Property(e => e.Code).HasMaxLength(50);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.Label).HasMaxLength(100);
+            entity.Property(e => e.Scope).HasMaxLength(20);
+        });
+
+        modelBuilder.Entity<ShopRolePermission>(entity =>
+        {
+            entity.HasIndex(e => e.RoleCode, "IX_ShopRolePermissions_RoleCode");
+
+            entity.HasIndex(e => new { e.ShopId, e.RoleCode, e.PermissionCode }, "IX_ShopRolePermissions_ShopId_RoleCode_PermissionCode").IsUnique();
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+            entity.Property(e => e.IsGranted).HasDefaultValue(true);
+            entity.Property(e => e.PermissionCode).HasMaxLength(100);
+            entity.Property(e => e.RoleCode).HasMaxLength(50);
+
+            entity.HasOne(d => d.Shop).WithMany(p => p.ShopRolePermissions)
+                .HasForeignKey(d => d.ShopId)
+                .HasConstraintName("FK_SRP_Shop");
+        });
+
         modelBuilder.Entity<ShopSetting>(entity =>
         {
             entity.HasIndex(e => new { e.ShopId, e.BranchId, e.Key }, "IX_ShopSettings_ShopId_BranchId_Key");
@@ -666,6 +728,33 @@ public partial class QueueDbContext : DbContext
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_SS_User");
+        });
+
+        modelBuilder.Entity<ShopUserRoleMap>(entity =>
+        {
+            entity.HasIndex(e => e.ShopId, "IX_ShopUserRoleMaps_ShopId");
+
+            entity.HasIndex(e => new { e.ShopId, e.UserId, e.RoleCode }, "IX_ShopUserRoleMaps_ShopId_UserId_RoleCode").IsUnique();
+
+            entity.HasIndex(e => e.UserId, "IX_ShopUserRoleMaps_UserId");
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.RoleCode).HasMaxLength(50);
+
+            entity.HasOne(d => d.GrantedByNavigation).WithMany(p => p.ShopUserRoleMapGrantedByNavigations)
+                .HasForeignKey(d => d.GrantedBy)
+                .HasConstraintName("FK_SURM_GrantedBy");
+
+            entity.HasOne(d => d.Shop).WithMany(p => p.ShopUserRoleMaps)
+                .HasForeignKey(d => d.ShopId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_SURM_Shop");
+
+            entity.HasOne(d => d.User).WithMany(p => p.ShopUserRoleMapUsers)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_SURM_User");
         });
 
         modelBuilder.Entity<Subdistrict>(entity =>

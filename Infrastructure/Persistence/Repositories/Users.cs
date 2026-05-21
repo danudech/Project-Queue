@@ -57,6 +57,8 @@ public sealed class Users : IUsers
         using var transaction = await _db.Database.BeginTransactionAsync(ct);
         try
         {
+            Role? customerRole = await _db.Roles.FirstOrDefaultAsync(r => r.Name == "Customer", ct);
+
             User _newUser = new User
             {
                 Guid = Guid.NewGuid(),
@@ -67,12 +69,12 @@ public sealed class Users : IUsers
                 EmailConfirmed = false,
                 CreatedAt = DateTime.UtcNow,
                 UserRoleMaps = new List<UserRoleMap>
-                {
-                    new UserRoleMap
                     {
-                        RoleId = 2
+                        new UserRoleMap
+                        {
+                            RoleId = customerRole?.Id ?? 2
+                        }
                     }
-                }
             };
 
             await _crud.InsertAsync(_newUser, ct);
@@ -165,7 +167,7 @@ public sealed class Users : IUsers
 
         await _emailService.SendForgotPasswordEmailAsync(user.Email, user.Name, confirmationLink);
     }
-    
+
     public async Task ResentConfirmationEmail(RegisterRequest data, string ip, string userAgent, CancellationToken ct)
     {
         User? user = await _db.Users.FirstOrDefaultAsync(u => u.Email == data.Email, ct);

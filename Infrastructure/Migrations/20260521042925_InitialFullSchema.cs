@@ -112,7 +112,7 @@ namespace Queue.Infrastructure.Migrations
                 });
 
             // =========================
-            // ROLES
+            // ROLES  (System-level roles)
             // =========================
             migrationBuilder.CreateTable(
                 name: "Roles",
@@ -131,6 +131,39 @@ namespace Queue.Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_Roles", x => x.Id);
                 });
+
+            // =========================
+            // SHOP ROLES  (Shop/Branch-level roles)
+            // Scope: "Shop" | "Branch"
+            // IsSystem: true = built-in ลบไม่ได้ (ShopOwner, BranchManager, Staff)
+            // =========================
+            migrationBuilder.CreateTable(
+                name: "ShopRoles",
+                columns: table => new
+                {
+                    Id = table.Column<int>().Annotation("SqlServer:Identity", "1,1"),
+                    Code = table.Column<string>(maxLength: 50),        // "ShopOwner","ShopManager","BranchManager","Staff"
+                    Label = table.Column<string>(maxLength: 100),
+                    Scope = table.Column<string>(maxLength: 20),        // "Shop" | "Branch"
+                    IsSystem = table.Column<bool>(defaultValue: false), // true = ลบ/แก้ไขไม่ได้
+                    IsActive = table.Column<bool>(defaultValue: true),
+                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
+                    CreatedBy = table.Column<int>(nullable: true),
+                    UpdatedAt = table.Column<DateTime>(nullable: true),
+                    UpdatedBy = table.Column<int>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ShopRoles", x => x.Id);
+                }
+            );
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ShopRoles_Code",
+                table: "ShopRoles",
+                column: "Code",
+                unique: true
+            );
 
             // =========================
             // USERS
@@ -176,7 +209,7 @@ namespace Queue.Infrastructure.Migrations
                 column: "StatusId");
 
             // =========================
-            // USER ROLE MAPS
+            // USER ROLE MAPS  (System-level)
             // =========================
             migrationBuilder.CreateTable(
                 name: "UserRoleMaps",
@@ -419,11 +452,13 @@ namespace Queue.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>().Annotation("SqlServer:Identity", "1,1"),
-                    // ✅ BRANCH-BASED: Staff ผูกกับ Branch แทน Shop โดยตรง
-                    //    ShopId เก็บไว้เพื่อ query ภาพรวมระดับ Shop ได้ง่าย
+                    // Staff ผูกกับ Branch แทน Shop โดยตรง
+                    // ShopId เก็บไว้เพื่อ query ภาพรวมระดับ Shop ได้ง่าย
                     ShopId = table.Column<int>(),
                     BranchId = table.Column<int>(),
                     UserId = table.Column<int>(),
+                    // Role string ยังเก็บไว้เป็น display/legacy
+                    // การตรวจสิทธิ์จริงใช้ BranchUserRoleMaps แทน
                     Role = table.Column<string>(maxLength: 50),
                     IsActive = table.Column<bool>(defaultValue: true),
                     CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
@@ -439,7 +474,7 @@ namespace Queue.Infrastructure.Migrations
                     table.ForeignKey("FK_SS_User", x => x.UserId, "Users", "Id");
                 });
 
-            // ✅ Unique ต่อ Branch (ไม่ใช่ Shop) — Staff คนเดียวอาจอยู่หลาย Branch ได้
+            // Unique ต่อ Branch — Staff คนเดียวอาจอยู่หลาย Branch ได้
             migrationBuilder.CreateIndex(
                 name: "IX_ShopStaffs_BranchId_UserId",
                 table: "ShopStaffs",
@@ -448,15 +483,129 @@ namespace Queue.Infrastructure.Migrations
 
             migrationBuilder.CreateIndex("IX_ShopStaffs_ShopId", "ShopStaffs", "ShopId");
 
-            // ✅ BRANCH-BASED: ShopSettings แยกตาม Branch ได้
-            //    BranchId nullable → null = ระดับ Shop (global), มีค่า = เฉพาะ Branch นั้น
+            // =========================
+            // SHOP USER ROLE MAPS  (Shop-level permission)
+            // ใช้สำหรับ ShopOwner, ShopManager
+            // GrantedBy = UserId ของคนที่ assign role นี้ให้
+            // =========================
+            migrationBuilder.CreateTable(
+                name: "ShopUserRoleMaps",
+                columns: table => new
+                {
+                    Id = table.Column<int>().Annotation("SqlServer:Identity", "1,1"),
+                    ShopId = table.Column<int>(),
+                    UserId = table.Column<int>(),
+                    RoleCode = table.Column<string>(maxLength: 50),   // FK to ShopRoles.Code
+                    IsActive = table.Column<bool>(defaultValue: true),
+                    GrantedBy = table.Column<int>(nullable: true),    // UserId ของ Owner/Manager ที่ assign
+                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
+                    CreatedBy = table.Column<int>(nullable: true),
+                    UpdatedAt = table.Column<DateTime>(nullable: true),
+                    UpdatedBy = table.Column<int>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ShopUserRoleMaps", x => x.Id);
+                    table.ForeignKey("FK_SURM_Shop", x => x.ShopId, "Shops", "Id", onDelete: ReferentialAction.NoAction);
+                    table.ForeignKey("FK_SURM_User", x => x.UserId, "Users", "Id", onDelete: ReferentialAction.NoAction);
+                    table.ForeignKey("FK_SURM_GrantedBy", x => x.GrantedBy, "Users", "Id", onDelete: ReferentialAction.NoAction);
+                }
+            );
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ShopUserRoleMaps_ShopId_UserId_RoleCode",
+                table: "ShopUserRoleMaps",
+                columns: new[] { "ShopId", "UserId", "RoleCode" },
+                unique: true);
+
+            migrationBuilder.CreateIndex("IX_ShopUserRoleMaps_ShopId", "ShopUserRoleMaps", "ShopId");
+            migrationBuilder.CreateIndex("IX_ShopUserRoleMaps_UserId", "ShopUserRoleMaps", "UserId");
+
+            // =========================
+            // BRANCH USER ROLE MAPS  (Branch-level permission)
+            // ใช้สำหรับ BranchManager, Staff
+            // GrantedBy = UserId ของ ShopOwner/ShopManager/BranchManager ที่ assign
+            // =========================
+            migrationBuilder.CreateTable(
+                name: "BranchUserRoleMaps",
+                columns: table => new
+                {
+                    Id = table.Column<int>().Annotation("SqlServer:Identity", "1,1"),
+                    BranchId = table.Column<int>(),
+                    UserId = table.Column<int>(),
+                    RoleCode = table.Column<string>(maxLength: 50),   // FK to ShopRoles.Code
+                    IsActive = table.Column<bool>(defaultValue: true),
+                    GrantedBy = table.Column<int>(nullable: true),    // UserId ของคนที่ assign
+                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
+                    CreatedBy = table.Column<int>(nullable: true),
+                    UpdatedAt = table.Column<DateTime>(nullable: true),
+                    UpdatedBy = table.Column<int>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_BranchUserRoleMaps", x => x.Id);
+                    table.ForeignKey("FK_BURM_Branch", x => x.BranchId, "ShopBranches", "Id", onDelete: ReferentialAction.NoAction);
+                    table.ForeignKey("FK_BURM_User", x => x.UserId, "Users", "Id", onDelete: ReferentialAction.NoAction);
+                    table.ForeignKey("FK_BURM_GrantedBy", x => x.GrantedBy, "Users", "Id", onDelete: ReferentialAction.NoAction);
+                }
+            );
+
+            migrationBuilder.CreateIndex(
+                name: "IX_BranchUserRoleMaps_BranchId_UserId_RoleCode",
+                table: "BranchUserRoleMaps",
+                columns: new[] { "BranchId", "UserId", "RoleCode" },
+                unique: true);
+
+            migrationBuilder.CreateIndex("IX_BranchUserRoleMaps_BranchId", "BranchUserRoleMaps", "BranchId");
+            migrationBuilder.CreateIndex("IX_BranchUserRoleMaps_UserId", "BranchUserRoleMaps", "UserId");
+
+            // =========================
+            // SHOP ROLE PERMISSIONS  (กำหนด permission ต่อ role)
+            // ShopId nullable:
+            //   null   = default permission ของ role นี้ (ใช้กับทุก shop)
+            //   มีค่า  = override permission เฉพาะ shop นั้น
+            // PermissionCode เช่น "booking.view", "staff.manage", "service.edit"
+            // =========================
+            migrationBuilder.CreateTable(
+                name: "ShopRolePermissions",
+                columns: table => new
+                {
+                    Id = table.Column<int>().Annotation("SqlServer:Identity", "1,1"),
+                    ShopId = table.Column<int>(nullable: true),
+                    RoleCode = table.Column<string>(maxLength: 50),
+                    PermissionCode = table.Column<string>(maxLength: 100),
+                    IsGranted = table.Column<bool>(defaultValue: true),
+                    CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
+                    CreatedBy = table.Column<int>(nullable: true),
+                    UpdatedAt = table.Column<DateTime>(nullable: true),
+                    UpdatedBy = table.Column<int>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ShopRolePermissions", x => x.Id);
+                    table.ForeignKey("FK_SRP_Shop", x => x.ShopId, "Shops", "Id", onDelete: ReferentialAction.NoAction);
+                }
+            );
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ShopRolePermissions_ShopId_RoleCode_PermissionCode",
+                table: "ShopRolePermissions",
+                columns: new[] { "ShopId", "RoleCode", "PermissionCode" },
+                unique: true);
+
+            migrationBuilder.CreateIndex("IX_ShopRolePermissions_RoleCode", "ShopRolePermissions", "RoleCode");
+
+            // =========================
+            // SHOP SETTINGS
+            // BranchId nullable → null = ระดับ Shop (global), มีค่า = เฉพาะ Branch นั้น
+            // =========================
             migrationBuilder.CreateTable(
                 name: "ShopSettings",
                 columns: table => new
                 {
                     Id = table.Column<int>().Annotation("SqlServer:Identity", "1,1"),
                     ShopId = table.Column<int>(),
-                    BranchId = table.Column<int>(nullable: true),   // null = shop-level setting
+                    BranchId = table.Column<int>(nullable: true),
                     Key = table.Column<string>(maxLength: 100),
                     Value = table.Column<string>(),
                     CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
@@ -471,14 +620,14 @@ namespace Queue.Infrastructure.Migrations
                     table.ForeignKey("FK_ShopSettings_Branch", x => x.BranchId, "ShopBranches", "Id", onDelete: ReferentialAction.NoAction);
                 });
 
-            // ✅ Key unique ต่อ (Shop + Branch) — ถ้า Branch เป็น null ใช้ IS NULL เพิ่ม filtered index แยก
             migrationBuilder.CreateIndex(
                 name: "IX_ShopSettings_ShopId_BranchId_Key",
                 table: "ShopSettings",
                 columns: new[] { "ShopId", "BranchId", "Key" });
 
-            // ✅ BRANCH-BASED: BusinessHours อิง Branch แต่เดิมมี ShopId ซ้ำซ้อน → ตัดออก
-            //    ดึง ShopId ผ่าน Branch ได้เสมอ
+            // =========================
+            // SHOP BUSINESS HOURS
+            // =========================
             migrationBuilder.CreateTable(
                 name: "ShopBusinessHours",
                 columns: table => new
@@ -506,8 +655,9 @@ namespace Queue.Infrastructure.Migrations
                 columns: new[] { "BranchId", "DayOfWeek" },
                 unique: true);
 
-            // ✅ BRANCH-BASED: Holiday แยกตาม Branch
-            //    ShopId เก็บไว้เพื่อ query holiday ภาพรวม Shop ได้ง่าย
+            // =========================
+            // SHOP HOLIDAYS
+            // =========================
             migrationBuilder.CreateTable(
                 name: "ShopHolidays",
                 columns: table => new
@@ -538,18 +688,16 @@ namespace Queue.Infrastructure.Migrations
             migrationBuilder.CreateIndex("IX_ShopHolidays_ShopId", "ShopHolidays", "ShopId");
 
             // =========================
-            // SERVICE  (ทั้งหมดอิง Branch)
+            // SERVICE
             // =========================
 
-            // ✅ BRANCH-BASED: QueueCategory แยกตาม Branch
-            //    แต่ละสาขาอาจมี prefix/หมวดคิวต่างกัน เช่น สาขา A ใช้ A001 / สาขา B ใช้ B001
             migrationBuilder.CreateTable(
                 name: "QueueCategories",
                 columns: table => new
                 {
                     Id = table.Column<int>().Annotation("SqlServer:Identity", "1,1"),
-                    ShopId = table.Column<int>(),     // เก็บไว้เพื่อ query ระดับ Shop
-                    BranchId = table.Column<int>(),   // ✅ เพิ่ม: owner หลักคือ Branch
+                    ShopId = table.Column<int>(),
+                    BranchId = table.Column<int>(),
                     Prefix = table.Column<string>(maxLength: 5),
                     Name = table.Column<string>(maxLength: 100),
                     Description = table.Column<string>(maxLength: 500, nullable: true),
@@ -566,7 +714,6 @@ namespace Queue.Infrastructure.Migrations
                     table.ForeignKey("FK_QC_Branch", x => x.BranchId, "ShopBranches", "Id", onDelete: ReferentialAction.NoAction);
                 });
 
-            // ✅ Prefix unique ต่อ Branch (ไม่ใช่ Shop)
             migrationBuilder.CreateIndex(
                 name: "IX_QueueCategories_BranchId_Prefix",
                 table: "QueueCategories",
@@ -575,14 +722,13 @@ namespace Queue.Infrastructure.Migrations
 
             migrationBuilder.CreateIndex("IX_QueueCategories_ShopId", "QueueCategories", "ShopId");
 
-            // ✅ BRANCH-BASED: ServiceCategory แยกตาม Branch
             migrationBuilder.CreateTable(
                 name: "ServiceCategories",
                 columns: table => new
                 {
                     Id = table.Column<int>().Annotation("SqlServer:Identity", "1,1"),
-                    ShopId = table.Column<int>(),     // เก็บไว้เพื่อ query ระดับ Shop
-                    BranchId = table.Column<int>(),   // ✅ เพิ่ม: owner หลักคือ Branch
+                    ShopId = table.Column<int>(),
+                    BranchId = table.Column<int>(),
                     Name = table.Column<string>(maxLength: 150),
                     IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
                     CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
@@ -600,16 +746,14 @@ namespace Queue.Infrastructure.Migrations
             migrationBuilder.CreateIndex("IX_ServiceCategories_BranchId", "ServiceCategories", "BranchId");
             migrationBuilder.CreateIndex("IX_ServiceCategories_ShopId", "ServiceCategories", "ShopId");
 
-            // ✅ BRANCH-BASED: Service แยกตาม Branch
-            //    แต่ละสาขาอาจมีบริการ/ราคา/ระยะเวลาต่างกัน
             migrationBuilder.CreateTable(
                 name: "Services",
                 columns: table => new
                 {
                     Id = table.Column<int>().Annotation("SqlServer:Identity", "1,1"),
                     Guid = table.Column<Guid>(defaultValueSql: "NEWID()"),
-                    ShopId = table.Column<int>(),     // เก็บไว้เพื่อ query ระดับ Shop
-                    BranchId = table.Column<int>(),   // ✅ เปลี่ยน: owner หลักคือ Branch
+                    ShopId = table.Column<int>(),
+                    BranchId = table.Column<int>(),
                     Name = table.Column<string>(maxLength: 150),
                     Duration = table.Column<int>(),
                     Price = table.Column<decimal>(type: "decimal(10,2)"),
@@ -646,7 +790,6 @@ namespace Queue.Infrastructure.Migrations
                     table.ForeignKey("FK_SCM_Category", x => x.CategoryId, "ServiceCategories", "Id", onDelete: ReferentialAction.NoAction);
                 });
 
-            // ✅ ServiceStaffMaps: Staff ผูกกับ Service ซึ่งผูกกับ Branch อยู่แล้ว
             migrationBuilder.CreateTable(
                 name: "ServiceStaffMaps",
                 columns: table => new
@@ -664,10 +807,8 @@ namespace Queue.Infrastructure.Migrations
                 });
 
             // =========================
-            // BOOKING / QUEUE  (อิง Branch)
+            // BOOKING / QUEUE
             // =========================
-
-            // ✅ QueueSlots อิง Branch อยู่แล้ว — คง ShopId ไว้เพื่อ query ระดับ Shop
             migrationBuilder.CreateTable(
                 name: "QueueSlots",
                 columns: table => new
@@ -702,8 +843,6 @@ namespace Queue.Infrastructure.Migrations
                 columns: new[] { "BranchId", "Date", "StartTime" },
                 unique: true);
 
-            // ✅ BRANCH-BASED: Booking อิง Branch เป็นหลัก
-            //    ตัด ShopId ออก — ดึงผ่าน Branch.ShopId ได้เสมอ
             migrationBuilder.CreateTable(
                 name: "Bookings",
                 columns: table => new
@@ -711,7 +850,7 @@ namespace Queue.Infrastructure.Migrations
                     Id = table.Column<int>().Annotation("SqlServer:Identity", "1,1"),
                     Guid = table.Column<Guid>(defaultValueSql: "NEWID()"),
                     UserId = table.Column<int>(),
-                    BranchId = table.Column<int>(),         // ✅ owner หลักคือ Branch
+                    BranchId = table.Column<int>(),
                     QueueSlotId = table.Column<int>(),
                     QueueCategoryId = table.Column<int>(nullable: true),
                     QueueNumber = table.Column<int>(nullable: true),
@@ -755,15 +894,13 @@ namespace Queue.Infrastructure.Migrations
                     table.ForeignKey("FK_BS_Service", x => x.ServiceId, "Services", "Id");
                 });
 
-            // ✅ BRANCH-BASED: Queue อิง Branch
-            //    ตัด ShopId ออก — ดึงผ่าน Branch.ShopId ได้
             migrationBuilder.CreateTable(
                 name: "Queues",
                 columns: table => new
                 {
                     Id = table.Column<int>().Annotation("SqlServer:Identity", "1,1"),
                     Guid = table.Column<Guid>(defaultValueSql: "NEWID()"),
-                    BranchId = table.Column<int>(),   // ✅ owner หลักคือ Branch
+                    BranchId = table.Column<int>(),
                     QueueNumber = table.Column<int>(),
                     StatusId = table.Column<int>(),
                     Type = table.Column<string>(maxLength: 20),
@@ -1072,9 +1209,13 @@ namespace Queue.Infrastructure.Migrations
             migrationBuilder.DropTable("ShopHolidays");
             migrationBuilder.DropTable("ShopBusinessHours");
             migrationBuilder.DropTable("ShopSettings");
+            migrationBuilder.DropTable("ShopRolePermissions");
+            migrationBuilder.DropTable("BranchUserRoleMaps");
+            migrationBuilder.DropTable("ShopUserRoleMaps");
             migrationBuilder.DropTable("ShopStaffs");
             migrationBuilder.DropTable("ShopBranches");
             migrationBuilder.DropTable("Shops");
+            migrationBuilder.DropTable("ShopRoles");
             migrationBuilder.DropTable("UserSessions");
             migrationBuilder.DropTable("UserAuthentications");
             migrationBuilder.DropTable("UserImages");
