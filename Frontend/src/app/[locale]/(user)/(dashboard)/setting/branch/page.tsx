@@ -1,283 +1,631 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Card } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+import { Building2, Loader2, MapPin, Phone, ChevronDown, Check, Store, X } from "lucide-react";
 import { Icon } from "@/components/ui/icon";
 import Image from "next/image";
-import { Link } from "@/i18n/routing";
 import { useShop } from "@/hooks/use-me";
-import { BranchDto } from "@/types/shop/shop-responsd";
+import { AddressDto, BranchDto } from "@/types/shop/shop-responsd";
 import { storage } from "@/services/localstorage";
+import z from "zod";
+import { AddressType } from "@/types/address/address-type";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { http } from "@/lib/http/client";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-const SettingShopPage = () => {
+// ─── Schema ───────────────────────────────────────────────────────────────────
+
+const branchSchema = z.object({
+  branchName: z.string().min(2, "ชื่อสาขาต้องมีอย่างน้อย 2 ตัวอักษร"),
+  branchPhone: z.string()
+    .refine((val) => val === "" || /^0\d{9}$/.test(val), {
+      message: "เบอร์โทรต้องมี 10 หลักและขึ้นต้นด้วย 0"
+    })
+    .optional()
+    .or(z.literal("")),
+  houseNo: z.string().optional(),
+  street: z.string().optional(),
+  zipcode: z.string().length(5, "รหัสไปรษณีย์ต้องมี 5 หลัก"),
+  subdistrictId: z.number().min(1, "กรุณาเลือกตำบล"),
+  districtId: z.number(),
+  provinceId: z.number(),
+  districtName: z.string().optional(),
+  provinceName: z.string().optional(),
+})
+
+type BranchValues = z.infer<typeof branchSchema>;
+
+// ─── Default form values ───────────────────────────────────────────────────────
+
+const defaultValues: BranchValues = {
+  branchName: "",
+  branchPhone: "",
+  houseNo: "",
+  street: "",
+  zipcode: "",
+  subdistrictId: 0,
+  districtId: 0,
+  provinceId: 0,
+  districtName: "",
+  provinceName: "",
+};
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
+const SettingShopBranchPage = () => {
   const { data: shopData, isLoading } = useShop();
-  const [isOpen, setIsOpen] = useState<boolean>(false);
+
+  const [isOpen, setIsOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [selectedBranch, setSelectedBranch] = useState<BranchDto | null>(null);
+  const [addressList, setAddressList] = useState<AddressType[] | null>(null);
+  const [isLoadingAddress, setIsLoadingAddress] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const isInitialLoad = useRef(false);
+  const [pendingAddress, setPendingAddress] = useState<{
+    address: AddressDto | null;
+    list: AddressType[];
+  } | null>(null);
 
-  // sync isActive จาก shopData
+  const form = useForm<BranchValues>({
+    resolver: zodResolver(branchSchema),
+    defaultValues,
+  });
+
+  const watchZipcode = form.watch("zipcode") ?? "";
+  const watchSubdistrictId = form.watch("subdistrictId");
+
   useEffect(() => {
-    if (shopData?.isActive !== undefined) {
-      setIsOpen(shopData.isActive);
+    if (!shopData || !selectedBranch) return;
+    isInitialLoad.current = true;
+
+    const calladdress = async () => {
+      try {
+        const address: AddressDto | null = selectedBranch.address ?? null;
+        const res = await http.get<AddressType[]>("addressbyzipcode", {
+          params: { zipcode: address?.zipcode },
+        });
+
+        // set form fields ที่ไม่ขึ้นกับ addressList ก่อน
+        form.setValue("branchName", selectedBranch.name);
+        form.setValue("branchPhone", selectedBranch.phone ?? "");
+        form.setValue("houseNo", address?.houseNo ?? "");
+        form.setValue("street", address?.street ?? "");
+        form.setValue("zipcode", address?.zipcode ?? "");
+
+        // set addressList และเก็บ pending ไว้รอ render
+        setAddressList(res?.length ? res : null);
+        setPendingAddress({ address, list: res ?? [] });
+      } catch (err) {
+        console.error(err);
+        setAddressList(null);
+      }
+    };
+    calladdress();
+  }, [shopData, selectedBranch]);
+
+  useEffect(() => {
+    if (!pendingAddress || !addressList) return;
+
+    const { address, list } = pendingAddress;
+    const subdistrict = list.find(
+      (a) => a.subdistrictNameTh === address?.subdistrict
+    );
+
+    form.setValue("subdistrictId", subdistrict?.subdistrictId ?? 0);
+    form.setValue("districtId", subdistrict?.districtId ?? 0);
+    form.setValue("provinceId", subdistrict?.provinceId ?? 0);
+    form.setValue("districtName", subdistrict?.districtNameTh ?? "");
+    form.setValue("provinceName", subdistrict?.provinceNameTh ?? "");
+
+    setPendingAddress(null); // clear pending
+  }, [addressList, pendingAddress]);
+
+  // ── Fetch address by zipcode ────────────────────────────────────────────────
+  useEffect(() => {
+    if (isInitialLoad.current) {
+      isInitialLoad.current = false;
+      return;
     }
-  }, [shopData?.isActive]);
+    if (watchZipcode.length !== 5) {
+      setAddressList(null);
+      if (watchZipcode.length < 5) {
+        form.setValue("subdistrictId", 0);
+        form.setValue("districtId", 0);
+        form.setValue("provinceId", 0);
+        form.setValue("districtName", "");
+        form.setValue("provinceName", "");
+      }
+      return;
+    }
 
-  // หา branch ที่ตรงกับ branchselect
-  useEffect(() => {
-    if (!shopData?.shopBranches?.length) return;
-
-    const resolveBranch = async () => {
-      const branchselect: number | null = await storage.get("branch") || shopData.shopBranches?.[0]?.id || null;
-      const branch = shopData.shopBranches?.find((b) => b.id === branchselect) ?? shopData?.shopBranches[0];
-      setSelectedBranch(branch);
+    const fetchAddress = async () => {
+      setIsLoadingAddress(true);
+      try {
+        const res = await http.get<AddressType[]>("addressbyzipcode", {
+          params: { zipcode: watchZipcode },
+        });
+        setAddressList(res?.length ? res : null);
+      } catch (err) {
+        console.error(err);
+        setAddressList(null);
+      } finally {
+        setIsLoadingAddress(false);
+      }
     };
 
+    fetchAddress();
+  }, [watchZipcode, form]);
+
+  // ── Auto-fill district/province from subdistrict selection ─────────────────
+  useEffect(() => {
+    if (!addressList || !watchSubdistrictId) {
+      if (!watchSubdistrictId) {
+        form.setValue("districtName", "");
+        form.setValue("provinceName", "");
+      }
+      return;
+    }
+    const selected = addressList.find(
+      (a) => a.subdistrictId === Number(watchSubdistrictId)
+    );
+    if (selected) {
+      form.setValue("districtId", selected.districtId);
+      form.setValue("provinceId", selected.provinceId);
+      form.setValue("districtName", selected.districtNameTh);
+      form.setValue("provinceName", selected.provinceNameTh);
+    }
+  }, [watchSubdistrictId, addressList, form]);
+
+  // ── Sync shop open/close status ─────────────────────────────────────────────
+  useEffect(() => {
+    if (shopData?.isActive !== undefined) setIsOpen(shopData.isActive);
+  }, [shopData?.isActive]);
+
+  // ── Resolve selected branch from storage or first branch ───────────────────
+  useEffect(() => {
+    if (!shopData?.shopBranches?.length) return;
+    const resolveBranch = async () => {
+      const stored: number | null = (await storage.get("branch")) || null;
+      const branch =
+        shopData.shopBranches?.find((b) => b.id === stored) ??
+        shopData.shopBranches[0];
+      setSelectedBranch(branch);
+    };
     resolveBranch();
   }, [shopData?.shopBranches]);
-  
 
-  const handleSave = async () => {
-    setIsSaving(true);
-    try {
-      // TODO: เรียก API update ข้อมูลสาขา
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-    } finally {
-      setIsSaving(false);
-    }
-  };
 
-  if (isLoading) return (
-    <div className="flex h-[400px] w-full items-center justify-center">
-      <Loader2 className="h-8 w-8 animate-spin text-primary" />
-    </div>
+  // ── Submit handler ──────────────────────────────────────────────────────────
+  const handleSave = useCallback(
+    form.handleSubmit(async (values) => {
+      setIsSaving(true);
+      try {
+        // TODO: เรียก API update ข้อมูลสาขา
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 2500);
+      } finally {
+        setIsSaving(false);
+      }
+    }),
+    [form]
   );
 
-  if (!shopData) return <div>ไม่พบข้อมูลร้านค้า</div>;
+  // ── Loading state ───────────────────────────────────────────────────────────
+  if (isLoading) {
+    return (
+      <div className="flex h-[400px] w-full items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">กำลังโหลดข้อมูล...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!shopData) {
+    return (
+      <div className="flex h-[400px] w-full items-center justify-center">
+        <div className="flex flex-col items-center gap-2 text-center">
+          <Store className="h-10 w-10 text-muted-foreground/40" />
+          <p className="text-sm font-medium text-default-600">ไม่พบข้อมูลร้านค้า</p>
+          <p className="text-xs text-muted-foreground">กรุณาลองใหม่อีกครั้ง</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">
+      {/* ══ Section 1: Shop Profile Banner ══════════════════════════════════════ */}
+      <Card className="relative z-[1] overflow-hidden rounded-xl p-6 pb-10 pt-10 md:pt-[84px]">
+        {/* Banner background */}
+        <div className="absolute inset-x-0 top-0 z-[-1] h-[150px] rounded-t-xl bg-gradient-to-r from-default-900 to-default-700 dark:from-default-400 dark:to-default-500 md:h-1/2" />
 
-      {/* ── Section 1: รูปภาพร้านค้า (คงเดิม) ── */}
-      <Card className="p-6 pb-10 md:pt-[84px] pt-10 rounded-lg lg:flex lg:space-y-0 space-y-6 justify-between items-end relative z-[1]">
-        <div className="bg-default-900 dark:bg-default-400 absolute left-0 top-0 md:h-1/2 h-[150px] w-full z-[-1] rounded-t-lg" />
-
-        <div className="profile-box flex-none md:text-start text-center">
-          <div className="md:flex items-end md:space-x-6 rtl:space-x-reverse">
-            {/* Avatar */}
+        <div className="lg:flex lg:items-end lg:justify-between lg:space-y-0 space-y-6">
+          {/* Avatar + Shop Name */}
+          <div className="md:flex md:items-end md:space-x-6 rtl:space-x-reverse">
             <div className="flex-none">
-              <div className="md:h-[186px] md:w-[186px] h-[140px] w-[140px] md:ml-0 md:mr-0 ml-auto mr-auto md:mb-0 mb-4 rounded-full ring-4 dark:ring-default-700 ring-default-50 relative">
+              <div className="relative mx-auto mb-4 h-[140px] w-[140px] overflow-hidden rounded-full ring-4 ring-default-50 dark:ring-default-700 md:mx-0 md:mb-0 md:h-[186px] md:w-[186px]">
                 <Image
-                  width={300}
-                  height={300}
-                  src={shopData.logo ?? "https://avatars.githubusercontent.com/u/9919?s=200&v=4"}
+                  fill
+                  src={
+                    shopData.logo ??
+                    "https://avatars.githubusercontent.com/u/9919?s=200&v=4"
+                  }
                   alt={shopData.name}
-                  className="w-full h-full object-cover rounded-full"
+                  className="object-cover"
                 />
-                <Link
-                  href="#"
-                  className="absolute right-2 h-8 w-8 bg-default-50 text-default-600 rounded-full shadow-sm flex flex-col items-center justify-center md:top-[140px] top-[100px]"
-                >
-                  <Icon icon="heroicons:pencil-square" />
-                </Link>
               </div>
             </div>
-
-            {/* ชื่อร้าน */}
-            <div className="flex-1">
-              <div className="text-2xl font-medium text-default-900 mb-[3px]">
+            <div className="text-center md:text-start">
+              <h2 className="mb-1 text-2xl font-semibold text-default-900">
                 {shopData.name}
-              </div>
-              <div className="text-sm font-light text-default-600">
-                ร้านค้า
-              </div>
+              </h2>
+              <p className="text-sm font-light text-default-600">ร้านค้า</p>
             </div>
           </div>
-        </div>
 
-        {/* ปุ่มเปิด/ปิดทำการ */}
-        <div className="flex items-center gap-3">
-          <span className="text-sm text-default-600">
-            {isOpen ? "เปิดทำการ" : "ปิดทำการ"}
-          </span>
-          <button
-            onClick={() => setIsOpen((prev) => !prev)}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none
-              ${isOpen ? "bg-primary" : "bg-default-300 dark:bg-default-600"}`}
-          >
+          {/* Open/Close Toggle */}
+          <div className="flex items-center justify-center gap-3 md:justify-end">
+            <span className="text-sm text-default-600">
+              {isOpen ? "เปิดทำการ" : "ปิดทำการ"}
+            </span>
+            <button
+              type="button"
+              onClick={() => setIsOpen((prev) => !prev)}
+              aria-pressed={isOpen}
+              aria-label="เปิด/ปิดร้านค้า"
+              className={[
+                "relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+                isOpen
+                  ? "bg-primary"
+                  : "bg-default-300 dark:bg-default-600",
+              ].join(" ")}
+            >
+              <span
+                className={[
+                  "inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-300",
+                  isOpen ? "translate-x-6" : "translate-x-1",
+                ].join(" ")}
+              />
+            </button>
             <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-300
-                ${isOpen ? "translate-x-6" : "translate-x-1"}`}
-            />
-          </button>
-          <span
-            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium
-              ${isOpen
-                ? "bg-success/10 text-success"
-                : "bg-default-100 text-default-500 dark:bg-default-700"}`}
-          >
-            <span className={`h-1.5 w-1.5 rounded-full ${isOpen ? "bg-success" : "bg-default-400"}`} />
-            {isOpen ? "เปิดอยู่" : "ปิดอยู่"}
-          </span>
+              className={[
+                "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors",
+                isOpen
+                  ? "bg-success/10 text-success"
+                  : "bg-default-100 text-default-500 dark:bg-default-700",
+              ].join(" ")}
+            >
+              <span
+                className={[
+                  "h-1.5 w-1.5 rounded-full",
+                  isOpen ? "bg-success animate-pulse" : "bg-default-400",
+                ].join(" ")}
+              />
+              {isOpen ? "เปิดอยู่" : "ปิดอยู่"}
+            </span>
+          </div>
         </div>
       </Card>
 
-      {/* ── Section 2: ข้อมูลสาขา ── */}
+      {/* ══ Section 2: Branch Info Form ══════════════════════════════════════════ */}
       {selectedBranch ? (
-        <Card>
-          <div className="border-b border-default-200 px-6 py-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-default-900">ข้อมูลสาขา</p>
-                <p className="mt-0.5 text-xs text-default-500">ชื่อสาขา เบอร์โทร และที่อยู่</p>
-              </div>
-              {/* dropdown เปลี่ยนสาขา (ถ้ามีหลายสาขา) */}
-              {shopData.shopBranches.length > 1 && (
+        <Card className="overflow-hidden rounded-xl">
+          {/* Card Header */}
+          <div className="flex items-center justify-between border-b border-default-200 px-6 py-4">
+            <div>
+              <p className="text-sm font-semibold text-default-900">ข้อมูลสาขา</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                ชื่อสาขา เบอร์โทร และที่อยู่
+              </p>
+            </div>
+
+            {/* Branch Switcher (multi-branch) */}
+            {shopData.shopBranches.length > 1 && (
+              <div className="relative">
                 <select
                   value={selectedBranch.id}
                   onChange={(e) => {
-                    const branch = shopData.shopBranches.find((b) => b.id === Number(e.target.value));
+                    const branch = shopData.shopBranches.find(
+                      (b) => b.id === Number(e.target.value)
+                    );
                     if (branch) setSelectedBranch(branch);
                   }}
-                  className="h-8 rounded-md border border-default-200 bg-default-50 px-2 text-xs text-default-700 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-default-800"
+                  className="h-8 appearance-none rounded-md border border-default-200 bg-default-50 pl-3 pr-7 text-xs text-default-700 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-default-800 dark:text-default-200"
                 >
                   {shopData.shopBranches.map((b) => (
-                    <option key={b.id} value={b.id}>{b.name}</option>
+                    <option key={b.id} value={b.id}>
+                      {b.name}
+                    </option>
                   ))}
                 </select>
-              )}
-            </div>
+                <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+              </div>
+            )}
           </div>
 
-          <div className="space-y-4 px-6 py-5">
-            {/* ชื่อสาขา + เบอร์ */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <label className="text-xs text-default-500">ชื่อสาขา *</label>
-                <input
-                  type="text"
-                  defaultValue={selectedBranch.name}
-                  key={`name-${selectedBranch.id}`}
-                  className="h-9 w-full rounded-md border border-default-200 bg-default-50 px-3 text-sm text-default-900 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-default-800"
+          {/* Form Body */}
+          <Form {...form}>
+            <form onSubmit={handleSave} noValidate>
+              <div className="space-y-5 px-6 pb-4 pt-5">
+                {/* ── ชื่อสาขา ─────────────────────────────────────────────── */}
+                <FormField
+                  control={form.control}
+                  name="branchName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-1.5 text-xs font-medium">
+                        <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
+                        ชื่อสาขา{" "}
+                        <span className="text-destructive">*</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="เช่น สาขาหลัก, สาขาสุขุมวิท"
+                          className="h-10 text-sm"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage className="text-xs" />
+                    </FormItem>
+                  )}
                 />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs text-default-500">เบอร์โทรศัพท์</label>
-                <input
-                  type="tel"
-                  defaultValue={selectedBranch.phone ?? ""}
-                  key={`phone-${selectedBranch.id}`}
-                  placeholder="0XX-XXX-XXXX"
-                  className="h-9 w-full rounded-md border border-default-200 bg-default-50 px-3 text-sm text-default-900 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-default-800"
-                />
-              </div>
-            </div>
 
-            {/* ที่อยู่ */}
-            <div className="space-y-1.5">
-              <label className="text-xs text-default-500">บ้านเลขที่ / ถนน</label>
-              <input
-                type="text"
-                defaultValue={
-                  [selectedBranch.address?.houseNo, selectedBranch.address?.street]
-                    .filter(Boolean)
-                    .join(" ")
-                }
-                key={`street-${selectedBranch.id}`}
-                placeholder="บ้านเลขที่ และถนน"
-                className="h-9 w-full rounded-md border border-default-200 bg-default-50 px-3 text-sm text-default-900 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-default-800"
-              />
-            </div>
+                {/* ── เบอร์โทรสาขา ─────────────────────────────────────────── */}
+                <FormField
+                  control={form.control}
+                  name="branchPhone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-1.5 text-xs font-medium">
+                        <Phone className="h-3.5 w-3.5 text-muted-foreground" />
+                        เบอร์โทรสาขา{" "}
+                        <span className="text-[11px] font-normal text-muted-foreground">
+                          (ไม่บังคับ)
+                        </span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="0812345678"
+                          className="h-10 text-sm"
+                          type="tel"
+                          maxLength={10}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage className="text-xs" />
+                    </FormItem>
+                  )}
+                />
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <div className="space-y-1.5">
-                <label className="text-xs text-default-500">แขวง / ตำบล</label>
-                <input
-                  type="text"
-                  defaultValue={selectedBranch.address?.subdistrict ?? ""}
-                  key={`subdistrict-${selectedBranch.id}`}
-                  className="h-9 w-full rounded-md border border-default-200 bg-default-50 px-3 text-sm text-default-900 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-default-800"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs text-default-500">เขต / อำเภอ</label>
-                <input
-                  type="text"
-                  defaultValue={selectedBranch.address?.district ?? ""}
-                  key={`district-${selectedBranch.id}`}
-                  className="h-9 w-full rounded-md border border-default-200 bg-default-50 px-3 text-sm text-default-900 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-default-800"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs text-default-500">จังหวัด</label>
-                <input
-                  type="text"
-                  defaultValue={selectedBranch.address?.province ?? ""}
-                  key={`province-${selectedBranch.id}`}
-                  className="h-9 w-full rounded-md border border-default-200 bg-default-50 px-3 text-sm text-default-900 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-default-800"
-                />
-              </div>
-            </div>
+                {/* ── ที่อยู่สาขา ───────────────────────────────────────────── */}
+                <div className="space-y-4 rounded-lg border border-dashed border-default-200 p-4">
+                  <p className="flex items-center gap-1.5 text-xs font-semibold text-foreground/80">
+                    <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+                    ที่อยู่สาขา
+                  </p>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <label className="text-xs text-default-500">รหัสไปรษณีย์</label>
-                <input
-                  type="text"
-                  defaultValue={selectedBranch.address?.zipcode ?? ""}
-                  key={`zipcode-${selectedBranch.id}`}
-                  maxLength={5}
-                  className="h-9 w-full rounded-md border border-default-200 bg-default-50 px-3 text-sm text-default-900 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-default-800"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs text-default-500">ที่อยู่เต็ม (อัตโนมัติ)</label>
-                <input
-                  type="text"
-                  readOnly
-                  value={selectedBranch.address?.fullAddress ?? ""}
-                  className="h-9 w-full rounded-md border border-default-200 bg-default-100 px-3 text-sm text-default-500 cursor-not-allowed dark:bg-default-700"
-                />
-              </div>
-            </div>
-          </div>
+                  {/* บ้านเลขที่ + ถนน */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <FormField
+                      control={form.control}
+                      name="houseNo"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-[11px] text-muted-foreground">
+                            บ้านเลขที่
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="99/9"
+                              className="h-9 text-sm"
+                              {...field}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="street"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-[11px] text-muted-foreground">
+                            ถนน
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="สุขุมวิท"
+                              className="h-9 text-sm"
+                              {...field}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
 
-          {/* ปุ่ม Update */}
-          <div className="flex items-center justify-end gap-3 border-t border-default-200 px-6 py-4">
-            <button
-              type="button"
-              className="h-9 rounded-md border border-default-200 bg-default-50 px-4 text-sm text-default-600 hover:bg-default-100 dark:bg-default-800 dark:hover:bg-default-700"
-            >
-              ยกเลิก
-            </button>
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={isSaving}
-              className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-60"
-            >
-              {isSaving ? (
-                <>
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  กำลังบันทึก...
-                </>
-              ) : (
-                <>
-                  <Icon icon="heroicons:check" className="h-3.5 w-3.5" />
-                  บันทึกข้อมูล
-                </>
-              )}
-            </button>
-          </div>
+                  {/* รหัสไปรษณีย์ */}
+                  <FormField
+                    control={form.control}
+                    name="zipcode"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-[11px] text-muted-foreground">
+                          รหัสไปรษณีย์
+                        </FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Input
+                              {...field}
+                              maxLength={5}
+                              inputMode="numeric"
+                              className="h-9 text-sm pr-8"
+                              placeholder="10110"
+                            />
+                            {isLoadingAddress && (
+                              <Loader2 className="absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 animate-spin text-muted-foreground" />
+                            )}
+                          </div>
+                        </FormControl>
+                        <FormMessage className="text-xs" />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* ตำบล / แขวง */}
+                  <FormField
+                    control={form.control}
+                    name="subdistrictId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-[11px] text-muted-foreground">
+                          ตำบล / แขวง{" "}
+                          <span className="text-destructive">*</span>
+                        </FormLabel>
+                        <Select
+                          onValueChange={(val) => field.onChange(Number(val))}
+                          value={
+                            field.value > 0 ? field.value.toString() : ""
+                          }
+                          disabled={!addressList || isLoadingAddress}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="h-9 text-xs">
+                              <SelectValue
+                                placeholder={
+                                  isLoadingAddress
+                                    ? "กำลังโหลด..."
+                                    : !watchZipcode || watchZipcode.length < 5
+                                      ? "กรอกรหัสไปรษณีย์ก่อน"
+                                      : addressList === null
+                                        ? "ไม่พบที่อยู่"
+                                        : "เลือกตำบล / แขวง"
+                                }
+                              />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {addressList?.map((item) => (
+                              <SelectItem
+                                key={item.subdistrictId}
+                                value={item.subdistrictId.toString()}
+                                className="text-xs"
+                              >
+                                {item.subdistrictNameTh}
+                                <span className="ml-1 text-muted-foreground">
+                                  ({item.districtNameTh})
+                                </span>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage className="text-xs" />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* เขต/อำเภอ + จังหวัด (read-only) */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <FormItem>
+                      <FormLabel className="text-[11px] text-muted-foreground">
+                        เขต / อำเภอ
+                      </FormLabel>
+                      <Input
+                        value={form.watch("districtName") ?? ""}
+                        readOnly
+                        className="h-9 cursor-not-allowed bg-muted/40 text-xs"
+                        placeholder="—"
+                      />
+                      <input type="hidden" {...form.register("districtId")} />
+                    </FormItem>
+                    <FormItem>
+                      <FormLabel className="text-[11px] text-muted-foreground">
+                        จังหวัด
+                      </FormLabel>
+                      <Input
+                        value={form.watch("provinceName") ?? ""}
+                        readOnly
+                        className="h-9 cursor-not-allowed bg-muted/40 text-xs"
+                        placeholder="—"
+                      />
+                      <input type="hidden" {...form.register("provinceId")} />
+                    </FormItem>
+                  </div>
+                </div>
+              </div>
+
+              {/* ── Footer Buttons ────────────────────────────────────────────── */}
+              <div className="flex items-center justify-end gap-3 border-t border-default-200 px-6 py-4">
+                <button
+                  type="button"
+                  onClick={() => form.reset()}
+                  className="inline-flex h-9 items-center gap-1.5 rounded-md border border-default-200 bg-default-50 px-4 text-sm text-default-600 transition-colors hover:bg-default-100 dark:bg-default-800 dark:hover:bg-default-700"
+                >
+                  <X className="h-3.5 w-3.5" />
+                  รีเซ็ต
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSaving}
+                  className={[
+                    "inline-flex h-9 items-center gap-2 rounded-md px-4 text-sm font-medium text-white transition-all disabled:cursor-not-allowed disabled:opacity-60",
+                    saveSuccess
+                      ? "bg-success hover:bg-success/90"
+                      : "bg-primary hover:bg-primary/90",
+                  ].join(" ")}
+                >
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      กำลังบันทึก...
+                    </>
+                  ) : saveSuccess ? (
+                    <>
+                      <Check className="h-3.5 w-3.5" />
+                      บันทึกแล้ว
+                    </>
+                  ) : (
+                    <>
+                      <Icon icon="heroicons:check" className="h-3.5 w-3.5" />
+                      บันทึกข้อมูล
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </Form>
         </Card>
       ) : (
-        <Card className="flex h-32 items-center justify-center">
-          <p className="text-sm text-default-400">ไม่พบข้อมูลสาขา</p>
+        <Card className="flex h-32 items-center justify-center rounded-xl">
+          <div className="flex flex-col items-center gap-1.5 text-center">
+            <Building2 className="h-6 w-6 text-muted-foreground/40" />
+            <p className="text-sm text-default-400">ไม่พบข้อมูลสาขา</p>
+          </div>
         </Card>
       )}
-
     </div>
   );
 };
 
-export default SettingShopPage;
+export default SettingShopBranchPage;

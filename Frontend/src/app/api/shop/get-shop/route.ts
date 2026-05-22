@@ -9,7 +9,9 @@ export async function GET(req: NextRequest) {
     const api = serverHttp(req, env.apiBaseUrl);
 
     const accessToken = req.cookies.get("access_token")?.value;
-
+    const { searchParams } = new URL(req.url);
+    const branchId = searchParams.get("branchId");
+    
     if (!accessToken) {
       return NextResponse.json(
         { status: false, message: "Unauthorized", data: null },
@@ -17,7 +19,11 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const shop = await api.get<ShopResponse>("shopdata");
+    const shop = await api.get<ShopResponse>("shopdata", {
+      params: {
+        ...(branchId && { branchId }),
+      },
+    });
 
     return NextResponse.json({
       status: true,

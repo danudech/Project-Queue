@@ -31,7 +31,7 @@ public class ManageShopController : ControllerBase
 
     [Authorize]
     [HttpGet("get-shop")]
-    public async Task<ActionResult<ApiResponse<ShopResponse?>>> GetShop(CancellationToken ct)
+    public async Task<ActionResult<ApiResponse<ShopResponse?>>> GetShop([FromQuery] int BranchId, CancellationToken ct)
     {
 
         string ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
@@ -43,7 +43,7 @@ public class ManageShopController : ControllerBase
             if (!status)
                 return Unauthorized(ApiResponse<ShopResponse>.Fail(message));
             _actionLog.Info("Get shop request (UserId={UserId})", userId);
-            ShopResponse? resp = await _shop.GetShopById(int.Parse(userId), ip, ua, ct);
+            ShopResponse? resp = await _shop.GetShopById(int.Parse(userId),BranchId, ip, ua, ct);
 
             return Ok(ApiResponse<ShopResponse?>.Ok(resp));
         }

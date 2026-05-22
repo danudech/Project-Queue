@@ -29,7 +29,7 @@ public sealed class ManageShop : IManageShop
 
     }
 
-    public async Task<ShopResponse?> GetShopById(int userId, string ip, string userAgent, CancellationToken ct)
+    public async Task<ShopResponse?> GetShopById(int userId, int BranchId, string ip, string userAgent, CancellationToken ct)
     {
         try
         {
@@ -56,7 +56,7 @@ public sealed class ManageShop : IManageShop
                 return null;
             }
 
-            return MapToResponse(shop);
+            return MapToResponse(shop, BranchId);
         }
         catch (Exception ex)
         {
@@ -164,7 +164,7 @@ public sealed class ManageShop : IManageShop
             }
 
             await transaction.CommitAsync(ct);
-            return await GetShopById(userId, ip, userAgent, ct);
+            return await GetShopById(userId, newBranch.Id, ip, userAgent, ct);
         }
         catch (Exception ex)
         {
@@ -535,7 +535,7 @@ public sealed class ManageShop : IManageShop
 
     // ================= Private Helper Methods =================
 
-    private static ShopResponse MapToResponse(Shop shop) => new()
+    private static ShopResponse MapToResponse(Shop shop, int branchId = 0) => new()
     {
         Id = shop.Id,
         Name = shop.Name ?? string.Empty,
@@ -543,7 +543,7 @@ public sealed class ManageShop : IManageShop
         OwnerId = shop.OwnerId,
         Status = shop.StatusId,
         IsActive = shop.IsActive,
-        ShopBranches = shop.ShopBranches?.Select(b => new BranchDto
+        ShopBranches = shop.ShopBranches?.Where(b => b.Id == branchId).Select(b => new BranchDto
         {
             Id = b.Id,
             Name = b.Name ?? string.Empty,

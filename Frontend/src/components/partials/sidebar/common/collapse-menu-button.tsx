@@ -1,11 +1,12 @@
 "use client";
-import React, { CSSProperties } from "react";
+import React, { CSSProperties } from 'react'
 import { Link, usePathname } from "@/components/navigation";
-import { useState, useEffect } from "react";
-import { ChevronDown, GripVertical } from "lucide-react";
+import { useState } from "react";
+import { ChevronDown, LucideIcon } from "lucide-react";
+import { GripVertical } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 import {
     Collapsible,
@@ -32,16 +33,18 @@ import {
     DropdownMenuSubContent
 } from "@/components/ui/dropdown-menu";
 import { Icon } from "@/components/ui/icon";
-import { Submenu } from "@/lib/menus";
+import { Submenu } from "@/lib/menus"
 
-// for dnd
-import { useSortable } from "@dnd-kit/sortable";
+import {
+    useSortable,
+} from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useConfig } from "@/hooks/use-config";
-import { MultiCollapseMenuButton } from "./classic-multi-collapse-button";
-import { useMediaQuery } from "@/hooks/use-media-query";
-import { useMobileMenuConfig } from "@/hooks/use-mobile-menu";
-import { useMenuHoverConfig } from "@/hooks/use-menu-hover";
+import { useConfig } from '@/hooks/use-config';
+import { MultiCollapseMenuButton } from './classic-multi-collapse-button';
+import { useMediaQuery } from '@/hooks/use-media-query';
+import { useMobileMenuConfig } from '@/hooks/use-mobile-menu';
+import { useMenuHoverConfig } from '@/hooks/use-menu-hover';
+
 
 interface CollapseMenuButtonProps {
     icon: string;
@@ -66,60 +69,54 @@ export function CollapseMenuButton({
     const [mobileMenuConfig, setMobileMenuConfig] = useMobileMenuConfig();
     const [config] = useConfig();
     const [hoverConfig] = useMenuHoverConfig();
-    
     const { hovered } = hoverConfig;
-    const sidebarTheme = config.sidebarTheme !== "light" ? `dark theme-${config.sidebarTheme}` : `theme-${config.sidebarTheme}`;
+    const sidebarTheme = config.sidebarTheme !== 'light'
+        ? `dark theme-${config.sidebarTheme}`
+        : `theme-${config.sidebarTheme}`;
     const isDesktop = useMediaQuery("(min-width: 1280px)");
-    
-    const { transform, transition, setNodeRef, isDragging, attributes, listeners } = useSortable({
-        id: id,
-    });
+    const { transform, transition, setNodeRef, isDragging, attributes, listeners } = useSortable({ id });
 
-    useEffect(() => {
+    React.useEffect(() => {
         setIsCollapsed(isSubmenuActive);
     }, [isSubmenuActive, pathname]);
 
     const style: CSSProperties = {
         transform: CSS.Transform.toString(transform),
-        transition: transition,
+        transition,
         opacity: isDragging ? 0.8 : 1,
         zIndex: isDragging ? 1 : 0,
         position: "relative",
     };
 
-    // ─────────────────────────────────────────────────────────
-    // Compact Sidebar Mode
-    // ─────────────────────────────────────────────────────────
-    if (config.sidebar === "compact" && isDesktop) {
+    // ── Compact sidebar (desktop) ──────────────────────────────────────────────
+    if (config.sidebar === 'compact' && isDesktop) {
         return (
             <Collapsible open={isCollapsed} onOpenChange={setIsCollapsed}>
                 <CollapsibleTrigger asChild>
                     <Button
                         variant={active ? "default" : "ghost"}
                         fullWidth
-                        color={active ? "default" : "secondary"}
+                        color={active ? 'default' : 'secondary'}
                         className={cn(
-                            "flex-col h-auto py-1.5 px-3.5 capitalize font-semibold ring-offset-sidebar",
-                            { "data-[state=open]:bg-secondary": !active }
+                            'flex-col h-auto py-1.5 px-3.5 capitalize font-semibold ring-offset-sidebar',
+                            { 'data-[state=open]:bg-secondary': !active }
                         )}
                     >
                         <Icon icon={icon} className="h-6 w-6 mb-1" />
-                        <p className="max-w-[200px] text-[11px] truncate">
-                            {label}
-                        </p>
+                        <p className="max-w-[200px] text-[11px] truncate">{label}</p>
                     </Button>
                 </CollapsibleTrigger>
                 <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
                     {submenus.map(({ href, label, active }, index) => (
                         <Button
-                            key={href || index}
-                            color={active ? "default" : "secondary"}
+                            key={index}
+                            color={active ? 'default' : 'secondary'}
                             variant="ghost"
                             fullWidth
                             size="sm"
                             className={cn(
-                                "w-full justify-center text-center p-0 h-auto hover:bg-transparent hover:text-default capitalize text-xs font-normal mb-2 first:mt-4 last:mb-0",
-                                { "font-semibold": active }
+                                'w-full justify-center text-center p-0 h-auto hover:bg-transparent hover:text-default capitalize text-xs font-normal mb-2 first:mt-4 last:mb-0',
+                                { 'font-semibold': active }
                             )}
                             asChild
                         >
@@ -131,12 +128,10 @@ export function CollapseMenuButton({
         );
     }
 
-    // ─────────────────────────────────────────────────────────
-    // Default / Expanded Mode
-    // ─────────────────────────────────────────────────────────
+    // ── Expanded sidebar ───────────────────────────────────────────────────────
     return !collapsed || hovered ? (
         <Collapsible open={isCollapsed} onOpenChange={setIsCollapsed}>
-            <CollapsibleTrigger asChild>
+            <CollapsibleTrigger className="" asChild>
                 <div className="peer flex items-center group [&[data-state=open]>button>div>div>svg]:rotate-180">
                     <Button
                         style={style}
@@ -144,14 +139,14 @@ export function CollapseMenuButton({
                         variant={active ? "default" : "ghost"}
                         color="secondary"
                         className={cn(
-                            "justify-start capitalize group h-auto py-3 md:px-3 px-3 ring-offset-sidebar group-data-[state=open]:bg-secondary",
-                            { "hover:md:ps-8": config.sidebar === "draggable" && isDesktop }
+                            'justify-start capitalize group h-auto py-3 md:px-3 px-3 ring-offset-sidebar group-data-[state=open]:bg-secondary',
+                            { 'hover:md:ps-8': config.sidebar === 'draggable' && isDesktop }
                         )}
                         fullWidth
                     >
                         <div className="w-full items-center flex justify-between">
                             <div className="flex items-center">
-                                {config.sidebar === "draggable" && isDesktop && (
+                                {config.sidebar === 'draggable' && isDesktop && (
                                     <GripVertical
                                         {...attributes}
                                         {...listeners}
@@ -164,7 +159,9 @@ export function CollapseMenuButton({
                                 <p
                                     className={cn(
                                         "max-w-[150px] truncate",
-                                        !collapsed || hovered ? "translate-x-0 opacity-100" : "-translate-x-96 opacity-0"
+                                        !collapsed || hovered
+                                            ? "translate-x-0 opacity-100"
+                                            : "-translate-x-96 opacity-0"
                                     )}
                                 >
                                     {label}
@@ -173,8 +170,10 @@ export function CollapseMenuButton({
                             <div
                                 className={cn(
                                     "whitespace-nowrap inline-flex items-center justify-center rounded-full h-5 w-5 bg-menu-arrow text-menu-menu-foreground group-hover:bg-menu-arrow-active transition-all duration-300",
-                                    !collapsed || hovered ? "translate-x-0 opacity-100" : "-translate-x-96 opacity-0",
-                                    { "bg-menu-arrow-active": active }
+                                    !collapsed || hovered
+                                        ? "translate-x-0 opacity-100"
+                                        : "-translate-x-96 opacity-0",
+                                    { 'bg-menu-arrow-active': active }
                                 )}
                             >
                                 <ChevronDown size={16} className="transition-transform duration-200" />
@@ -183,21 +182,19 @@ export function CollapseMenuButton({
                     </Button>
                 </div>
             </CollapsibleTrigger>
+
             <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
-                {submenus.map(({ href, label, active, children: subChildren }, index) =>
-                    // Fix: ตรวจสอบให้แน่ใจว่าไม่มี children ก่อน render แบบ Single Menu
-                    !subChildren || subChildren.length === 0 ? (
+                {submenus.map(({ href, label, active, children: subChildren }, index) => (
+                    // ✅ ครอบคลุมทั้ง undefined และ empty array
+                    !subChildren?.length ? (
                         <Button
-                            key={href || index}
                             onClick={() => setMobileMenuConfig({ ...mobileMenuConfig, isOpen: false })}
+                            key={index}
                             color="secondary"
                             variant="ghost"
                             className={cn(
-                                "w-full justify-start h-auto hover:bg-transparent hover:ring-offset-0 capitalize text-sm font-normal mb-2 last:mb-0 first:mt-3 md:px-5 px-5",
-                                {
-                                    "font-medium": active,
-                                    "dark:opacity-80": !active,
-                                }
+                                'w-full justify-start h-auto hover:bg-transparent hover:ring-offset-0 capitalize text-sm font-normal mb-2 last:mb-0 first:mt-3 md:px-5 px-5',
+                                { 'font-medium': active, 'dark:opacity-80': !active }
                             )}
                             asChild
                         >
@@ -207,11 +204,13 @@ export function CollapseMenuButton({
                                         "h-1.5 w-1.5 me-3 rounded-full transition-all duration-150 ring-1 ring-default-600",
                                         { "ring-4 bg-default ring-opacity-30 ring-default": active }
                                     )}
-                                ></span>
+                                />
                                 <p
                                     className={cn(
                                         "max-w-[170px] truncate",
-                                        !collapsed || hovered ? "translate-x-0 opacity-100" : "-translate-x-96 opacity-0"
+                                        !collapsed || hovered
+                                            ? "translate-x-0 opacity-100"
+                                            : "-translate-x-96 opacity-0"
                                     )}
                                 >
                                     {label}
@@ -219,20 +218,19 @@ export function CollapseMenuButton({
                             </Link>
                         </Button>
                     ) : (
-                        <MultiCollapseMenuButton
-                            key={`multi-${index}`}
-                            label={label}
-                            active={active}
-                            submenus={subChildren as any}
-                        />
+                        <React.Fragment key={index}>
+                            <MultiCollapseMenuButton
+                                label={label}
+                                active={active}
+                                submenus={subChildren} // ✅ ถึงตรงนี้ subChildren มีค่าแน่นอน
+                            />
+                        </React.Fragment>
                     )
-                )}
+                ))}
             </CollapsibleContent>
         </Collapsible>
     ) : (
-        // ─────────────────────────────────────────────────────────
-        // Collapsed Sidebar Mode (Tooltip & Dropdown)
-        // ─────────────────────────────────────────────────────────
+        // ── Collapsed sidebar (icon only + dropdown) ───────────────────────────
         <DropdownMenu>
             <TooltipProvider disableHoverableContent>
                 <Tooltip delayDuration={100}>
@@ -253,44 +251,43 @@ export function CollapseMenuButton({
                     </TooltipContent>
                 </Tooltip>
             </TooltipProvider>
-            
+
             <DropdownMenuContent
                 side="right"
                 sideOffset={20}
                 align="start"
-                className={cn("border-sidebar space-y-1.5", sidebarTheme)}
+                className={`border-sidebar space-y-1.5 ${sidebarTheme}`}
             >
                 <DropdownMenuLabel className="max-w-[190px] truncate">
                     {label}
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator className="bg-default-300" />
                 <DropdownMenuGroup>
-                    {submenus.map(({ href, label, icon, active, children }, index) =>
-                        // Fix: ตรวจสอบให้แน่ใจว่าไม่มี children ก่อน render แบบ Single Menu
-                        !children || children.length === 0 ? (
+                    {submenus.map(({ href, label, icon, active, children }, index) => (
+                        // ✅ ครอบคลุมทั้ง undefined และ empty array
+                        !children?.length ? (
                             <DropdownMenuItem
-                                key={href || index}
+                                key={index}
                                 asChild
-                                className={cn("focus:bg-secondary", {
-                                    "bg-secondary text-secondary-foreground": active,
+                                className={cn('focus:bg-secondary', {
+                                    'bg-secondary text-secondary-foreground': active
                                 })}
                             >
-                                {/* Fix: แก้ไข typo flex-flex เป็น flex items-center */}
-                                <Link className="cursor-pointer flex items-center gap-3" href={href}>
+                                <Link className="cursor-pointer flex gap-3" href={href}>
                                     {icon && <Icon icon={icon} className="h-4 w-4" />}
                                     <p className="max-w-[180px] truncate">{label}</p>
                                 </Link>
                             </DropdownMenuItem>
                         ) : (
-                            <DropdownMenuSub key={`sub-${index}`}>
+                            <DropdownMenuSub key={index}>
                                 <DropdownMenuSubTrigger>
                                     <span>{label}</span>
                                 </DropdownMenuSubTrigger>
                                 <DropdownMenuPortal>
                                     <DropdownMenuSubContent>
                                         <ScrollArea className="h-[200px]">
-                                            {children.map(({ href, label }, childIndex) => (
-                                                <DropdownMenuItem key={href || childIndex}>
+                                            {children.map(({ href, label, active }, nestedIndex) => (
+                                                <DropdownMenuItem key={`nested-${nestedIndex}`}>
                                                     <Link href={href}>{label}</Link>
                                                 </DropdownMenuItem>
                                             ))}
@@ -299,7 +296,7 @@ export function CollapseMenuButton({
                                 </DropdownMenuPortal>
                             </DropdownMenuSub>
                         )
-                    )}
+                    ))}
                 </DropdownMenuGroup>
             </DropdownMenuContent>
         </DropdownMenu>

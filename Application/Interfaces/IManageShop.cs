@@ -7,7 +7,7 @@ namespace Queue.Application.Interfaces;
 
 public interface IManageShop
 {
-    Task<ShopResponse?> GetShopById(int userId, string ip, string userAgent, CancellationToken ct);
+    Task<ShopResponse?> GetShopById(int userId, int BranchId, string ip, string userAgent, CancellationToken ct);
     Task<List<MasterStatus>> MasterShopType(int? typeid, string ip, string userAgent, CancellationToken ct);
     Task<ShopResponse?> CreateShop(int userId, CreateShopRequest request, string ip, string userAgent, CancellationToken ct);
     Task<ShopResponse?> CreateBranch(int userId, CreateShopRequest request, string ip, string userAgent, CancellationToken ct);
