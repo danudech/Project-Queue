@@ -1,7 +1,7 @@
 'use client'
+import Image from 'next/image';
 import React from 'react'
 import { ScrollArea } from "@/components/ui/scroll-area";
-import DashCodeLogo from '@/components/dascode-logo';
 import { Group, Submenu } from '@/lib/menus';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
@@ -27,7 +27,7 @@ const IconNav = ({ menuList }: IconNavProps) => {
     return (
         <div className=' h-full bg-sidebar  border-r border-default-200 dark:border-secondary border-dashed w-[72px]'>
             <div className="text-center py-5">
-                <DashCodeLogo className="  text-default-900 h-8 w-8 [&>path:nth-child(3)]:text-background [&>path:nth-child(2)]:text-background mx-auto" />
+                <Image src="/images/brand/ezqueue-mark-64.png" alt="EZQueue" width={32} height={32} className="h-8 w-8 rounded-lg mx-auto" />
             </div>
             <ScrollArea className="[&>div>div[style]]:!block h-full">
                 <nav className="mt-8 h-full w-full ">

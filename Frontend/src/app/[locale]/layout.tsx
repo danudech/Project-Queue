@@ -14,10 +14,14 @@ import { getMessages, setRequestLocale } from 'next-intl/server';
 import DirectionProvider from "@/providers/direction-provider";
 
 export const metadata: Metadata = {
-  title: "Dashcode admin Template",
-  description: "created by codeshaper",
+  title: "EZQueue User Dashboard",
+  description: "EZQueue queue, booking, and shop operation dashboard.",
   icons: {
-    icon: "/favicon.ico",
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/favicon.png", type: "image/png" },
+    ],
+    apple: "/apple-touch-icon.png",
   },
 };
 

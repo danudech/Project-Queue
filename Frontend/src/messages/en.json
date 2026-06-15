@@ -1,16 +1,16 @@
-{
+﻿{
   "Index": {
     "title": "Hello world!"
   },
   "Auth": {
     "login_header": "Sign in",
-    "login_desc": "Sign in to your account to start using Dashcode",
+    "login_desc": "Sign in to your account to start using EZQueue",
     "signup_header": "Sign up",
-    "signup_desc": "Create an account to start using Dashcode",
+    "signup_desc": "Create an account to start using EZQueue",
     "unlock_title": "Less waiting. Better",
     "unlock_performance": "Service.",
     "or_continue": "Or continue with",
-    "no_account": "Don’t have an account?",
+    "no_account": "Donâ€™t have an account?",
     "already_registered": "Already registered?",
     "sign_in": "Sign In",
     "sign_up": "Sign up",
@@ -75,7 +75,7 @@
     "unlock_title": "Less waiting. Better",
     "unlock_performance": "Service.",
     "forgot_title": "Forgot Your Password?",
-    "forgot_subtitle": "Reset Password with Dashcode.",
+    "forgot_subtitle": "Reset Password with EZQueue.",
     "forgot_instructions": "Enter your Email and instructions will be sent to you!",
     "email_label": "Email",
     "send_recovery": "Send recovery email",
@@ -88,7 +88,7 @@
     "message_sent": "We will send password reset instructions to your email if an account is associated with it."
   },
   "AnalyticsDashboard": {
-    "widget_title": "Upgrade your Dashcode",
+    "widget_title": "Upgrade your EZQueue",
     "widget_desc": "Pro plan for better results",
     "widget_badge": "now",
     "revenue_chart_title": "Total Revenue",
@@ -109,7 +109,7 @@
   },
   "BankingDashboard": {
     "widget_title": "Good evening",
-    "widget_desc": "Welcome to Dashcode",
+    "widget_desc": "Welcome to EZQueue",
     "current_balance": "Current balance",
     "credit": "Credit",
     "debit": "Debit",
@@ -128,7 +128,7 @@
   },
   "EcommerceDashboard": {
     "widget_title": "Good evening",
-    "widget_desc": "Welcome to Dashcode",
+    "widget_desc": "Welcome to EZQueue",
     "revenue_chart_title": "Total Revenue",
     "revenue_report": "Revenue Report",
     "sold_chart_title": "Products sold",

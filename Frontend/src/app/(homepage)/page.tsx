@@ -1,25 +1,33 @@
-"use client";
+import { cookies } from "next/headers";
+import Header from "./components/Header";
+import Hero from "./components/Hero";
+import About from "./components/About";
+import Feature from "./components/Feature";
+import Pricing from "./components/Pricing";
+import Service from "./components/Service";
+import Blog from "./components/Blog";
+import CTA from "./components/CTA";
+import Footer from "./components/Footer";
+import { getHomepageLocale, homepageCopy } from "./i18n";
 
-import { useRouter } from "next/navigation";
-import { ROUTES } from "@/config/route";
-
-export default function HomePage() {
-  const router = useRouter();
+const HomePage = async () => {
+  const cookieStore = await cookies();
+  const locale = getHomepageLocale(cookieStore.get("locale")?.value);
+  const copy = homepageCopy[locale];
 
   return (
-    <main className="p-6">
-      <h1 className="text-2xl font-semibold">Dev Frontend</h1>
-      <p className="mt-2 text-neutral-600">
-        Next.js App Router template is ready.
-      </p>
-      <div className="mt-6 flex gap-3">
-        <button
-          className="rounded-lg bg-black px-4 py-2 text-white"
-          onClick={() => router.push(ROUTES.DASHBOARD.HOME)}
-        >
-          Go to Dashboard
-        </button>
-      </div>
-    </main>
+    <>
+      <Header locale={locale} copy={copy} />
+      <Hero locale={locale} copy={copy.hero} actions={copy.actions} />
+      <About locale={locale} copy={copy.about} actions={copy.actions} />
+      <Feature copy={copy.features} />
+      <Pricing locale={locale} copy={copy.pricing} actions={copy.actions} />
+      <Service locale={locale} copy={copy.service} actions={copy.actions} />
+      <Blog locale={locale} copy={copy.blog} actions={copy.actions} />
+      <CTA locale={locale} copy={copy.cta} actions={copy.actions} />
+      <Footer copy={copy.footer} actions={copy.actions} />
+    </>
   );
-}
+};
+
+export default HomePage;

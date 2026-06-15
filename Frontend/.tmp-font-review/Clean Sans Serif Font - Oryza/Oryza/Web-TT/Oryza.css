@@ -1,0 +1,12 @@
+/* Webfont: Oryza-Regular */@font-face {
+    font-family: 'Oryza';
+    src: url('Oryza.eot'); /* IE9 Compat Modes */
+    src: url('Oryza.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+         url('Oryza.woff') format('woff'), /* Modern Browsers */
+         url('Oryza.woff2') format('woff2'), /* Modern Browsers */
+         url('Oryza.ttf') format('truetype'); /* Safari, Android, iOS */
+             font-style: normal;
+    font-weight: normal;
+    text-rendering: optimizeLegibility;
+}
+

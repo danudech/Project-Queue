@@ -1,6 +1,6 @@
 'use client'
+import Image from "next/image";
 import React from "react";
-import DashCodeLogo from "./dascode-logo";
 import { Link } from '@/i18n/routing';
 import { useConfig } from "@/hooks/use-config";
 import { useMenuHoverConfig } from "@/hooks/use-menu-hover";
@@ -16,7 +16,7 @@ const Logo = () => {
 
     if (config.sidebar === 'compact') {
         return <Link href="/dashboard/analytics" className="flex gap-2 items-center   justify-center    ">
-            <DashCodeLogo className="  text-default-900 h-8 w-8 [&>path:nth-child(3)]:text-background [&>path:nth-child(2)]:text-background" />
+            <Image src="/images/brand/ezqueue-mark-64.png" alt="EZQueue" width={32} height={32} className="h-8 w-8 rounded-lg" />
 
         </Link>
     }
@@ -24,10 +24,10 @@ const Logo = () => {
 
     return (
         <Link href="/dashboard/analytics" className="flex gap-2 items-center    ">
-            <DashCodeLogo className="  text-default-900 h-8 w-8 [&>path:nth-child(3)]:text-background [&>path:nth-child(2)]:text-background" />
+            <Image src="/images/brand/ezqueue-mark-64.png" alt="EZQueue" width={32} height={32} className="h-8 w-8 rounded-lg" />
             {(!config?.collapsed || hovered) && (
                 <h1 className="text-xl font-semibold text-default-900 ">
-                    DashCode
+                    EZQueue
                 </h1>
             )}
         </Link>

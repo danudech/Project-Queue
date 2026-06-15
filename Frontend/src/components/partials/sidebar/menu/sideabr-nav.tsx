@@ -72,7 +72,7 @@ const SidebarNav = ({ menuList }: { menuList: Group[] }) => {
                     ) : (
                       subChildren &&
                       <CollapseMenuButton2
-                        icon={icon}
+                        icon={icon ?? "heroicons-outline:circle-stack"}
                         label={label}
                         active={active}
                         submenus={subChildren}

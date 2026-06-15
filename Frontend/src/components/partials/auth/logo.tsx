@@ -1,21 +1,16 @@
 'use client'
 import Image from 'next/image';
-import { useTheme } from "next-themes";
 
 const Logo = () => {
-    const { theme: mode } = useTheme();
   return (
     <div>
       <Image
-        src={
-          mode === "light"
-            ? "/images/logo/logo.svg"
-            : "/images/logo/logo-white.svg"
-        }
-        alt=""
-        width={300}
-        height={300}
-        className=" w-36 "
+        src="/images/brand/ezqueue-logo.png"
+        alt="EZQueue"
+        width={320}
+        height={100}
+        className="h-auto w-40"
+        priority
       />
     </div>
   );

@@ -66,9 +66,9 @@ export default function HorizontalMenu() {
                     {submenus.map(
                       ({ href, label, icon, children: subChildren }, index) =>
                         subChildren?.length === 0 ? (
-                          <MenubarItem key={`sub-index-${index}`} className=" cursor-pointer" asChild>
-                            <Link href={href}>
-                              <Icon icon={icon} fontSize={16} className=" me-1.5" />
+                        <MenubarItem key={`sub-index-${index}`} className=" cursor-pointer" asChild>
+                          <Link href={href}>
+                              {icon && <Icon icon={icon} fontSize={16} className=" me-1.5" />}
                               {label}
                             </Link>
                           </MenubarItem>
@@ -123,5 +123,4 @@ export default function HorizontalMenu() {
     </div>
   );
 }
-
 

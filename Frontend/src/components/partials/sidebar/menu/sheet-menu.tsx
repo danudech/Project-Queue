@@ -1,4 +1,5 @@
 'use client'
+import Image from "next/image";
 import { Link } from '@/i18n/routing';
 import { MenuIcon, PanelsTopLeft } from "lucide-react";
 import { Icon } from "@/components/ui/icon";
@@ -11,7 +12,6 @@ import {
     SheetTrigger,
 } from "@/components/ui/sheet";
 import { MenuClassic } from "./menu-classic";
-import DashCodeLogo from "@/components/dascode-logo";
 import { useMobileMenuConfig } from "@/hooks/use-mobile-menu";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useConfig } from "@/hooks/use-config";
@@ -36,9 +36,9 @@ export function SheetMenu() {
             <SheetContent className="sm:w-72 px-3 h-full flex flex-col" side="left">
                 <SheetHeader>
                     <Link href="/dashboard/analytics" className="flex gap-2 items-center     ">
-                        <DashCodeLogo className="  text-default-900 h-8 w-8 [&>path:nth-child(3)]:text-background [&>path:nth-child(2)]:text-background" />
+                        <Image src="/images/brand/ezqueue-mark-64.png" alt="EZQueue" width={32} height={32} className="h-8 w-8 rounded-lg" />
                         <h1 className="text-xl font-semibold text-default-900 ">
-                            DashCode
+                            EZQueue
                         </h1>
                     </Link>
                 </SheetHeader>
