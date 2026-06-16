@@ -15,7 +15,7 @@ const Feature = ({ copy }: FeatureProps) => {
         <div className="ez-section-grid">
           <div>
             <Image
-              src="/images/homepage/nosic-features.png"
+              src="/images/homepage/ezqueue-features-generated.png"
               alt={copy.imageAlt}
               className="rounded-4 ez-section-image"
               height={512}

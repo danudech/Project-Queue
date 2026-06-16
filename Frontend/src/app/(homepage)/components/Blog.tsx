@@ -22,7 +22,15 @@ const Blog = ({ locale, copy, actions }: BlogProps) => {
           {copy.items.map((item) => (
             <article className="blog-card" key={item.title}>
               <div className="blog-image-wrap">
-                <Image src={item.image} alt={item.title} className="blog-img" width={325} height={300} />
+                <Image
+                  src={item.image}
+                  alt={item.title}
+                  className="blog-img"
+                  width={325}
+                  height={300}
+                  loading="eager"
+                  sizes="(max-width: 768px) 100vw, 325px"
+                />
               </div>
               <div className="blog-body">
                 <h3>{item.title}</h3>

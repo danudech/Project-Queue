@@ -155,17 +155,17 @@ export const homepageCopy = {
       title: "Designed for the daily rhythm of real service counters",
       items: [
         {
-          image: "/images/homepage/blog/img-1.png",
+          image: "/images/homepage/blog/ezqueue-usecase-peak-hours.png",
           title: "Reduce front-desk pressure during peak hours",
           description: "Let customers book ahead and keep staff focused on serving instead of manually arranging walk-ins.",
         },
         {
-          image: "/images/homepage/blog/img-3.png",
+          image: "/images/homepage/blog/ezqueue-usecase-operations.png",
           title: "Control incoming and completed bookings",
           description: "Review today's queue, active bookings, completed jobs, and payments in one operational view.",
         },
         {
-          image: "/images/homepage/blog/img-2.png",
+          image: "/images/homepage/blog/ezqueue-usecase-api.png",
           title: "Prepare API contracts screen by screen",
           description: "Use the mocked frontend to define backend data shapes for booking, queue, customer, invoice, and system modules.",
         },
@@ -328,17 +328,17 @@ export const homepageCopy = {
       title: "ออกแบบมาให้เข้ากับจังหวะงานจริงของเคาน์เตอร์บริการ",
       items: [
         {
-          image: "/images/homepage/blog/img-1.png",
+          image: "/images/homepage/blog/ezqueue-usecase-peak-hours.png",
           title: "ลดภาระหน้าร้านในช่วงคิวแน่น",
           description: "ให้ลูกค้าจองล่วงหน้าและช่วยให้พนักงานโฟกัสกับการให้บริการแทนการจัดคิวด้วยมือ",
         },
         {
-          image: "/images/homepage/blog/img-3.png",
+          image: "/images/homepage/blog/ezqueue-usecase-operations.png",
           title: "คุมงานจองและงานที่เสร็จแล้วในจุดเดียว",
           description: "ดูคิววันนี้ การจองที่กำลังใช้งาน งานที่เสร็จแล้ว และการชำระเงินในมุมมองเดียว",
         },
         {
-          image: "/images/homepage/blog/img-2.png",
+          image: "/images/homepage/blog/ezqueue-usecase-api.png",
           title: "เตรียม API contract จากหน้าจอจริง",
           description: "ใช้ Frontend mockup เพื่อกำหนดโครงข้อมูลสำหรับ booking, queue, customer, invoice และ system modules",
         },

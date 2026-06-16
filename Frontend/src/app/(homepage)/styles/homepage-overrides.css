@@ -668,7 +668,7 @@ html[lang="th"] .footer-brand p {
 }
 
 .text-primary {
-  color: hsl(var(--primary));
+  color: hsl(var(--primary)) !important;
 }
 
 .text-center {
