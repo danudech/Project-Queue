@@ -46,7 +46,7 @@ const MailVerifyPage = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 via-white to-slate-200 px-6">
-      {/* ✅ ขยายตรงนี้ */}
+      {/* Section */}
       <div className="w-full max-w-xl">
         <div className="w-full bg-white/80 backdrop-blur-xl p-12 rounded-3xl shadow-2xl text-center border border-white/30 space-y-8">
           {/* Loading */}

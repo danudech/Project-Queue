@@ -3,6 +3,18 @@
     "title": "Hello world!"
   },
   "Auth": {
+    "unlock_title": "Less waiting. Better",
+    "unlock_performance": "Service.",
+    "login_header": "Welcome Back",
+    "login_desc": "Enter your credentials to access your account",
+    "keep_me": "Keep me signed in",
+    "forgot_password": "Forgot password?",
+    "sign_in": "Sign In",
+    "no_account": "Don't have an account?",
+    "sign_up": "Sign Up",
+    "signup_header": "Create an account",
+    "signup_desc": "Enter your details to get started",
+    "already_registered": "Already have an account?",
     "login": {
       "title": "Welcome Back",
       "subtitle": "Enter your credentials to access your account",
@@ -273,6 +285,7 @@
     "logout": "Logout"
   },
   "Shop": {
+    "back": "Back",
     "noShop": "No Shop",
     "noBranch": "No Branch",
     "noShopData": "No Shop Data",
@@ -336,7 +349,22 @@
     "addBranchSuccess": "Branch added successfully!",
     "addBranchFailed": "Failed to add branch",
     "addBranch": "Add Branch",
-    "addNewShop": "Add New Shop"
+    "addNewShop": "Add New Shop",
+    "createStoreTitle": "Create New Shop",
+    "createStoreDescription": "Start using QueueApp by entering basic information",
+    "step1": "Step 1",
+    "step2": "Step 2",
+    "step3": "Step 3",
+    "firstBranch": "First Branch",
+    "storePhone": "Shop Phone",
+    "phonePlaceholder": "e.g., 02-123-4567 or 081-234-5678",
+    "phoneDesc": "For customers to contact you with questions",
+    "continue": "Continue",
+    "typeClinic": "Clinic / Health / Hospital",
+    "typeSalon": "Beauty / Haircut / Nails",
+    "typeRestaurant": "Restaurant / Cafe / Bakery",
+    "typeOther": "Other / General Services",
+    "streetPlaceholder": "Sukhumvit"
   },
   "Changelog": {
     "version": "Version's",
@@ -415,7 +443,16 @@
         "Fri",
         "Sat"
       ]
-    }
+    },
+    "statusChangeSuccess": "Changed status to {status} successfully",
+    "loadingData": "Loading data...",
+    "placeholders": {
+      "noValue": "-"
+    },
+    "currency": {
+      "thb": "THB"
+    },
+    "noData": "No data found"
   },
   "customer": {
     "validation": {
@@ -431,7 +468,10 @@
     "toast": {
       "deleteSuccess": "Customer deleted successfully",
       "editSuccess": "Customer updated successfully",
-      "addSuccess": "Customer added successfully"
+      "addSuccess": "Customer added successfully",
+      "addWithBookingSuccess": "Customer added and queue booked successfully",
+      "addBookingFailed": "Customer added successfully, but queue booking failed",
+      "statusChangeSuccess": "Changed status to {status} successfully"
     },
     "toolbar": {
       "all": "All Customers",
@@ -445,7 +485,16 @@
     "form": {
       "name": "Customer Name",
       "phone": "Phone Number",
-      "bookTogether": "Book Queue Also"
+      "bookTogether": "Book Queue Also",
+      "namePlaceholder": "e.g., John Doe",
+      "phonePlaceholder": "e.g., 0812345678",
+      "bookingHint": "Add an appointment immediately",
+      "desiredService": "Desired service",
+      "selectService": "Select service",
+      "appointmentTime": "Appointment time",
+      "note": "Note (optional)",
+      "notePlaceholder": "e.g., allergies, preferred staff",
+      "saveAndBook": "Save and Book Queue"
     },
     "columns": {
       "name": "Customer Name",
@@ -457,7 +506,8 @@
     },
     "booking": {
       "dateLabel": "Appointment Date",
-      "summary": "Summary"
+      "summary": "Booking Summary",
+      "stepTitle": "Book Queue"
     }
   },
   "service": {
@@ -475,7 +525,8 @@
     "toast": {
       "deleteSuccess": "Service deleted successfully",
       "editSuccess": "Service updated successfully",
-      "addSuccess": "Service added successfully"
+      "addSuccess": "Service added successfully",
+      "statusChangeSuccess": "Changed status to {status} successfully"
     },
     "toolbar": {
       "all": "All Services",
@@ -491,7 +542,11 @@
       "duration": "Duration (minutes)",
       "price": "Price",
       "category": "Category",
-      "shop": "Shop"
+      "shop": "Shop",
+      "namePlaceholder": "e.g., Men's haircut, shampoo, manicure",
+      "priceWithCurrency": "Price (THB)",
+      "selectCategory": "Select category",
+      "emptyCategory": "No categories yet - please add a category first"
     },
     "columns": {
       "name": "Service Name",
@@ -512,7 +567,8 @@
     "toast": {
       "deleteSuccess": "Category deleted successfully",
       "editSuccess": "Category updated successfully",
-      "addSuccess": "Category added successfully"
+      "addSuccess": "Category added successfully",
+      "statusChangeSuccess": "Changed status to {status} successfully"
     },
     "toolbar": {
       "all": "All Categories",
@@ -525,7 +581,8 @@
     },
     "form": {
       "name": "Category Name",
-      "shop": "Shop"
+      "shop": "Shop",
+      "namePlaceholder": "e.g., Haircut, Manicure"
     },
     "columns": {
       "name": "Category Name",
@@ -555,7 +612,27 @@
         "hoursFailed": "Failed to update business hours",
         "deleteSuccess": "Shop deleted successfully",
         "deleteFailed": "Failed to delete shop"
-      }
+      },
+      "noShopData": "Shop data not found",
+      "shopType": "Shop",
+      "open": "Open",
+      "closed": "Closed",
+      "openLabel": "Open",
+      "closedLabel": "Closed",
+      "basicInfoDescription": "Shop name, description, and contact channels",
+      "shopName": "Shop Name",
+      "businessType": "Business Type",
+      "selectBusinessType": "Select type",
+      "typeBarber": "Barber",
+      "typeSalon": "Salon",
+      "typeSpa": "Spa / Massage",
+      "descriptionLabel": "Shop Description",
+      "descriptionPlaceholder": "Introduce your shop to customers...",
+      "phone": "Phone Number",
+      "email": "Email",
+      "cancel": "Cancel",
+      "saving": "Saving...",
+      "saveData": "Save Data"
     },
     "branch": {
       "title": "Branch Settings",
@@ -566,7 +643,45 @@
         "saveFailed": "Failed to update branch",
         "deleteSuccess": "Branch deleted successfully",
         "deleteFailed": "Failed to delete branch"
-      }
+      },
+      "validation": {
+        "branchNameMin": "Branch name must be at least 2 characters",
+        "phoneFormat": "Phone must be 10 digits starting with 0",
+        "zipcodeLength": "Zipcode must be 5 digits",
+        "selectSubdistrict": "Please select a subdistrict"
+      },
+      "loading": "Loading data...",
+      "noShopData": "Shop data not found",
+      "tryAgain": "Please try again",
+      "shopType": "Shop",
+      "open": "Open",
+      "closed": "Closed",
+      "openLabel": "Open",
+      "closedLabel": "Closed",
+      "toggleAria": "Toggle shop open status",
+      "infoTitle": "Branch Information",
+      "infoDescription": "Branch name, phone, and address",
+      "branchName": "Branch Name",
+      "branchNamePlaceholder": "e.g., Main Branch, Sukhumvit Branch",
+      "branchPhone": "Branch Phone",
+      "optional": "(Optional)",
+      "branchAddress": "Branch Address",
+      "houseNo": "House No.",
+      "street": "Street",
+      "streetPlaceholder": "Sukhumvit",
+      "zipcode": "Zipcode",
+      "subdistrict": "Subdistrict",
+      "district": "District",
+      "province": "Province",
+      "loadingAddress": "Loading...",
+      "enterZipcodeFirst": "Enter zipcode first",
+      "addressNotFound": "Address not found",
+      "selectSubdistrict": "Select subdistrict",
+      "reset": "Reset",
+      "saving": "Saving...",
+      "saved": "Saved",
+      "saveData": "Save Data",
+      "noBranchData": "Branch data not found"
     },
     "holiday": {
       "title": "Holiday Settings",
@@ -649,5 +764,33 @@
     "revenue": "Revenue",
     "recentActivity": "Recent Activity",
     "noActivity": "No recent activity"
+  },
+  "CustomerBooking": {
+    "metadata": {
+      "title": "Online Booking | EZQueue",
+      "description": "Book queues online in advance quickly and easily with EZQueue"
+    },
+    "bookService": {
+      "metadataTitle": "Book Service | EZQueue",
+      "metadataDescription": "Book services online in advance, fast and convenient, with less waiting through EZQueue",
+      "title": "Book Service",
+      "description": "Choose the service and time you want to reserve in advance",
+      "shopTitle": "Shop {name}",
+      "unnamedShop": "Not specified",
+      "cardDescription": "Choose a convenient time to make a booking",
+      "confirm": "Confirm Booking",
+      "loginRequired": "Please sign in before booking",
+      "success": "Booking successful!",
+      "error": "An error occurred while booking"
+    }
+  },
+  "QueueStatus": {
+    "metadataTitle": "Your Queue Status | EZQueue",
+    "metadataDescription": "Check your queue and service booking status in real time",
+    "title": "Your Queue Status",
+    "description": "Track your booking status and current queue here",
+    "empty": "You do not have any queue right now",
+    "serviceQueue": "Service Queue",
+    "dateTime": "Date {date} at {time}"
   }
 }

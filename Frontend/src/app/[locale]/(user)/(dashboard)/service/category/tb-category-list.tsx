@@ -46,16 +46,23 @@ import { useShop } from "@/hooks/use-me"
 import { http } from "@/lib/http/client"
 import toast from "react-hot-toast"
 import { storage } from "@/services/localstorage"
+import { useTranslations } from "next-intl"
 
 const getFormSchema = (t: any) => z.object({
     name: z.string().min(1, t("validation.nameRequired")).max(150, t("validation.nameTooLong")),
-    shopId: z.number().min(1, t("validation.shopRequired")),
-    is_active: z.boolean().default(true),
+    shopId: z.coerce.number().min(1, t("validation.shopRequired")),
+    isActive: z.boolean().default(true),
 })
 
-type FormValues = z.infer<ReturnType<typeof getFormSchema>>
+type FormValues = {
+    name: string;
+    shopId: number;
+    isActive: boolean;
+}
 
 const ServiceCategoryPage = () => {
+    const t = useTranslations("category")
+    const tc = useTranslations("Common")
     const [tableData, setTableData] = React.useState<ServiceCategoryType[] | null>(null);
     const [dialogOpen, setDialogOpen] = React.useState(false);
     const [editTarget, setEditTarget] = React.useState<ServiceCategoryType | null>(null);
@@ -66,8 +73,8 @@ const ServiceCategoryPage = () => {
     const { data: shopData, isLoading } = useShop();
 
     const form = useForm<FormValues>({
-        resolver: zodResolver(getFormSchema(t)),
-        defaultValues: { name: "", shopId: "", isActive: true },
+        resolver: zodResolver(getFormSchema(t)) as any,
+        defaultValues: { name: "", shopId: 0, isActive: true },
     });
 
     React.useEffect(() => {
@@ -110,7 +117,7 @@ const ServiceCategoryPage = () => {
                 name: row.name,
                 isActive: newStatus,
             });
-            toast.success(`เปลี่ยนสถานะเป็น ${newStatus ? 'เปิด' : 'ปิด'} เรียบร้อย`);
+            toast.success(t("toast.statusChangeSuccess", { status: newStatus ? tc("status.active") : tc("status.inactive") }));
         } catch (error) {
             setTableData((prev) =>
                 prev?.map((item) =>
@@ -122,7 +129,7 @@ const ServiceCategoryPage = () => {
     };
 
     const deleteRow = async (id: number) => {
-        if (confirm("ยืนยันการลบข้อมูล?")) {
+        if (confirm(t("confirm.delete"))) {
             try {
                 await http.delete<boolean>("shopcategory", {
                     params: {
@@ -130,7 +137,7 @@ const ServiceCategoryPage = () => {
                     }
                 });
                 setTableData((prev) => prev?.filter((item) => item.id !== id) ?? null);
-                toast.success("ลบข้อมูลสำเร็จ");
+                toast.success(t("toast.deleteSuccess"));
             } catch (error) {
                 toast.error(tc("error.deleteFailed"));
             }
@@ -157,7 +164,7 @@ const ServiceCategoryPage = () => {
                                 : r
                         ) ?? null
                     );
-                    toast.success("แก้ไข Category สำเร็จ");
+                    toast.success(t("toast.editSuccess"));
                 }
             } else {
                 const payload = {
@@ -170,7 +177,7 @@ const ServiceCategoryPage = () => {
                 const newCategory = await http.post<ServiceCategoryType>("shopcategory", payload);
                 if (newCategory) {
                     setTableData((prev) => [...(prev ?? []), newCategory]);
-                    toast.success("เพิ่ม Category สำเร็จ");
+                    toast.success(t("toast.addSuccess"));
                 }
             }
             setDialogOpen(false);
@@ -184,7 +191,7 @@ const ServiceCategoryPage = () => {
         setEditTarget(null);
         form.reset({
             name: "",
-            shopId: String(shopData?.id || ""),
+            shopId: shopData?.id || 0,
             isActive: true
         });
         setDialogOpen(true);
@@ -194,7 +201,7 @@ const ServiceCategoryPage = () => {
         setEditTarget(row);
         form.reset({
             name: row.name,
-            shopId: String(row.shopId),
+            shopId: row.shopId,
             isActive: row.isActive,
         });
         setDialogOpen(true);
@@ -202,7 +209,7 @@ const ServiceCategoryPage = () => {
 
     const table = useReactTable({
         data: tableData ?? [],
-        columns,
+        columns: getColumns(t, tc),
         state: { sorting, columnFilters },
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
@@ -221,26 +228,26 @@ const ServiceCategoryPage = () => {
         <div className="w-full space-y-4">
             {/* 1. Toolbar */}
             <TableToolbar
-                title="Service Categories"
-                searchPlaceholder="ค้นหาชื่อ category..."
+                title={t("toolbar.all")}
+                searchPlaceholder={t("toolbar.search")}
                 searchValue={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
                 onSearchChange={(val) => table.getColumn("name")?.setFilterValue(val)}
                 onAddClick={openAdd}
-                addButtonText="เพิ่ม Category"
+                addButtonText={t("toolbar.add")}
             />
 
             {/* 2. Standard Table */}
             <CommonTable
                 table={table}
-                columnsLength={columns.length}
+                columnsLength={getColumns(t, tc).length}
             />
 
-            {/* 3. Add/Edit Dialog (ต้องมีเพื่อให้ Popup ทำงาน) */}
+            {/* Add/edit dialog */}
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                         <DialogTitle>
-                            {editTarget ? "แก้ไข Category" : "เพิ่ม Category ใหม่"}
+                            {editTarget ? t("dialog.edit") : t("dialog.add")}
                         </DialogTitle>
                     </DialogHeader>
 
@@ -251,9 +258,9 @@ const ServiceCategoryPage = () => {
                                 name="name"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>ชื่อ Category</FormLabel>
+                                        <FormLabel>{t("form.name")}</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="เช่น ตัดผม, ทำเล็บ" {...field} />
+                                            <Input placeholder={t("form.namePlaceholder")} {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -265,9 +272,9 @@ const ServiceCategoryPage = () => {
                                 name="shopId"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Shop</FormLabel>
+                                        <FormLabel>{t("form.shop")}</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="เช่น ตัดผม, ทำเล็บ" {...field} value={shopData?.name || ""} disabled />
+                                            <Input {...field} value={shopData?.name || ""} disabled />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>

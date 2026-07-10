@@ -1,13 +1,15 @@
-import { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 
-export const metadata: Metadata = {
-  title: "จองคิวใช้บริการ | EZQueue",
-  description: "จองคิวใช้บริการล่วงหน้าออนไลน์ สะดวก รวดเร็ว ไม่ต้องรอคิวนานผ่านระบบ EZQueue",
-  openGraph: {
-    title: "จองคิวใช้บริการ | EZQueue",
-    description: "จองคิวใช้บริการล่วงหน้าออนไลน์ สะดวก รวดเร็ว ไม่ต้องรอคิวนานผ่านระบบ EZQueue",
-  }
-};
+export async function generateMetadata() {
+  const t = await getTranslations("CustomerBooking.bookService");
+  const title = t("metadataTitle");
+  const description = t("metadataDescription");
+  return {
+    title,
+    description,
+    openGraph: { title, description },
+  };
+}
 
 export default function BookingLayout({ children }: { children: React.ReactNode }) {
   return <>{children}</>;

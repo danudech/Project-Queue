@@ -69,6 +69,7 @@ import { CustomerType } from "@/types/shop/customer"
 import { ShopResponse } from "@/types/shop/shop-responsd"
 import { SetService } from "@/types/shop/service"
 import { BookingDateField } from "./bookingdatefield"
+import { useTranslations } from "next-intl"
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -83,18 +84,32 @@ const TIME_SLOTS = [
 const getFormSchema = (t: any) => z.object({
     name: z.string().min(1, t("validation.nameRequired")).max(150, t("validation.nameTooLong")),
     phone: z.string().min(1, t("validation.phoneRequired")).max(20, t("validation.phoneTooLong")),
-    is_active: z.boolean().default(true),
+    isActive: z.boolean().default(true),
     isBooking: z.boolean().default(false),
+    serviceId: z.coerce.number().optional(),
+    bookingDate: z.date().optional(),
+    bookingTime: z.string().optional(),
+    note: z.string().optional(),
 })
 
-type FormValues = z.infer<ReturnType<typeof getFormSchema>>
+type FormValues = {
+    name: string;
+    phone: string;
+    isActive: boolean;
+    isBooking: boolean;
+    serviceId?: number;
+    bookingDate?: Date;
+    bookingTime?: string;
+    note?: string;
+}
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function StepIndicator({ current }: { current: "info" | "booking" }) {
+    const t = useTranslations("customer")
     const steps = [
-        { key: "info", label: "ข้อมูลลูกค้า" },
-        { key: "booking", label: "จองคิว" },
+        { key: "info", label: t("steps.info") },
+        { key: "booking", label: t("steps.booking") },
     ]
     return (
         <div className="flex items-center gap-2 pb-2">
@@ -128,6 +143,8 @@ function StepIndicator({ current }: { current: "info" | "booking" }) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 const CustomerPage = () => {
+    const t = useTranslations("customer")
+    const tc = useTranslations("Common")
     const [tableData, setTableData] = React.useState<CustomerType[] | null>(null)
     const [dialogOpen, setDialogOpen] = React.useState(false)
     const [editTarget, setEditTarget] = React.useState<CustomerType | null>(null)
@@ -143,7 +160,7 @@ const CustomerPage = () => {
     const { data: shopData } = useShop() as { data: ShopResponse | null }
 
     const form = useForm<FormValues>({
-        resolver: zodResolver(getFormSchema(t)),
+        resolver: zodResolver(getFormSchema(t)) as any,
         defaultValues: {
             name: "",
             phone: "",
@@ -190,7 +207,7 @@ const CustomerPage = () => {
                 phone: row.phone,
                 isActive: newStatus,
             })
-            toast.success(`เปลี่ยนสถานะเป็น ${newStatus ? "เปิด" : "ปิด"} เรียบร้อย`)
+            toast.success(t("toast.statusChangeSuccess", { status: newStatus ? tc("status.active") : tc("status.inactive") }))
         } catch {
             setTableData((prev) =>
                 prev?.map((item) =>
@@ -257,12 +274,12 @@ const CustomerPage = () => {
                                 time: values.bookingTime,
                                 note: values.note ?? "",
                             })
-                            toast.success("เพิ่มลูกค้าและจองคิวสำเร็จ")
+                            toast.success(t("toast.addWithBookingSuccess"))
                         } catch {
-                            toast.error("เพิ่มลูกค้าสำเร็จ แต่จองคิวไม่สำเร็จ")
+                            toast.error(t("toast.addBookingFailed"))
                         }
                     } else {
-                        toast.success("เพิ่มลูกค้าสำเร็จ")
+                        toast.success(t("toast.addSuccess"))
                     }
                 }
             }
@@ -310,7 +327,7 @@ const CustomerPage = () => {
     // ── Table ──────────────────────────────────────────────────────────────
     const table = useReactTable({
         data: tableData ?? [],
-        columns,
+        columns: getColumns(t, tc),
         state: { sorting, columnFilters },
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
@@ -331,18 +348,18 @@ const CustomerPage = () => {
                 searchValue={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
                 onSearchChange={(val) => table.getColumn("name")?.setFilterValue(val)}
                 onAddClick={openAdd}
-                addButtonText="เพิ่มลูกค้า"
+                addButtonText={t("toolbar.add")}
             />
 
             {/* 2. Table */}
-            <CommonTable table={table} columnsLength={columns.length} />
+            <CommonTable table={table} columnsLength={getColumns(t, tc).length} />
 
             {/* 3. Add / Edit Dialog */}
             <Dialog open={dialogOpen} onOpenChange={handleCloseDialog}>
                 <DialogContent className="sm:max-w-lg">
                     <DialogHeader>
                         <DialogTitle>
-                            {editTarget ? "แก้ไขข้อมูลลูกค้า" : "เพิ่มลูกค้าใหม่"}
+                            {editTarget ? t("dialog.edit") : t("dialog.add")}
                         </DialogTitle>
                     </DialogHeader>
 
@@ -353,47 +370,43 @@ const CustomerPage = () => {
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
 
                             {/* ══════════════════════════════════════════
-                                STEP 1 — ข้อมูลลูกค้า
+                                STEP 1 - Customer details
                             ══════════════════════════════════════════ */}
                             {step === "info" && (
                                 <>
-                                    {/* ชื่อลูกค้า */}
+                                    {/* Section */}
                                     <FormField
                                         control={form.control}
                                         name="name"
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel className="flex items-center gap-1.5">
-                                                    <User className="w-3.5 h-3.5 text-muted-foreground" />
-                                                    ชื่อลูกค้า
-                                                </FormLabel>
+                                                    <User className="w-3.5 h-3.5 text-muted-foreground" />{t("form.name")}</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="เช่น สมชาย ใจดี" {...field} />
+                                                    <Input placeholder={t("form.namePlaceholder")} {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
                                         )}
                                     />
 
-                                    {/* เบอร์โทรศัพท์ */}
+                                    {/* Section */}
                                     <FormField
                                         control={form.control}
                                         name="phone"
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel className="flex items-center gap-1.5">
-                                                    <Phone className="w-3.5 h-3.5 text-muted-foreground" />
-                                                    เบอร์โทรศัพท์
-                                                </FormLabel>
+                                                    <Phone className="w-3.5 h-3.5 text-muted-foreground" />{t("form.phone")}</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="เช่น 0812345678" {...field} />
+                                                    <Input placeholder={t("form.phonePlaceholder")} {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
                                         )}
                                     />
 
-                                    {/* สถานะ */}
+                                    {/* Section */}
                                     <FormField
                                         control={form.control}
                                         name="isActive"
@@ -410,7 +423,7 @@ const CustomerPage = () => {
                                         )}
                                     />
 
-                                    {/* Toggle จองคิว — add mode only */}
+                                    {/* Section */}
                                     {!editTarget && (
                                         <>
                                             <Separator />
@@ -433,7 +446,7 @@ const CustomerPage = () => {
                                                     </div>
                                                     <div>
                                                         <p className="text-sm font-medium">{t("form.bookTogether")}</p>
-                                                        <p className="text-xs text-muted-foreground">เพิ่มการนัดหมายทันที</p>
+                                                        <p className="text-xs text-muted-foreground">{t("form.bookingHint")}</p>
                                                     </div>
                                                 </div>
                                                 <Switch
@@ -450,17 +463,15 @@ const CustomerPage = () => {
                                             type="button"
                                             variant="outline"
                                             onClick={handleCloseDialog}
-                                        >
-                                            ยกเลิก
-                                        </Button>
+                                        >{tc("cancel")}</Button>
                                         {withBooking && !editTarget ? (
                                             <Button type="button" onClick={handleNextStep}>
-                                                ถัดไป
+                                                {tc("next")}
                                                 <ChevronRight className="w-4 h-4 ml-1" />
                                             </Button>
                                         ) : (
                                             <Button type="submit" disabled={btnLoading}>
-                                                {btnLoading ? tc("saving") : "บันทึก"}
+                                                {btnLoading ? tc("saving") : tc("save")}
                                             </Button>
                                         )}
                                     </DialogFooter>
@@ -468,7 +479,7 @@ const CustomerPage = () => {
                             )}
 
                             {/* ══════════════════════════════════════════
-                                STEP 2 — จองคิว
+                                STEP 2 - Booking details
                             ══════════════════════════════════════════ */}
                             {step === "booking" && (
                                 <>
@@ -483,23 +494,21 @@ const CustomerPage = () => {
                                         </div>
                                     </div>
 
-                                    {/* บริการ */}
+                                    {/* Section */}
                                     <FormField
                                         control={form.control}
                                         name="serviceId"
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel className="flex items-center gap-1.5">
-                                                    <Scissors className="w-3.5 h-3.5 text-muted-foreground" />
-                                                    บริการที่ต้องการ
-                                                </FormLabel>
+                                                    <Scissors className="w-3.5 h-3.5 text-muted-foreground" />{t("form.desiredService")}</FormLabel>
                                                 <Select
                                                     onValueChange={(val) => field.onChange(Number(val))}
                                                     value={field.value?.toString()}
                                                 >
                                                     <FormControl>
                                                         <SelectTrigger>
-                                                            <SelectValue placeholder="เลือกบริการ" />
+                                                            <SelectValue placeholder={t("form.selectService")} />
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
@@ -510,7 +519,7 @@ const CustomerPage = () => {
                                                                     <div className="flex items-center justify-between w-full gap-6">
                                                                         <span>{s.name}</span>
                                                                         <span className="text-xs text-muted-foreground">
-                                                                            {s.duration} นาที · ฿{s.price.toLocaleString()}
+                                                                            {s.duration} {tc("units.minutes")} - {tc("currency.thb")}{s.price.toLocaleString()}
                                                                         </span>
                                                                     </div>
                                                                 </SelectItem>
@@ -521,10 +530,10 @@ const CustomerPage = () => {
                                                     <div className="flex gap-2 mt-1">
                                                         <Badge className="text-xs">
                                                             <Clock className="w-3 h-3 mr-1" />
-                                                            {selectedService.duration} นาที
+                                                            {selectedService.duration} {tc("units.minutes")}
                                                         </Badge>
                                                         <Badge className="text-xs">
-                                                            ฿{selectedService.price.toLocaleString()}
+                                                            {tc("currency.thb")}{selectedService.price.toLocaleString()}
                                                         </Badge>
                                                         {selectedService.categoryName && (
                                                             <Badge className="text-xs">
@@ -538,19 +547,17 @@ const CustomerPage = () => {
                                         )}
                                     />
 
-                                    {/* วันที่ */}
-                                    <BookingDateField t={t} tc={tc} control={form.control} name="bookingDate" />
+                                    {/* Section */}
+                                    <BookingDateField control={form.control} name="bookingDate" />
 
-                                    {/* เวลา */}
+                                    {/* Section */}
                                     <FormField
                                         control={form.control}
                                         name="bookingTime"
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel className="flex items-center gap-1.5">
-                                                    <Clock className="w-3.5 h-3.5 text-muted-foreground" />
-                                                    เวลานัดหมาย
-                                                </FormLabel>
+                                                    <Clock className="w-3.5 h-3.5 text-muted-foreground" />{t("form.appointmentTime")}</FormLabel>
                                                 <div className="grid grid-cols-4 gap-1.5">
                                                     {TIME_SLOTS.map((t) => (
                                                         <button
@@ -573,16 +580,16 @@ const CustomerPage = () => {
                                         )}
                                     />
 
-                                    {/* หมายเหตุ */}
+                                    {/* Section */}
                                     <FormField
                                         control={form.control}
                                         name="note"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>หมายเหตุ (ถ้ามี)</FormLabel>
+                                                <FormLabel>{t("form.note")}</FormLabel>
                                                 <FormControl>
                                                     <Input
-                                                        placeholder="เช่น แพ้สารเคมี, ต้องการช่างเฉพาะ"
+                                                        placeholder={t("form.notePlaceholder")}
                                                         {...field}
                                                     />
                                                 </FormControl>
@@ -593,9 +600,7 @@ const CustomerPage = () => {
                                     {/* Booking summary */}
                                     {(selectedService || bookingDate || bookingTime) && (
                                         <div className="rounded-lg border bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800 p-3 space-y-1.5">
-                                            <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wide">
-                                                สรุปการจอง
-                                            </p>
+                                            <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wide">{t("booking.summary")}</p>
                                             {selectedService && (
                                                 <p className="text-sm">📋 {selectedService.name}</p>
                                             )}
@@ -605,7 +610,7 @@ const CustomerPage = () => {
                                                 </p>
                                             )}
                                             {bookingTime && (
-                                                <p className="text-sm">🕐 {bookingTime} น.</p>
+                                                <p className="text-sm">🕐 {bookingTime} {tc("units.timeSuffix")}</p>
                                             )}
                                         </div>
                                     )}
@@ -615,11 +620,9 @@ const CustomerPage = () => {
                                             type="button"
                                             variant="outline"
                                             onClick={() => setStep("info")}
-                                        >
-                                            ย้อนกลับ
-                                        </Button>
+                                        >{tc("back")}</Button>
                                         <Button type="submit" disabled={btnLoading}>
-                                            {btnLoading ? tc("saving") : "บันทึกและจองคิว"}
+                                            {btnLoading ? tc("saving") : t("form.saveAndBook")}
                                         </Button>
                                     </DialogFooter>
                                 </>

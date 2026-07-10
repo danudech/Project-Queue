@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { CustomerType } from "@/types/shop/customer"
 
-export const columns: ColumnDef<CustomerType>[] = [
+export const getColumns = (t: any, tc: any): ColumnDef<CustomerType>[] => [
   {
     accessorKey: "id",
     header: "ID",
@@ -74,7 +74,7 @@ export const columns: ColumnDef<CustomerType>[] = [
         hour12: false,
       }).format(date)
 
-      return <span className="text-default-500 text-sm">{formatted} น.</span>
+      return <span className="text-default-500 text-sm">{formatted} {tc("units.timeSuffix")}</span>
     },
   },
   {
@@ -106,7 +106,7 @@ export const columns: ColumnDef<CustomerType>[] = [
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="top">
-                <p>{isActive ? "ปิดการใช้งาน" : "เปิดการใช้งาน"}</p>
+                <p>{isActive ? tc("tooltip.deactivate") : tc("tooltip.activate")}</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>

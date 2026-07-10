@@ -52,7 +52,7 @@ const ResetPasswordPage = () => {
                 </div>
               </div>
 
-              {/* ✅ ส่ง token */}
+              {/* Section */}
               <ResetPasswordForm />
             </div>
           </div>

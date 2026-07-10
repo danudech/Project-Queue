@@ -149,8 +149,8 @@ export function createHttp<K extends string>(
     return parseResponse<T>(res);
   }
 
-  function resolve(key: K, opts?: RequestOptions) {
-    const path = endpoints[key];
+  function resolve(key: K | string, opts?: RequestOptions) {
+    const path = (endpoints as Record<string, string>)[key] ?? key;
     const qs = encodeQuery(opts?.params);
     return `${baseUrl ?? ""}${path}${qs}`;
   }

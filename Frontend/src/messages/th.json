@@ -3,6 +3,18 @@
     "title": "สวัสดีชาวโลก!"
   },
   "Auth": {
+    "unlock_title": "รวดเร็วกว่า บริการ",
+    "unlock_performance": "ที่ดีกว่า",
+    "login_header": "ยินดีต้อนรับกลับ",
+    "login_desc": "กรุณากรอกข้อมูลเพื่อเข้าสู่ระบบ",
+    "keep_me": "จดจำการเข้าสู่ระบบ",
+    "forgot_password": "ลืมรหัสผ่าน?",
+    "sign_in": "เข้าสู่ระบบ",
+    "no_account": "ยังไม่มีบัญชีใช่ไหม?",
+    "sign_up": "ลงทะเบียน",
+    "signup_header": "สร้างบัญชีใหม่",
+    "signup_desc": "กรอกข้อมูลของคุณเพื่อเริ่มต้นใช้งาน",
+    "already_registered": "มีบัญชีอยู่แล้ว?",
     "login": {
       "title": "ยินดีต้อนรับกลับมา",
       "subtitle": "เข้าสู่ระบบเพื่อจัดการร้านค้าของคุณ",
@@ -273,6 +285,7 @@
     "logout": "ออกจากระบบ"
   },
   "Shop": {
+    "back": "ย้อนกลับ",
     "noShop": "ยังไม่มีร้านค้า",
     "noBranch": "ยังไม่มีสาขา",
     "noShopData": "ยังไม่มีข้อมูลร้านค้า",
@@ -336,7 +349,22 @@
     "addBranchSuccess": "เพิ่มสาขาสำเร็จ!",
     "addBranchFailed": "เพิ่มสาขาไม่สำเร็จ",
     "addBranch": "เพิ่มสาขา",
-    "addNewShop": "เพิ่มร้านค้าใหม่"
+    "addNewShop": "เพิ่มร้านค้าใหม่",
+    "createStoreTitle": "สร้างร้านค้าใหม่",
+    "createStoreDescription": "เริ่มต้นใช้งาน QueueApp ง่ายๆ เพียงกรอกข้อมูลเบื้องต้น",
+    "step1": "ขั้นตอนที่ 1",
+    "step2": "ขั้นตอนที่ 2",
+    "step3": "ขั้นตอนที่ 3",
+    "firstBranch": "สาขาแรก",
+    "storePhone": "เบอร์โทรร้าน",
+    "phonePlaceholder": "เช่น 02-123-4567 หรือ 081-234-5678",
+    "phoneDesc": "เพื่อให้ลูกค้าติดต่อสอบถามเพิ่มเติมได้",
+    "continue": "ดำเนินการต่อ",
+    "typeClinic": "คลินิก / สุขภาพ / โรงพยาบาล",
+    "typeSalon": "เสริมสวย / ตัดผม / ทำเล็บ",
+    "typeRestaurant": "ร้านอาหาร / คาเฟ่ / เบเกอรี่",
+    "typeOther": "อื่นๆ / บริการทั่วไป",
+    "streetPlaceholder": "สุขุมวิท"
   },
   "Changelog": {
     "version": "เวอร์ชัน",
@@ -415,7 +443,16 @@
         "ศ",
         "ส"
       ]
-    }
+    },
+    "statusChangeSuccess": "เปลี่ยนสถานะเป็น {status} เรียบร้อย",
+    "loadingData": "กำลังโหลดข้อมูล...",
+    "placeholders": {
+      "noValue": "-"
+    },
+    "currency": {
+      "thb": "฿"
+    },
+    "noData": "ไม่พบข้อมูล"
   },
   "customer": {
     "validation": {
@@ -431,7 +468,10 @@
     "toast": {
       "deleteSuccess": "ลบลูกค้าสำเร็จ",
       "editSuccess": "แก้ไขข้อมูลลูกค้าสำเร็จ",
-      "addSuccess": "เพิ่มลูกค้าสำเร็จ"
+      "addSuccess": "เพิ่มลูกค้าสำเร็จ",
+      "addWithBookingSuccess": "เพิ่มลูกค้าและจองคิวสำเร็จ",
+      "addBookingFailed": "เพิ่มลูกค้าสำเร็จ แต่จองคิวไม่สำเร็จ",
+      "statusChangeSuccess": "เปลี่ยนสถานะเป็น {status} เรียบร้อย"
     },
     "toolbar": {
       "all": "ลูกค้าทั้งหมด",
@@ -445,7 +485,16 @@
     "form": {
       "name": "ชื่อลูกค้า",
       "phone": "เบอร์โทรศัพท์",
-      "bookTogether": "จองคิวพร้อมกัน"
+      "bookTogether": "จองคิวพร้อมกัน",
+      "namePlaceholder": "เช่น สมชาย ใจดี",
+      "phonePlaceholder": "เช่น 0812345678",
+      "bookingHint": "เพิ่มการนัดหมายทันที",
+      "desiredService": "บริการที่ต้องการ",
+      "selectService": "เลือกบริการ",
+      "appointmentTime": "เวลานัดหมาย",
+      "note": "หมายเหตุ (ถ้ามี)",
+      "notePlaceholder": "เช่น แพ้สารเคมี, ต้องการช่างเฉพาะ",
+      "saveAndBook": "บันทึกและจองคิว"
     },
     "columns": {
       "name": "ชื่อลูกค้า",
@@ -457,7 +506,8 @@
     },
     "booking": {
       "dateLabel": "วันที่นัดหมาย",
-      "summary": "สรุปรายการ"
+      "summary": "สรุปการจอง",
+      "stepTitle": "จองคิว"
     }
   },
   "service": {
@@ -475,7 +525,8 @@
     "toast": {
       "deleteSuccess": "ลบข้อมูลสำเร็จ",
       "editSuccess": "แก้ไขข้อมูลสำเร็จ",
-      "addSuccess": "เพิ่มข้อมูลสำเร็จ"
+      "addSuccess": "เพิ่มข้อมูลสำเร็จ",
+      "statusChangeSuccess": "เปลี่ยนสถานะเป็น {status} เรียบร้อย"
     },
     "toolbar": {
       "all": "บริการทั้งหมด",
@@ -491,7 +542,11 @@
       "duration": "ระยะเวลา (นาที)",
       "price": "ราคา",
       "category": "หมวดหมู่",
-      "shop": "ร้านค้า"
+      "shop": "ร้านค้า",
+      "namePlaceholder": "เช่น ตัดผมชาย, สระผม, ทำเล็บ",
+      "priceWithCurrency": "ราคา (บาท)",
+      "selectCategory": "เลือกหมวดหมู่",
+      "emptyCategory": "ไม่มีหมวดหมู่ - กรุณาเพิ่มหมวดหมู่ก่อน"
     },
     "columns": {
       "name": "ชื่อบริการ",
@@ -512,7 +567,8 @@
     "toast": {
       "deleteSuccess": "ลบหมวดหมู่สำเร็จ",
       "editSuccess": "แก้ไขหมวดหมู่สำเร็จ",
-      "addSuccess": "เพิ่มหมวดหมู่สำเร็จ"
+      "addSuccess": "เพิ่มหมวดหมู่สำเร็จ",
+      "statusChangeSuccess": "เปลี่ยนสถานะเป็น {status} เรียบร้อย"
     },
     "toolbar": {
       "all": "หมวดหมู่ทั้งหมด",
@@ -525,7 +581,8 @@
     },
     "form": {
       "name": "ชื่อหมวดหมู่",
-      "shop": "ร้านค้า"
+      "shop": "ร้านค้า",
+      "namePlaceholder": "เช่น ตัดผม, ทำเล็บ"
     },
     "columns": {
       "name": "ชื่อหมวดหมู่",
@@ -555,7 +612,27 @@
         "hoursFailed": "เกิดข้อผิดพลาดในการบันทึกเวลาทำการ",
         "deleteSuccess": "ลบร้านค้าสำเร็จ",
         "deleteFailed": "ลบร้านค้าไม่สำเร็จ"
-      }
+      },
+      "noShopData": "ไม่พบข้อมูลร้านค้า",
+      "shopType": "ร้านค้า",
+      "open": "เปิดทำการ",
+      "closed": "ปิดทำการ",
+      "openLabel": "เปิดอยู่",
+      "closedLabel": "ปิดอยู่",
+      "basicInfoDescription": "ชื่อร้าน คำอธิบาย และช่องทางติดต่อ",
+      "shopName": "ชื่อร้านค้า",
+      "businessType": "ประเภทธุรกิจ",
+      "selectBusinessType": "เลือกประเภท",
+      "typeBarber": "ร้านตัดผม",
+      "typeSalon": "ร้านเสริมสวย",
+      "typeSpa": "สปา / นวด",
+      "descriptionLabel": "คำอธิบายร้าน",
+      "descriptionPlaceholder": "แนะนำร้านของคุณให้ลูกค้ารู้จัก...",
+      "phone": "เบอร์โทรศัพท์",
+      "email": "อีเมล",
+      "cancel": "ยกเลิก",
+      "saving": "กำลังบันทึก...",
+      "saveData": "บันทึกข้อมูล"
     },
     "branch": {
       "title": "ตั้งค่าสาขา",
@@ -566,7 +643,45 @@
         "saveFailed": "เกิดข้อผิดพลาดในการบันทึก",
         "deleteSuccess": "ลบสาขาสำเร็จ",
         "deleteFailed": "ลบสาขาไม่สำเร็จ"
-      }
+      },
+      "validation": {
+        "branchNameMin": "ชื่อสาขาต้องมีอย่างน้อย 2 ตัวอักษร",
+        "phoneFormat": "เบอร์โทรต้องมี 10 หลักและขึ้นต้นด้วย 0",
+        "zipcodeLength": "รหัสไปรษณีย์ต้องมี 5 หลัก",
+        "selectSubdistrict": "กรุณาเลือกตำบล"
+      },
+      "loading": "กำลังโหลดข้อมูล...",
+      "noShopData": "ไม่พบข้อมูลร้านค้า",
+      "tryAgain": "กรุณาลองใหม่อีกครั้ง",
+      "shopType": "ร้านค้า",
+      "open": "เปิดทำการ",
+      "closed": "ปิดทำการ",
+      "openLabel": "เปิดอยู่",
+      "closedLabel": "ปิดอยู่",
+      "toggleAria": "เปิด/ปิดร้านค้า",
+      "infoTitle": "ข้อมูลสาขา",
+      "infoDescription": "ชื่อสาขา เบอร์โทร และที่อยู่",
+      "branchName": "ชื่อสาขา",
+      "branchNamePlaceholder": "เช่น สาขาหลัก, สาขาสุขุมวิท",
+      "branchPhone": "เบอร์โทรสาขา",
+      "optional": "(ไม่บังคับ)",
+      "branchAddress": "ที่อยู่สาขา",
+      "houseNo": "บ้านเลขที่",
+      "street": "ถนน",
+      "streetPlaceholder": "สุขุมวิท",
+      "zipcode": "รหัสไปรษณีย์",
+      "subdistrict": "ตำบล / แขวง",
+      "district": "เขต / อำเภอ",
+      "province": "จังหวัด",
+      "loadingAddress": "กำลังโหลด...",
+      "enterZipcodeFirst": "กรอกรหัสไปรษณีย์ก่อน",
+      "addressNotFound": "ไม่พบที่อยู่",
+      "selectSubdistrict": "เลือกตำบล / แขวง",
+      "reset": "รีเซ็ต",
+      "saving": "กำลังบันทึก...",
+      "saved": "บันทึกแล้ว",
+      "saveData": "บันทึกข้อมูล",
+      "noBranchData": "ไม่พบข้อมูลสาขา"
     },
     "holiday": {
       "title": "ตั้งค่าวันหยุด",
@@ -649,5 +764,33 @@
     "revenue": "รายได้",
     "recentActivity": "ความเคลื่อนไหวล่าสุด",
     "noActivity": "ไม่มีความเคลื่อนไหวล่าสุด"
+  },
+  "CustomerBooking": {
+    "metadata": {
+      "title": "จองคิวออนไลน์ | EZQueue",
+      "description": "จองคิวออนไลน์ล่วงหน้าได้ง่ายๆ สะดวกและรวดเร็วผ่านระบบ EZQueue"
+    },
+    "bookService": {
+      "metadataTitle": "จองคิวใช้บริการ | EZQueue",
+      "metadataDescription": "จองคิวใช้บริการล่วงหน้าออนไลน์ สะดวก รวดเร็ว ไม่ต้องรอคิวนานผ่านระบบ EZQueue",
+      "title": "จองคิวใช้บริการ",
+      "description": "เลือกบริการและเวลาที่คุณต้องการจองล่วงหน้า",
+      "shopTitle": "ร้าน {name}",
+      "unnamedShop": "ไม่ระบุ",
+      "cardDescription": "เลือกเวลาที่คุณสะดวกเพื่อทำการจอง",
+      "confirm": "ยืนยันการจองคิว",
+      "loginRequired": "กรุณาเข้าสู่ระบบก่อนทำการจอง",
+      "success": "จองคิวสำเร็จ!",
+      "error": "เกิดข้อผิดพลาดในการจองคิว"
+    }
+  },
+  "QueueStatus": {
+    "metadataTitle": "สถานะคิวของคุณ | EZQueue",
+    "metadataDescription": "ตรวจสอบสถานะคิวและการจองบริการของคุณแบบเรียลไทม์",
+    "title": "สถานะคิวของคุณ",
+    "description": "ติดตามสถานะการจองและคิวปัจจุบันของคุณได้ที่นี่",
+    "empty": "คุณยังไม่มีคิวในขณะนี้",
+    "serviceQueue": "คิวบริการ",
+    "dateTime": "วันที่ {date} เวลา {time}"
   }
 }

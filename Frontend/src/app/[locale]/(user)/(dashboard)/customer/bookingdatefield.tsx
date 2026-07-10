@@ -11,8 +11,6 @@ import { Control, FieldValues, Path } from "react-hook-form"
 
 // ─── Inline Calendar ──────────────────────────────────────────────────────────
 
-const DAYS_TH = ["อา", "จ", "อ", "พ", "พฤ", "ศ", "ส"]
-
 interface InlineCalendarProps {
     selected?: Date
     onSelect: (date: Date) => void
@@ -20,6 +18,8 @@ interface InlineCalendarProps {
 }
 
 function InlineCalendar({ selected, onSelect, disabled }: InlineCalendarProps) {
+    const t = useTranslations("Common")
+    const daysShort = t.raw("calendar.daysShort") as string[]
     const [viewDate, setViewDate] = React.useState(selected ?? new Date())
 
     const days = React.useMemo(() => {
@@ -56,7 +56,7 @@ function InlineCalendar({ selected, onSelect, disabled }: InlineCalendarProps) {
 
             {/* Day headers */}
             <div className="grid grid-cols-7 mb-1">
-                {DAYS_TH.map((d, i) => (
+                {daysShort.map((d, i) => (
                     <div
                         key={d}
                         className={cn(
@@ -120,6 +120,8 @@ export function BookingDateField<TFieldValues extends FieldValues>({
     control,
     name,
 }: BookingDateFieldProps<TFieldValues>) {
+    const t = useTranslations("customer")
+
     return (
         <FormField
             control={control}
@@ -128,7 +130,7 @@ export function BookingDateField<TFieldValues extends FieldValues>({
                 <FormItem>
                     <FormLabel className="flex items-center gap-1.5">
                         <CalendarIcon className="w-3.5 h-3.5 text-muted-foreground" />
-                        วันที่นัดหมาย
+                        {t("booking.dateLabel")}
                         {field.value && (
                             <span className="ml-auto text-xs font-normal text-primary">
                                 {format(field.value, "d MMM yyyy", { locale: th })}

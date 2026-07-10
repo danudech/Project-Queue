@@ -49,7 +49,7 @@ const RegForm = () => {
       const message = login.code === "success" ? "Successfully registered" : login.code === "idle" ? "Registration is idle" : "Registration failed";
       toast.success(login.message || message);
       await storage.set("registration", JSON.stringify(data));
-      // ✅ redirect หลัง login
+      // Note
       await sleep(2000);
       router.push(`/${locale}/auth/mail-confirm`);
     } catch (err: any) {
@@ -126,9 +126,9 @@ const RegForm = () => {
             size="sm"
             placeholder="08XXXXXXXX"
             {...register("phone", {
-              required: false, // ไม่บังคับกรอก
+              required: false, // Note
               validate: (value) => {
-                if (!value) return true; // ถ้าว่างให้ผ่าน
+                if (!value) return true; // Note
                 if (!/^0/.test(value)) return "Phone number must start with 0";
                 if (value.length !== 10) return "Phone number must be 10 digits";
                 if (!/^\d+$/.test(value)) return "Numbers only";

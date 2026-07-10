@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { useForm } from "react-hook-form";
 import { useLocale, useTranslations } from "next-intl";
-import { Loader2, Check } from "lucide-react"; // นำเข้า Check icon
+import { Loader2, Check } from "lucide-react"; // Note
 import { toast } from "sonner";
 import { http } from "@/lib/http/client";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -79,7 +79,7 @@ const ResetPasswordForm = () => {
           redirectTo = returnUrl.replace(`/${locale}`, "") || "/dashboard";
         }
 
-        // เพิ่ม Delay 1.5 วินาที เพื่อให้ผู้ใช้เห็น Notification ก่อน Redirect
+        // Note
         setTimeout(() => {
           router.push(redirectTo);
         }, 1500);
@@ -101,7 +101,7 @@ const ResetPasswordForm = () => {
   const iconWrapperClass = "bg-transparent border-none text-default-500 px-2.5 flex items-center justify-center";
   const inputBaseClass = "border-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent w-full h-9 pl-1 text-sm";
 
-  // Helper สำหรับ Checklist
+  // Note
   const RuleItem = ({ isMet, label }: { isMet: boolean; label: string }) => (
     <div className={cn("flex items-center gap-1.5 transition-colors duration-300", isMet ? "text-success" : "text-default-400")}>
       <Check className={cn("h-3.5 w-3.5", isMet ? "opacity-100" : "opacity-30")} />

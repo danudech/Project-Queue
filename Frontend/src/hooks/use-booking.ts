@@ -7,12 +7,12 @@ export const useBooking = (customerId?: number) => {
 
   const getBookings = useQuery({
     queryKey: ["bookings", customerId],
-    queryFn: () => http.get<BookingDto[]>("/booking", { params: { customerId } }),
+    queryFn: () => http.get<BookingDto[]>("booking", { params: { customerId } }),
     enabled: !!customerId,
   });
 
   const createBooking = useMutation({
-    mutationFn: (data: CreateBookingDto) => http.post<BookingDto>("/booking", data),
+    mutationFn: (data: CreateBookingDto) => http.post<BookingDto>("booking", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["bookings", customerId] });
     },

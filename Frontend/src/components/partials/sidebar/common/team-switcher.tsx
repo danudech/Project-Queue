@@ -57,8 +57,6 @@ const DAYS = [
     { value: 0, label: "day_sunday" },
 ] as const
 
-const STEPS = ["ข้อมูลร้าน", "ข้อมูลสาขา", "เวลาทำการ"] as const
-
 // ─────────────────────────────────────────────────────────
 // Schemas
 // ─────────────────────────────────────────────────────────
@@ -162,7 +160,7 @@ function StepFooter({
 }
 
 // ─────────────────────────────────────────────────────────
-// Step 1 — ข้อมูลร้าน
+// Note
 // ─────────────────────────────────────────────────────────
 function Step1({ onNext, saved }: { onNext: (v: Step1Values) => void; saved: Partial<Step1Values> }) {
     const locale = useLocale()
@@ -230,7 +228,7 @@ function Step1({ onNext, saved }: { onNext: (v: Step1Values) => void; saved: Par
 }
 
 // ─────────────────────────────────────────────────────────
-// Step 2 — สาขา
+// Note
 // ─────────────────────────────────────────────────────────
 function Step2({ onNext, onBack, saved }: { onNext: (v: Step2Values) => void; onBack: () => void; saved: Partial<Step2Values> }) {
     const t = useTranslations("Shop")
@@ -238,7 +236,7 @@ function Step2({ onNext, onBack, saved }: { onNext: (v: Step2Values) => void; on
     const [isLoading, setIsLoading] = React.useState(false)
 
     const form = useForm<Step2Values>({
-        resolver: zodResolver(step2Schema),
+        resolver: zodResolver(getStep2Schema(t)),
         defaultValues: {
             branchName: t("defaultBranchName"),
             branchPhone: "",
@@ -339,7 +337,7 @@ function Step2({ onNext, onBack, saved }: { onNext: (v: Step2Values) => void; on
                             <FormField control={form.control} name="street" render={({ field }) => (
                                 <FormItem>
                                     <FormLabel className="text-[11px] text-muted-foreground">{t("street")}</FormLabel>
-                                    <FormControl><Input placeholder="สุขุมวิท" className="h-9 text-sm" {...field} /></FormControl>
+                                    <FormControl><Input placeholder={t("streetPlaceholder")} className="h-9 text-sm" {...field} /></FormControl>
                                 </FormItem>
                             )} />
                         </div>
@@ -400,7 +398,7 @@ function Step2({ onNext, onBack, saved }: { onNext: (v: Step2Values) => void; on
 }
 
 // ─────────────────────────────────────────────────────────
-// Step 3 — เวลาทำการ
+// Note
 // ─────────────────────────────────────────────────────────
 function Step3({ onSubmit, onBack, isSubmitting, submitLabel }: {
     onSubmit: (hours: BusinessHour[]) => void
@@ -497,7 +495,7 @@ export default function TeamSwitcher({ className }: { className?: string }) {
     const [showDialog, setShowDialog] = React.useState(false)
     const [dialogMode, setDialogMode] = React.useState<"shop" | "branch">("shop")
     const [step, setStep] = React.useState(0)
-    const [branchStep, setBranchStep] = React.useState(0) // 0 = ข้อมูลสาขา, 1 = เวลาทำการ
+    const [branchStep, setBranchStep] = React.useState(0) // Note
     const [isSubmitting, setIsSubmitting] = React.useState(false)
     const [selectedShopId, setSelectedShopId] = React.useState<number | null>(null)
     const [selectedBranchId, setSelectedBranchId] = React.useState<number | null>(null)
@@ -505,7 +503,7 @@ export default function TeamSwitcher({ className }: { className?: string }) {
     const [step1Data, setStep1Data] = React.useState<Partial<Step1Values>>({})
     const [step2Data, setStep2Data] = React.useState<Partial<Step2Values>>({})
 
-    // ตั้งค่า selectedShopId และ selectedBranchId จากร้านแรกที่โหลดมา
+    // Note
     React.useEffect(() => {
         const freshdata = async () => {
             if (shopData && !selectedShopId) {
@@ -634,7 +632,6 @@ export default function TeamSwitcher({ className }: { className?: string }) {
 
     return (
         <Dialog open={showDialog} onOpenChange={handleClose}>
-            {/* ── Switcher Popover ── */}
             <Popover open={open} onOpenChange={setOpen}>
                 <PopoverTrigger asChild>
                     <motion.div
@@ -752,7 +749,7 @@ export default function TeamSwitcher({ className }: { className?: string }) {
                         <CommandSeparator />
                         <CommandList>
                             <CommandGroup>
-                                {/* ถ้ามีร้านแล้ว → เพิ่มสาขา, ถ้าไม่มี → เพิ่มร้านใหม่ */}
+                                {/* Section */}
                                 {shopData ? (
                                     <CommandItem
                                         onSelect={() => { setOpen(false); setDialogMode("branch"); setShowDialog(true) }}
@@ -802,7 +799,7 @@ export default function TeamSwitcher({ className }: { className?: string }) {
                             </DialogDescription>
                         </div>
                     </div>
-                    {/* Step indicator เฉพาะ mode สร้างร้าน */}
+                    {/* Section */}
                     {dialogMode === "shop" && <StepIndicator current={step} />}
                 </div>
 
@@ -814,7 +811,7 @@ export default function TeamSwitcher({ className }: { className?: string }) {
                         exit={{ opacity: 0, x: -12 }}
                         transition={{ duration: 0.16, ease: "easeOut" }}
                     >
-                        {/* ── Branch mode: Step 0 ข้อมูลสาขา ── */}
+                        {/* Section */}
                         {dialogMode === "branch" && branchStep === 0 && (
                             <Step2
                                 saved={step2Data}
@@ -823,7 +820,7 @@ export default function TeamSwitcher({ className }: { className?: string }) {
                             />
                         )}
 
-                        {/* ── Branch mode: Step 1 เวลาทำการ ── */}
+                        {/* Section */}
                         {dialogMode === "branch" && branchStep === 1 && (
                             <Step3
                                 onSubmit={handleBranchSubmit}

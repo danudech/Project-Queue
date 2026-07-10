@@ -185,7 +185,7 @@ export function CollapseMenuButton({
 
             <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
                 {submenus.map(({ href, label, active, children: subChildren }, index) => (
-                    // ✅ ครอบคลุมทั้ง undefined และ empty array
+                    // Note
                     !subChildren?.length ? (
                         <Button
                             onClick={() => setMobileMenuConfig({ ...mobileMenuConfig, isOpen: false })}
@@ -222,7 +222,7 @@ export function CollapseMenuButton({
                             <MultiCollapseMenuButton
                                 label={label}
                                 active={active}
-                                submenus={subChildren} // ✅ ถึงตรงนี้ subChildren มีค่าแน่นอน
+                                submenus={subChildren} // Note
                             />
                         </React.Fragment>
                     )
@@ -264,7 +264,7 @@ export function CollapseMenuButton({
                 <DropdownMenuSeparator className="bg-default-300" />
                 <DropdownMenuGroup>
                     {submenus.map(({ href, label, icon, active, children }, index) => (
-                        // ✅ ครอบคลุมทั้ง undefined และ empty array
+                        // Note
                         !children?.length ? (
                             <DropdownMenuItem
                                 key={index}

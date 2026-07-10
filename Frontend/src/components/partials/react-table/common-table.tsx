@@ -10,6 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import TablePagination from "./table-pagination"
+import { useTranslations } from "next-intl"
 
 interface CommonTableProps<TData> {
   table: TanstackTable<TData>
@@ -20,8 +21,10 @@ interface CommonTableProps<TData> {
 export function CommonTable<TData>({
   table,
   columnsLength,
-  emptyMessage = "ไม่พบข้อมูล",
+  emptyMessage,
 }: CommonTableProps<TData>) {
+  const t = useTranslations("Common")
+
   return (
     <div className="space-y-4">
       <div className="rounded-md border">
@@ -53,7 +56,7 @@ export function CommonTable<TData>({
             ) : (
               <TableRow>
                 <TableCell colSpan={columnsLength} className="h-24 text-center">
-                  {emptyMessage}
+                  {emptyMessage ?? t("noData")}
                 </TableCell>
               </TableRow>
             )}

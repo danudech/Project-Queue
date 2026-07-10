@@ -54,29 +54,33 @@ import { http } from "@/lib/http/client"
 import toast from "react-hot-toast"
 import { storage } from "@/services/localstorage"
 import { is } from "date-fns/locale"
+import { useTranslations } from "next-intl"
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
 
 const getFormSchema = (t: any) => z.object({
     name: z.string().min(1, t("validation.nameRequired")).max(150, t("validation.nameTooLong")),
-    shopId: z.number().min(1, t("validation.shopRequired")),
-    duration: z.coerce.number({
-        required_error: t("validation.durationRequired"),
-        invalid_type_error: t("validation.durationInt"),
-    }).min(1, t("validation.durationMin")),
-    price: z.coerce.number({
-        required_error: t("validation.priceRequired"),
-        invalid_type_error: t("validation.durationInt"),
-    }).min(0, t("validation.priceMin")),
-    categoryId: z.number().min(1, t("validation.categoryRequired")),
+    shopId: z.coerce.number().min(1, t("validation.shopRequired")),
+    duration: z.coerce.number().min(1, t("validation.durationMin")),
+    price: z.coerce.number().min(0, t("validation.priceMin")),
+    categoryId: z.coerce.number().min(1, t("validation.categoryRequired")),
     isActive: z.boolean().default(true),
 })
 
-type FormValues = z.infer<ReturnType<typeof getFormSchema>>
+type FormValues = {
+    name: string;
+    shopId: number;
+    duration: number;
+    price: number;
+    categoryId: number;
+    isActive: boolean;
+}
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 const ServicePage = () => {
+    const t = useTranslations("service")
+    const tc = useTranslations("Common")
     const [categoryData, setCategoryData] = React.useState<ServiceCategoryType[] | null>(null)
     const [tableData, setTableData] = React.useState<SetService[] | null>(null)
     const [dialogOpen, setDialogOpen] = React.useState(false)
@@ -90,13 +94,13 @@ const ServicePage = () => {
     const { data: shopData } = useShop()
 
     const form = useForm<FormValues>({
-        resolver: zodResolver(getFormSchema(t)),
+        resolver: zodResolver(getFormSchema(t)) as any,
         defaultValues: {
             name: "",
-            shopId: "",
+            shopId: 0,
             duration: 30,
             price: 0,
-            categoryId: undefined,
+            categoryId: 0,
             isActive: true,
         },
     })
@@ -148,7 +152,7 @@ const ServicePage = () => {
                 categoryId: row.categoryId,
                 isActive: newStatus,
             })
-            toast.success(`เปลี่ยนสถานะเป็น ${newStatus ? "เปิด" : "ปิด"} เรียบร้อย`)
+            toast.success(t("toast.statusChangeSuccess", { status: newStatus ? tc("status.active") : tc("status.inactive") }))
         } catch {
             setTableData((prev) =>
                 prev?.map((item) => item.id === row.id ? { ...item, isActive: row.isActive } : item) ?? null
@@ -162,7 +166,7 @@ const ServicePage = () => {
         try {
             await http.delete<boolean>("shopservices", { params: { serviceId: id } })
             setTableData((prev) => prev?.filter((item) => item.id !== id) ?? null)
-            toast.success("ลบบริการสำเร็จ")
+            toast.success(t("toast.deleteSuccess"))
         } catch {
             toast.error(tc("error.deleteFailed"))
         }
@@ -197,7 +201,7 @@ const ServicePage = () => {
                                 : r
                         ) ?? null
                     )
-                    toast.success("แก้ไขบริการสำเร็จ")
+                    toast.success(t("toast.editSuccess"))
                 }
             } else {
                 const branch: number | null = await storage.get("branch") || shopData?.shopBranches?.[0]?.id || null;
@@ -212,7 +216,7 @@ const ServicePage = () => {
                 })
                 if (newService) {
                     setTableData((prev) => [...(prev ?? []), newService])
-                    toast.success("เพิ่มบริการสำเร็จ")
+                    toast.success(t("toast.addSuccess"))
                 }
             }
             setDialogOpen(false)
@@ -229,10 +233,10 @@ const ServicePage = () => {
         setEditTarget(null)
         form.reset({
             name: "",
-            shopId: String(shopData?.id || ""),
+            shopId: shopData?.id || 0,
             duration: 30,
             price: 0,
-            categoryId: undefined,
+            categoryId: 0,
             isActive: true,
         })
         setDialogOpen(true)
@@ -242,7 +246,7 @@ const ServicePage = () => {
         setEditTarget(row)
         form.reset({
             name: row.name,
-            shopId: String(row.shopId),
+            shopId: Number(row.shopId),
             duration: row.duration,
             price: row.price,
             categoryId: row.categoryId,
@@ -254,7 +258,7 @@ const ServicePage = () => {
     // ── Table ──────────────────────────────────────────────────────────────
     const table = useReactTable({
         data: tableData ?? [],
-        columns,
+        columns: getColumns(t, tc),
         state: { sorting, columnFilters },
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
@@ -268,7 +272,7 @@ const ServicePage = () => {
     if(isLoading) {
         return (
             <div className="w-full h-40 flex items-center justify-center">
-                <span className="text-sm text-gray-500">กำลังโหลดข้อมูล...</span>
+                <span className="text-sm text-gray-500">{tc("loadingData")}</span>
             </div>
         )
     }
@@ -283,25 +287,25 @@ const ServicePage = () => {
                 searchValue={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
                 onSearchChange={(val) => table.getColumn("name")?.setFilterValue(val)}
                 onAddClick={openAdd}
-                addButtonText="เพิ่มบริการ"
+                addButtonText={t("toolbar.add")}
             />
 
             {/* 2. Table */}
-            <CommonTable table={table} columnsLength={columns.length} />
+            <CommonTable table={table} columnsLength={getColumns(t, tc).length} />
 
             {/* 3. Add / Edit Dialog */}
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogContent className="sm:max-w-lg">
                     <DialogHeader>
                         <DialogTitle>
-                            {editTarget ? "แก้ไขบริการ" : "เพิ่มบริการใหม่"}
+                            {editTarget ? t("dialog.edit") : t("dialog.add")}
                         </DialogTitle>
                     </DialogHeader>
 
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
 
-                            {/* ชื่อบริการ */}
+                            {/* Section */}
                             <FormField
                                 control={form.control}
                                 name="name"
@@ -309,14 +313,14 @@ const ServicePage = () => {
                                     <FormItem>
                                         <FormLabel>{t("form.name")}</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="เช่น ตัดผมชาย, สระผม, ทำเล็บ" {...field} />
+                                            <Input placeholder={t("form.namePlaceholder")} {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
 
-                            {/* ระยะเวลา + ราคา */}
+                            {/* Section */}
                             <div className="grid grid-cols-2 gap-4">
                                 <FormField
                                     control={form.control}
@@ -345,7 +349,7 @@ const ServicePage = () => {
                                     name="price"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>ราคา (บาท)</FormLabel>
+                                            <FormLabel>{t("form.priceWithCurrency")}</FormLabel>
                                             <FormControl>
                                                 <Input
                                                     type="number"
@@ -364,7 +368,7 @@ const ServicePage = () => {
                                 />
                             </div>
 
-                            {/* หมวดหมู่ */}
+                            {/* Section */}
                             <FormField
                                 control={form.control}
                                 name="categoryId"
@@ -377,7 +381,7 @@ const ServicePage = () => {
                                         >
                                             <FormControl>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="เลือกหมวดหมู่" />
+                                                    <SelectValue placeholder={t("form.selectCategory")} />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
@@ -388,9 +392,7 @@ const ServicePage = () => {
                                                         </SelectItem>
                                                     ))
                                                 ) : (
-                                                    <SelectItem value="__empty__" disabled>
-                                                        ไม่มีหมวดหมู่ — กรุณาเพิ่มหมวดหมู่ก่อน
-                                                    </SelectItem>
+                                                    <SelectItem value="__empty__" disabled>{t("form.emptyCategory")}</SelectItem>
                                                 )}
                                             </SelectContent>
                                         </Select>
@@ -399,7 +401,7 @@ const ServicePage = () => {
                                 )}
                             />
 
-                            {/* ร้านค้า (disabled) */}
+                            {/* Section */}
                             <FormField
                                 control={form.control}
                                 name="shopId"
@@ -414,7 +416,7 @@ const ServicePage = () => {
                                 )}
                             />
 
-                            {/* สถานะ */}
+                            {/* Section */}
                             <FormField
                                 control={form.control}
                                 name="isActive"
@@ -436,11 +438,9 @@ const ServicePage = () => {
                                     type="button"
                                     variant="outline"
                                     onClick={() => setDialogOpen(false)}
-                                >
-                                    ยกเลิก
-                                </Button>
+                                >{tc("cancel")}</Button>
                                 <Button type="submit" disabled={btnLoading}>
-                                    {btnLoading ? tc("saving") : "บันทึก"}
+                                    {btnLoading ? tc("saving") : tc("save")}
                                 </Button>
                             </DialogFooter>
                         </form>

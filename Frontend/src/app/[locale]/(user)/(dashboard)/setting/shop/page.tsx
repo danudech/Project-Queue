@@ -7,13 +7,15 @@ import { Icon } from "@/components/ui/icon";
 import Image from "next/image";
 import { Link } from "@/i18n/routing";
 import { useShop } from "@/hooks/use-me";
+import { useTranslations } from "next-intl";
 
 const SettingShopPage = () => {
+  const t = useTranslations("Settings.shop");
   const { data: shopData, isLoading } = useShop();
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  // sync ค่าจาก shopData หลังจาก fetch เสร็จ
+  // Note
   useEffect(() => {
     if (shopData?.isActive !== undefined) {
       setIsOpen(shopData.isActive);
@@ -23,7 +25,7 @@ const SettingShopPage = () => {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      // TODO: เรียก API update ข้อมูลร้าน
+      // Note
       await new Promise((resolve) => setTimeout(resolve, 1000));
     } finally {
       setIsSaving(false);
@@ -36,12 +38,12 @@ const SettingShopPage = () => {
     </div>
   );
 
-  if (!shopData) return <div>ไม่พบข้อมูลร้านค้า</div>;
+  if (!shopData) return <div>{t("noShopData")}</div>;
 
   return (
     <div className="space-y-5">
 
-      {/* ── Section 1: รูปภาพร้านค้า ── */}
+      {/* Section */}
       <Card className="p-6 pb-10 md:pt-[84px] pt-10 rounded-lg lg:flex lg:space-y-0 space-y-6 justify-between items-end relative z-[1]">
         <div className="bg-default-900 dark:bg-default-400 absolute left-0 top-0 md:h-1/2 h-[150px] w-full z-[-1] rounded-t-lg" />
 
@@ -66,22 +68,20 @@ const SettingShopPage = () => {
               </div>
             </div>
 
-            {/* ชื่อร้าน */}
+            {/* Section */}
             <div className="flex-1">
               <div className="text-2xl font-medium text-default-900 mb-[3px]">
                 {shopData.name}
               </div>
-              <div className="text-sm font-light text-default-600">
-                ร้านค้า
-              </div>
+              <div className="text-sm font-light text-default-600">{t("shopType")}</div>
             </div>
           </div>
         </div>
 
-        {/* ── ปุ่มเปิด/ปิดทำการ ── */}
+        {/* Section */}
         <div className="flex items-center gap-3">
           <span className="text-sm text-default-600">
-            {isOpen ? "เปิดทำการ" : "ปิดทำการ"}
+            {isOpen ? t("open") : t("closed")}
           </span>
           <button
             onClick={() => setIsOpen((prev) => !prev)}
@@ -100,22 +100,22 @@ const SettingShopPage = () => {
                 : "bg-default-100 text-default-500 dark:bg-default-700"}`}
           >
             <span className={`h-1.5 w-1.5 rounded-full ${isOpen ? "bg-success" : "bg-default-400"}`} />
-            {isOpen ? "เปิดอยู่" : "ปิดอยู่"}
+            {isOpen ? t("openLabel") : t("closedLabel")}
           </span>
         </div>
       </Card>
 
-      {/* ── Section 2: ข้อมูลพื้นฐาน ── */}
+      {/* Section */}
       <Card>
         <div className="border-b border-default-200 px-6 py-4">
           <p className="text-sm font-medium text-default-900">{t("basicInfo")}</p>
-          <p className="mt-0.5 text-xs text-default-500">ชื่อร้าน คำอธิบาย และช่องทางติดต่อ</p>
+          <p className="mt-0.5 text-xs text-default-500">{t("basicInfoDescription")}</p>
         </div>
 
         <div className="space-y-4 px-6 py-5">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <label className="text-xs text-default-500">ชื่อร้านค้า *</label>
+              <label className="text-xs text-default-500">{t("shopName")} *</label>
               <input
                 type="text"
                 defaultValue={shopData.name}
@@ -123,28 +123,28 @@ const SettingShopPage = () => {
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs text-default-500">ประเภทธุรกิจ</label>
+              <label className="text-xs text-default-500">{t("businessType")}</label>
               <select className="h-9 w-full rounded-md border border-default-200 bg-default-50 px-3 text-sm text-default-900 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-default-800">
-                <option value="">เลือกประเภท</option>
-                <option value="barber">ร้านตัดผม</option>
-                <option value="salon">ร้านเสริมสวย</option>
-                <option value="spa">สปา / นวด</option>
+                <option value="">{t("selectBusinessType")}</option>
+                <option value="barber">{t("typeBarber")}</option>
+                <option value="salon">{t("typeSalon")}</option>
+                <option value="spa">{t("typeSpa")}</option>
               </select>
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs text-default-500">คำอธิบายร้าน</label>
+            <label className="text-xs text-default-500">{t("descriptionLabel")}</label>
             <textarea
               rows={3}
-              placeholder="แนะนำร้านของคุณให้ลูกค้ารู้จัก..."
+              placeholder={t("descriptionPlaceholder")}
               className="w-full rounded-md border border-default-200 bg-default-50 px-3 py-2 text-sm text-default-900 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-default-800"
             />
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <label className="text-xs text-default-500">เบอร์โทรศัพท์</label>
+              <label className="text-xs text-default-500">{t("phone")}</label>
               <input
                 type="tel"
                 defaultValue={shopData.phone ?? ""}
@@ -153,7 +153,7 @@ const SettingShopPage = () => {
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs text-default-500">อีเมล</label>
+              <label className="text-xs text-default-500">{t("email")}</label>
               <input
                 type="email"
                 placeholder="shop@example.com"
@@ -163,14 +163,12 @@ const SettingShopPage = () => {
           </div>
         </div>
 
-        {/* ── ปุ่ม Update ── */}
+        {/* Section */}
         <div className="flex items-center justify-end gap-3 border-t border-default-200 px-6 py-4">
           <button
             type="button"
             className="h-9 rounded-md border border-default-200 bg-default-50 px-4 text-sm text-default-600 hover:bg-default-100 dark:bg-default-800 dark:hover:bg-default-700"
-          >
-            ยกเลิก
-          </button>
+          >{t("cancel")}</button>
           <button
             type="button"
             onClick={handleSave}
@@ -180,12 +178,12 @@ const SettingShopPage = () => {
             {isSaving ? (
               <>
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                กำลังบันทึก...
+                {t("saving")}
               </>
             ) : (
               <>
                 <Icon icon="heroicons:check" className="h-3.5 w-3.5" />
-                บันทึกข้อมูล
+                {t("saveData")}
               </>
             )}
           </button>

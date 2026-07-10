@@ -10,7 +10,7 @@ import { UserRegister } from "@/types/user";
 import { http } from "@/lib/http/client";
 import { toast } from "sonner";
 
-const FORGOT_PASSWORD_COOLDOWN = 60; // วินาที
+const FORGOT_PASSWORD_COOLDOWN = 60; // Note
 
 const MailConfirm = () => {
   const t = useTranslations("EmailConfirmation");
@@ -49,7 +49,7 @@ const MailConfirm = () => {
 
       toast.success("Confirmation email resent if the email is registered");
 
-      // เริ่ม cooldown
+      // Note
       setIsCountdown(FORGOT_PASSWORD_COOLDOWN);
     } catch (err: any) {
       toast.error(err?.message || "Something went wrong");

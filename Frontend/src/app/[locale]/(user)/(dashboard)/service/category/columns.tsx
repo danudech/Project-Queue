@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/tooltip"
 
 import { ColumnDef } from "@tanstack/react-table"
-import { SquarePen, Trash2, Power } from "lucide-react" // เพิ่ม Power icon
+import { SquarePen, Trash2, Power } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 import { ServiceCategoryType } from "@/types/shop/catgory"
 
 
-export const columns: ColumnDef<ServiceCategoryType>[] = [
+export const getColumns = (t: any, tc: any): ColumnDef<ServiceCategoryType>[] => [
   {
     accessorKey: "id",
     header: "ID",
@@ -64,7 +64,7 @@ export const columns: ColumnDef<ServiceCategoryType>[] = [
 
       const date = new Date(dateValue);
 
-      // ตรวจสอบว่าวันที่ถูกต้องหรือไม่
+      // Note
       if (isNaN(date.getTime())) return "-";
 
       const formattedDate = new Intl.DateTimeFormat("th-TH", {
@@ -79,8 +79,7 @@ export const columns: ColumnDef<ServiceCategoryType>[] = [
 
       return (
         <span className="text-default-500 text-sm">
-          {formattedDate} น.
-        </span>
+          {formattedDate} {tc("units.timeSuffix")}</span>
       );
     },
   },
@@ -94,7 +93,7 @@ export const columns: ColumnDef<ServiceCategoryType>[] = [
 
       return (
         <div className="flex items-center gap-2">
-          {/* 1. ปุ่ม ปิด/เปิด การใช้งาน (Toggle Status) */}
+          {/* Section */}
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -111,12 +110,12 @@ export const columns: ColumnDef<ServiceCategoryType>[] = [
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="top">
-                <p>{isActive ? "ปิดการใช้งาน" : "เปิดการใช้งาน"}</p>
+                <p>{isActive ? tc("tooltip.deactivate") : tc("tooltip.activate")}</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
 
-          {/* 2. ปุ่ม แก้ไข (Edit) */}
+          {/* Section */}
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -133,7 +132,7 @@ export const columns: ColumnDef<ServiceCategoryType>[] = [
             </Tooltip>
           </TooltipProvider>
 
-          {/* 3. ปุ่ม ลบ (Delete) */}
+          {/* Section */}
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>

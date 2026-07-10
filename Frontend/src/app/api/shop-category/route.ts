@@ -19,7 +19,7 @@ function badRequest(message: string) {
   );
 }
 
-// ─── GET — ดึงรายการ Category ทั้งหมด ────────────────────────────────────────
+// Note
 
 export async function GET(req: NextRequest) {
   try {
@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// ─── POST — เพิ่ม Category ใหม่ ──────────────────────────────────────────────
+// Note
 
 export async function POST(req: NextRequest) {
   try {
@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// ─── PUT — แก้ไข Category ────────────────────────────────────────────────────
+// Note
 
 export async function PUT(req: NextRequest) {
   try {
@@ -101,7 +101,7 @@ export async function PUT(req: NextRequest) {
   }
 }
 
-// ─── DELETE — ลบ Category ────────────────────────────────────────────────────
+// Note
 
 export async function DELETE(req: NextRequest) {
   try {

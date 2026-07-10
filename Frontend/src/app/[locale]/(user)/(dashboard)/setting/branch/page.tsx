@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { Card } from "@/components/ui/card";
 import { Building2, Loader2, MapPin, Phone, ChevronDown, Check, Store, X } from "lucide-react";
 import { Icon } from "@/components/ui/icon";
@@ -32,25 +33,25 @@ import {
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
 
-const branchSchema = z.object({
-  branchName: z.string().min(2, "ชื่อสาขาต้องมีอย่างน้อย 2 ตัวอักษร"),
+const getBranchSchema = (t: any) => z.object({
+  branchName: z.string().min(2, t("validation.branchNameMin")),
   branchPhone: z.string()
     .refine((val) => val === "" || /^0\d{9}$/.test(val), {
-      message: "เบอร์โทรต้องมี 10 หลักและขึ้นต้นด้วย 0"
+      message: t("validation.phoneFormat")
     })
     .optional()
     .or(z.literal("")),
   houseNo: z.string().optional(),
   street: z.string().optional(),
-  zipcode: z.string().length(5, "รหัสไปรษณีย์ต้องมี 5 หลัก"),
-  subdistrictId: z.number().min(1, "กรุณาเลือกตำบล"),
+  zipcode: z.string().length(5, t("validation.zipcodeLength")),
+  subdistrictId: z.number().min(1, t("validation.selectSubdistrict")),
   districtId: z.number(),
   provinceId: z.number(),
   districtName: z.string().optional(),
   provinceName: z.string().optional(),
 })
 
-type BranchValues = z.infer<typeof branchSchema>;
+type BranchValues = z.infer<ReturnType<typeof getBranchSchema>>;
 
 // ─── Default form values ───────────────────────────────────────────────────────
 
@@ -70,6 +71,7 @@ const defaultValues: BranchValues = {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const SettingShopBranchPage = () => {
+  const t = useTranslations("Settings.branch");
   const { data: shopData, isLoading } = useShop();
 
   const [isOpen, setIsOpen] = useState(false);
@@ -85,7 +87,7 @@ const SettingShopBranchPage = () => {
   } | null>(null);
 
   const form = useForm<BranchValues>({
-    resolver: zodResolver(branchSchema),
+    resolver: zodResolver(getBranchSchema(t)),
     defaultValues,
   });
 
@@ -103,14 +105,14 @@ const SettingShopBranchPage = () => {
           params: { zipcode: address?.zipcode },
         });
 
-        // set form fields ที่ไม่ขึ้นกับ addressList ก่อน
+        // Note
         form.setValue("branchName", selectedBranch.name);
         form.setValue("branchPhone", selectedBranch.phone ?? "");
         form.setValue("houseNo", address?.houseNo ?? "");
         form.setValue("street", address?.street ?? "");
         form.setValue("zipcode", address?.zipcode ?? "");
 
-        // set addressList และเก็บ pending ไว้รอ render
+        // Note
         setAddressList(res?.length ? res : null);
         setPendingAddress({ address, list: res ?? [] });
       } catch (err) {
@@ -218,7 +220,7 @@ const SettingShopBranchPage = () => {
     form.handleSubmit(async (values) => {
       setIsSaving(true);
       try {
-        // TODO: เรียก API update ข้อมูลสาขา
+        // Note
         await new Promise((resolve) => setTimeout(resolve, 1000));
         setSaveSuccess(true);
         setTimeout(() => setSaveSuccess(false), 2500);
@@ -235,7 +237,7 @@ const SettingShopBranchPage = () => {
       <div className="flex h-[400px] w-full items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">กำลังโหลดข้อมูล...</p>
+          <p className="text-sm text-muted-foreground">{t("loading")}</p>
         </div>
       </div>
     );
@@ -246,8 +248,8 @@ const SettingShopBranchPage = () => {
       <div className="flex h-[400px] w-full items-center justify-center">
         <div className="flex flex-col items-center gap-2 text-center">
           <Store className="h-10 w-10 text-muted-foreground/40" />
-          <p className="text-sm font-medium text-default-600">ไม่พบข้อมูลร้านค้า</p>
-          <p className="text-xs text-muted-foreground">กรุณาลองใหม่อีกครั้ง</p>
+          <p className="text-sm font-medium text-default-600">{t("noShopData")}</p>
+          <p className="text-xs text-muted-foreground">{t("tryAgain")}</p>
         </div>
       </div>
     );
@@ -280,20 +282,20 @@ const SettingShopBranchPage = () => {
               <h2 className="mb-1 text-2xl font-semibold text-default-900">
                 {shopData.name}
               </h2>
-              <p className="text-sm font-light text-default-600">ร้านค้า</p>
+              <p className="text-sm font-light text-default-600">{t("shopType")}</p>
             </div>
           </div>
 
           {/* Open/Close Toggle */}
           <div className="flex items-center justify-center gap-3 md:justify-end">
             <span className="text-sm text-default-600">
-              {isOpen ? "เปิดทำการ" : "ปิดทำการ"}
+              {isOpen ? t("open") : t("closed")}
             </span>
             <button
               type="button"
               onClick={() => setIsOpen((prev) => !prev)}
               aria-pressed={isOpen}
-              aria-label="เปิด/ปิดร้านค้า"
+              aria-label={t("toggleAria")}
               className={[
                 "relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
                 isOpen
@@ -322,7 +324,7 @@ const SettingShopBranchPage = () => {
                   isOpen ? "bg-success animate-pulse" : "bg-default-400",
                 ].join(" ")}
               />
-              {isOpen ? "เปิดอยู่" : "ปิดอยู่"}
+              {isOpen ? t("openLabel") : t("closedLabel")}
             </span>
           </div>
         </div>
@@ -334,10 +336,8 @@ const SettingShopBranchPage = () => {
           {/* Card Header */}
           <div className="flex items-center justify-between border-b border-default-200 px-6 py-4">
             <div>
-              <p className="text-sm font-semibold text-default-900">ข้อมูลสาขา</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                ชื่อสาขา เบอร์โทร และที่อยู่
-              </p>
+              <p className="text-sm font-semibold text-default-900">{t("infoTitle")}</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">{t("infoDescription")}</p>
             </div>
 
             {/* Branch Switcher (multi-branch) */}
@@ -368,7 +368,7 @@ const SettingShopBranchPage = () => {
           <Form {...form}>
             <form onSubmit={handleSave} noValidate>
               <div className="space-y-5 px-6 pb-4 pt-5">
-                {/* ── ชื่อสาขา ─────────────────────────────────────────────── */}
+                {/* Section */}
                 <FormField
                   control={form.control}
                   name="branchName"
@@ -376,12 +376,12 @@ const SettingShopBranchPage = () => {
                     <FormItem>
                       <FormLabel className="flex items-center gap-1.5 text-xs font-medium">
                         <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
-                        ชื่อสาขา{" "}
+                        {t("branchName")}{" "}
                         <span className="text-destructive">*</span>
                       </FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="เช่น สาขาหลัก, สาขาสุขุมวิท"
+                          placeholder={t("branchNamePlaceholder")}
                           className="h-10 text-sm"
                           {...field}
                         />
@@ -391,7 +391,7 @@ const SettingShopBranchPage = () => {
                   )}
                 />
 
-                {/* ── เบอร์โทรสาขา ─────────────────────────────────────────── */}
+                {/* Section */}
                 <FormField
                   control={form.control}
                   name="branchPhone"
@@ -399,9 +399,9 @@ const SettingShopBranchPage = () => {
                     <FormItem>
                       <FormLabel className="flex items-center gap-1.5 text-xs font-medium">
                         <Phone className="h-3.5 w-3.5 text-muted-foreground" />
-                        เบอร์โทรสาขา{" "}
+                        {t("branchPhone")}{" "}
                         <span className="text-[11px] font-normal text-muted-foreground">
-                          (ไม่บังคับ)
+                          {t("optional")}
                         </span>
                       </FormLabel>
                       <FormControl>
@@ -418,14 +418,14 @@ const SettingShopBranchPage = () => {
                   )}
                 />
 
-                {/* ── ที่อยู่สาขา ───────────────────────────────────────────── */}
+                {/* ── {t("branchAddress")} ───────────────────────────────────────────── */}
                 <div className="space-y-4 rounded-lg border border-dashed border-default-200 p-4">
                   <p className="flex items-center gap-1.5 text-xs font-semibold text-foreground/80">
                     <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-                    ที่อยู่สาขา
+                    {t("branchAddress")}
                   </p>
 
-                  {/* บ้านเลขที่ + ถนน */}
+                  {/* {t("houseNo")} + {t("street")} */}
                   <div className="grid grid-cols-2 gap-3">
                     <FormField
                       control={form.control}
@@ -433,7 +433,7 @@ const SettingShopBranchPage = () => {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-[11px] text-muted-foreground">
-                            บ้านเลขที่
+                            {t("houseNo")}
                           </FormLabel>
                           <FormControl>
                             <Input
@@ -451,11 +451,11 @@ const SettingShopBranchPage = () => {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-[11px] text-muted-foreground">
-                            ถนน
+                            {t("street")}
                           </FormLabel>
                           <FormControl>
                             <Input
-                              placeholder="สุขุมวิท"
+                              placeholder={t("streetPlaceholder")}
                               className="h-9 text-sm"
                               {...field}
                             />
@@ -465,14 +465,14 @@ const SettingShopBranchPage = () => {
                     />
                   </div>
 
-                  {/* รหัสไปรษณีย์ */}
+                  {/* {t("zipcode")} */}
                   <FormField
                     control={form.control}
                     name="zipcode"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-[11px] text-muted-foreground">
-                          รหัสไปรษณีย์
+                          {t("zipcode")}
                         </FormLabel>
                         <FormControl>
                           <div className="relative">
@@ -493,14 +493,14 @@ const SettingShopBranchPage = () => {
                     )}
                   />
 
-                  {/* ตำบล / แขวง */}
+                  {/* Section */}
                   <FormField
                     control={form.control}
                     name="subdistrictId"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-[11px] text-muted-foreground">
-                          ตำบล / แขวง{" "}
+                          {t("subdistrict")}{" "}
                           <span className="text-destructive">*</span>
                         </FormLabel>
                         <Select
@@ -515,12 +515,12 @@ const SettingShopBranchPage = () => {
                               <SelectValue
                                 placeholder={
                                   isLoadingAddress
-                                    ? "กำลังโหลด..."
+                                    ? t("loadingAddress")
                                     : !watchZipcode || watchZipcode.length < 5
-                                      ? "กรอกรหัสไปรษณีย์ก่อน"
+                                      ? t("enterZipcodeFirst")
                                       : addressList === null
-                                        ? "ไม่พบที่อยู่"
-                                        : "เลือกตำบล / แขวง"
+                                        ? t("addressNotFound")
+                                        : t("selectSubdistrict")
                                 }
                               />
                             </SelectTrigger>
@@ -545,11 +545,11 @@ const SettingShopBranchPage = () => {
                     )}
                   />
 
-                  {/* เขต/อำเภอ + จังหวัด (read-only) */}
+                  {/* Section */}
                   <div className="grid grid-cols-2 gap-3">
                     <FormItem>
                       <FormLabel className="text-[11px] text-muted-foreground">
-                        เขต / อำเภอ
+                        {t("district")}
                       </FormLabel>
                       <Input
                         value={form.watch("districtName") ?? ""}
@@ -561,7 +561,7 @@ const SettingShopBranchPage = () => {
                     </FormItem>
                     <FormItem>
                       <FormLabel className="text-[11px] text-muted-foreground">
-                        จังหวัด
+                        {t("province")}
                       </FormLabel>
                       <Input
                         value={form.watch("provinceName") ?? ""}
@@ -582,9 +582,7 @@ const SettingShopBranchPage = () => {
                   onClick={() => form.reset()}
                   className="inline-flex h-9 items-center gap-1.5 rounded-md border border-default-200 bg-default-50 px-4 text-sm text-default-600 transition-colors hover:bg-default-100 dark:bg-default-800 dark:hover:bg-default-700"
                 >
-                  <X className="h-3.5 w-3.5" />
-                  รีเซ็ต
-                </button>
+                  <X className="h-3.5 w-3.5" />{t("reset")}</button>
                 <button
                   type="submit"
                   disabled={isSaving}
@@ -598,17 +596,17 @@ const SettingShopBranchPage = () => {
                   {isSaving ? (
                     <>
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      กำลังบันทึก...
+                      {t("saving")}
                     </>
                   ) : saveSuccess ? (
                     <>
                       <Check className="h-3.5 w-3.5" />
-                      บันทึกแล้ว
+                      {t("saved")}
                     </>
                   ) : (
                     <>
                       <Icon icon="heroicons:check" className="h-3.5 w-3.5" />
-                      บันทึกข้อมูล
+                      {t("saveData")}
                     </>
                   )}
                 </button>
@@ -620,7 +618,7 @@ const SettingShopBranchPage = () => {
         <Card className="flex h-32 items-center justify-center rounded-xl">
           <div className="flex flex-col items-center gap-1.5 text-center">
             <Building2 className="h-6 w-6 text-muted-foreground/40" />
-            <p className="text-sm text-default-400">ไม่พบข้อมูลสาขา</p>
+            <p className="text-sm text-default-400">{t("noBranchData")}</p>
           </div>
         </Card>
       )}

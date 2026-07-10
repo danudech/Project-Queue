@@ -90,7 +90,7 @@ export function MenuClassic({ }) {
                             {menuList?.map(({ groupLabel, menus, id: groupId }, groupIndex) => (
                                 <li className="w-full" key={groupId || groupIndex}>
 
-                                    {/* Render Group Label or Ellipsis (เมื่อมี groupLabel) */}
+                                    {/* Section */}
                                     {groupLabel && (
                                         (!collapsed || hovered) ? (
                                             <MenuLabel label={groupLabel} />
@@ -113,7 +113,7 @@ export function MenuClassic({ }) {
                                     {/* Render Menu Items */}
                                     {menus.map(({ href, label, icon, active, id, submenus }) => (
                                         (!submenus || submenus.length === 0) ? (
-                                            // แบบไม่มี Submenu
+                                            // Note
                                             <div className="w-full mb-2 last:mb-0" key={id}>
                                                 <TooltipProvider disableHoverableContent>
                                                     <Tooltip delayDuration={100}>
@@ -138,7 +138,7 @@ export function MenuClassic({ }) {
                                                 </TooltipProvider>
                                             </div>
                                         ) : (
-                                            // แบบมี Submenu (Collapse)
+                                            // Note
                                             <div className="w-full mb-2" key={id}>
                                                 <CollapseMenuButton
                                                     icon={icon}

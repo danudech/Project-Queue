@@ -74,7 +74,8 @@ function statusLabel(status: QueueStatus) {
 }
 
 const DashboardPage = () => {
-    const t = useTranslations("Dashboard");
+  const t = useTranslations("Dashboard");
+  const tc = useTranslations("Common");
   const router = useRouter();
   const tShop = useTranslations("Shop");
   const { data: shopData, isLoading: isShopLoading } = useShop();
@@ -239,7 +240,7 @@ const DashboardPage = () => {
               <div className="flex items-end justify-between">
                 <div>
                   <p className="text-3xl font-semibold text-default-900">
-                    ฿{summary.revenue.toLocaleString()}
+                    {tc("currency.thb")}{summary.revenue.toLocaleString()}
                   </p>
                   <p className="text-xs text-muted-foreground">Estimated from completed queues</p>
                 </div>
@@ -274,7 +275,7 @@ const DashboardPage = () => {
                       <p className="text-xs text-muted-foreground">{service.bookings} bookings</p>
                     </div>
                   </div>
-                  <p className="text-sm font-semibold">฿{service.revenue.toLocaleString()}</p>
+                  <p className="text-sm font-semibold">{tc("currency.thb")}{service.revenue.toLocaleString()}</p>
                 </div>
               ))}
             </CardContent>

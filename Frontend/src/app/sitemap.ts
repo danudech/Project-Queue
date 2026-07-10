@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  // เปลี่ยนเป็น URL โดเมนจริงของโปรเจคในอนาคต
+  // Note
   const baseUrl = 'https://www.ezqueue.com'
 
   return [

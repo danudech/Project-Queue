@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { env } from "@/config/env";
 import { serverHttp } from "@/lib/http/server";
-import { ApiResponse } from "@/types/api-response"; // I'll assume there is an ApiResponse type, or I can just use any.
+
 
 export async function PUT(req: NextRequest) {
   try {

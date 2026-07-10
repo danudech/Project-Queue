@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { SetService } from "@/types/shop/service"
 
-export const columns: ColumnDef<SetService>[] = [
+export const getColumns = (t: any, tc: any): ColumnDef<SetService>[] => [
   {
     accessorKey: "id",
     header: "ID",
@@ -33,7 +33,7 @@ export const columns: ColumnDef<SetService>[] = [
     accessorKey: "duration",
     header: t("columns.duration"),
     cell: ({ row }) => (
-      <span className="text-default-600 text-sm">{row.getValue("duration")} นาที</span>
+      <span className="text-default-600 text-sm">{row.getValue("duration")} {tc("units.minutes")}</span>
     ),
   },
   {
@@ -47,7 +47,7 @@ export const columns: ColumnDef<SetService>[] = [
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           })}{" "}
-          ฿
+          {tc("currency.thb")}
         </span>
       )
     },
@@ -79,7 +79,7 @@ export const columns: ColumnDef<SetService>[] = [
 
       const date = new Date(dateValue);
 
-      // ตรวจสอบว่าวันที่ถูกต้องหรือไม่
+      // Note
       if (isNaN(date.getTime())) return "-";
 
       const formattedDate = new Intl.DateTimeFormat("th-TH", {
@@ -94,8 +94,7 @@ export const columns: ColumnDef<SetService>[] = [
 
       return (
         <span className="text-default-500 text-sm">
-          {formattedDate} น.
-        </span>
+          {formattedDate} {tc("units.timeSuffix")}</span>
       );
     },
   },
@@ -128,7 +127,7 @@ export const columns: ColumnDef<SetService>[] = [
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="top">
-                <p>{isActive ? "ปิดการใช้งาน" : "เปิดการใช้งาน"}</p>
+                <p>{isActive ? tc("tooltip.deactivate") : tc("tooltip.activate")}</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -159,7 +158,7 @@ export const columns: ColumnDef<SetService>[] = [
                   size="icon"
                   className="w-7 h-7 border-default-200 text-destructive hover:bg-destructive/10"
                   onClick={() => {
-                    if (confirm("คุณต้องการลบบริการนี้ใช่หรือไม่?")) {
+                    if (confirm(t("confirm.delete"))) {
                       meta?.deleteRow(row.original.id)
                     }
                   }}

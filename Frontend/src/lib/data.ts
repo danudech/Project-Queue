@@ -17,7 +17,7 @@ export type User = {
   image?: string;
 };
 
-// async เผื่ออนาคตใช้ DB
+// Note
 export const getUserByEmail = async (email: string): Promise<User | null> => {
   const user = users.find((user) => user.email === email);
   return user || null;

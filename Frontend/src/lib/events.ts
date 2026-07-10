@@ -24,7 +24,7 @@ const eventSchema = z.object({
 export type Event = z.infer<typeof eventSchema>;
 
 export function trackEvent(input: Event): void {
-  // ✅ ใช้ safeParse เพื่อป้องกันแอปพัง (Crash) หากส่งข้อมูลผิดประเภท
+  // Note
   const result = eventSchema.safeParse(input);
   
   if (result.success) {

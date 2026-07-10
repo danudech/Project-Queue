@@ -36,7 +36,7 @@ export function middleware(request: NextRequest) {
   const expUtc = request.cookies.get("access_expires_at_utc")?.value;
   const fullPath = pathname + search;
 
-  // 👉 login แล้วห้ามเข้า login ซ้ำ
+  // Note
   if (pathWithoutLocale === "/auth/login" && token && !isExpired(expUtc)) {
     const url = request.nextUrl.clone();
     url.pathname = `/${maybeLocale}/dashboard`;

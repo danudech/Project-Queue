@@ -16,11 +16,11 @@ interface TableToolbarProps {
 
 export function TableToolbar({
   title,
-  searchPlaceholder = "ค้นหา...",
+  searchPlaceholder,
   searchValue,
   onSearchChange,
   onAddClick,
-  addButtonText = "เพิ่มข้อมูล",
+  addButtonText,
 }: TableToolbarProps) {
     const t = useTranslations("Common");
   return (
@@ -28,7 +28,7 @@ export function TableToolbar({
       <div className="flex-1 text-xl font-medium text-default-900">{title}</div>
       <div className="flex items-center gap-3">
         <Input
-          placeholder={searchPlaceholder}
+          placeholder={searchPlaceholder ?? t("search")}
           value={searchValue}
           onChange={(e) => onSearchChange(e.target.value)}
           className="w-64"
@@ -36,7 +36,7 @@ export function TableToolbar({
         {onAddClick && (
           <Button onClick={onAddClick}>
             <Plus className="mr-2 h-4 w-4" />
-            {addButtonText}
+            {addButtonText ?? t("addData")}
           </Button>
         )}
       </div>

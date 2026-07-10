@@ -20,17 +20,17 @@ export const useShop = () => {
     const getBranchId = async () => {
       const branchselect: number | null = (await storage.get("branch")) ?? null;
       setBranchId(branchselect);
-      setIsReady(true); // รอให้ได้ค่าก่อนค่อย fetch
+      setIsReady(true); // Note
     };
     getBranchId();
   }, []);
 
   return useQuery({
-    queryKey: ["shop", branchId], // ใส่ branchId ใน key → re-fetch เมื่อเปลี่ยน
+    queryKey: ["shop", branchId], // Note
     queryFn: () =>
       http.get<ShopResponse>("shopdata", {
         params: { ...(branchId && { branchId }) },
       }),
-    enabled: isReady, // ไม่ fetch จนกว่าจะอ่าน storage เสร็จ
+    enabled: isReady, // Note
   });
 };

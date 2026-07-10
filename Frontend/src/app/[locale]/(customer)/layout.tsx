@@ -1,9 +1,12 @@
-import { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 
-export const metadata: Metadata = {
-  title: "จองคิวออนไลน์ | EZQueue",
-  description: "จองคิวออนไลน์ล่วงหน้าได้ง่ายๆ สะดวกและรวดเร็วผ่านระบบ EZQueue",
-};
+export async function generateMetadata() {
+  const t = await getTranslations("CustomerBooking.metadata");
+  return {
+    title: t("title"),
+    description: t("description"),
+  };
+}
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
