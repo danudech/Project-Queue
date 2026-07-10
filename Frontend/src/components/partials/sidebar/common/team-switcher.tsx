@@ -507,7 +507,17 @@ export default function TeamSwitcher({ className }: { className?: string }) {
             }
         }
         freshdata()
-    }, [shopData])
+    }, [shopData, selectedShopId])
+
+    // Listen for custom event to open dialog from other parts of the app
+    React.useEffect(() => {
+        const handleOpenShopDialog = () => {
+            setDialogMode("shop");
+            setShowDialog(true);
+        };
+        window.addEventListener("open-shop-dialog", handleOpenShopDialog);
+        return () => window.removeEventListener("open-shop-dialog", handleOpenShopDialog);
+    }, []);
 
     const selectedShop = shopData
     const selectedBranch = shopData?.shopBranches?.find((b) => b.id === selectedBranchId)

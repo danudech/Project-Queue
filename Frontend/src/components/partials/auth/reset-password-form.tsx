@@ -79,7 +79,10 @@ const ResetPasswordForm = () => {
           redirectTo = returnUrl.replace(`/${locale}`, "") || "/dashboard";
         }
 
-        router.push(redirectTo);
+        // เพิ่ม Delay 1.5 วินาที เพื่อให้ผู้ใช้เห็น Notification ก่อน Redirect
+        setTimeout(() => {
+          router.push(redirectTo);
+        }, 1500);
       }
     } catch (err: any) {
       toast.error(err.message || t("error"));

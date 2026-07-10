@@ -45,7 +45,25 @@ public class RegisterController : ControllerBase
 
             string ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
             string ua = HttpContext.Request.Headers.UserAgent.ToString();
-            RegisterResponse? resp = await _user.LocalRegister(req, ip, ua, ct);
+            string originUrl = HttpContext.Request.Headers["Origin"].ToString();
+            if (string.IsNullOrEmpty(originUrl))
+            {
+                var forwardedHost = HttpContext.Request.Headers["X-Forwarded-Host"].ToString();
+                if (!string.IsNullOrEmpty(forwardedHost))
+                {
+                    string proto = HttpContext.Request.Headers["X-Forwarded-Proto"].ToString();
+                    originUrl = $"{(!string.IsNullOrEmpty(proto) ? proto : HttpContext.Request.Scheme)}://{forwardedHost}";
+                }
+                else
+                {
+                    string referer = HttpContext.Request.Headers["Referer"].ToString();
+                    if (Uri.TryCreate(referer, UriKind.Absolute, out Uri? refererUri))
+                    {
+                        originUrl = $"{refererUri.Scheme}://{refererUri.Authority}";
+                    }
+                }
+            }
+            RegisterResponse? resp = await _user.LocalRegister(req, originUrl, ip, ua, ct);
             if (resp == null || !(resp.Success ?? false))
             {
                 return BadRequest(ApiResponse<RegisterResponse>.Fail(resp?.Message ?? "Registration failed"));
@@ -73,7 +91,25 @@ public class RegisterController : ControllerBase
 
             string ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
             string ua = HttpContext.Request.Headers.UserAgent.ToString();
-            await _user.ResentConfirmationEmail(req, ip, ua, ct);
+            string originUrl = HttpContext.Request.Headers["Origin"].ToString();
+            if (string.IsNullOrEmpty(originUrl))
+            {
+                var forwardedHost = HttpContext.Request.Headers["X-Forwarded-Host"].ToString();
+                if (!string.IsNullOrEmpty(forwardedHost))
+                {
+                    string proto = HttpContext.Request.Headers["X-Forwarded-Proto"].ToString();
+                    originUrl = $"{(!string.IsNullOrEmpty(proto) ? proto : HttpContext.Request.Scheme)}://{forwardedHost}";
+                }
+                else
+                {
+                    string referer = HttpContext.Request.Headers["Referer"].ToString();
+                    if (Uri.TryCreate(referer, UriKind.Absolute, out Uri? refererUri))
+                    {
+                        originUrl = $"{refererUri.Scheme}://{refererUri.Authority}";
+                    }
+                }
+            }
+            await _user.ResentConfirmationEmail(req, originUrl, ip, ua, ct);
 
             return Ok(ApiResponse<string>.Ok("Confirmation email resent successfully"));
         }

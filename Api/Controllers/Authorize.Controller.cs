@@ -72,8 +72,26 @@ public class AuthorizeController : ControllerBase
 
             string ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
             string ua = HttpContext.Request.Headers.UserAgent.ToString();
+            string originUrl = HttpContext.Request.Headers["Origin"].ToString();
+            if (string.IsNullOrEmpty(originUrl))
+            {
+                var forwardedHost = HttpContext.Request.Headers["X-Forwarded-Host"].ToString();
+                if (!string.IsNullOrEmpty(forwardedHost))
+                {
+                    string proto = HttpContext.Request.Headers["X-Forwarded-Proto"].ToString();
+                    originUrl = $"{(!string.IsNullOrEmpty(proto) ? proto : HttpContext.Request.Scheme)}://{forwardedHost}";
+                }
+                else
+                {
+                    string referer = HttpContext.Request.Headers["Referer"].ToString();
+                    if (Uri.TryCreate(referer, UriKind.Absolute, out Uri? refererUri))
+                    {
+                        originUrl = $"{refererUri.Scheme}://{refererUri.Authority}";
+                    }
+                }
+            }
 
-            await _users.GetForgotPasswordRequestByEmail(req, ip, ua, ct);
+            await _users.GetForgotPasswordRequestByEmail(req, originUrl, ip, ua, ct);
             return Ok(ApiResponse<bool>.Ok(true));
         }
         catch (Exception ex)

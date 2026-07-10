@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   CalendarClock,
   CheckCircle2,
@@ -9,6 +10,7 @@ import {
   Scissors,
   TrendingUp,
   Users,
+  Store,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -71,7 +73,8 @@ function statusLabel(status: QueueStatus) {
 }
 
 const DashboardPage = () => {
-  const { data: shopData } = useShop();
+  const router = useRouter();
+  const { data: shopData, isLoading: isShopLoading } = useShop();
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -122,13 +125,36 @@ const DashboardPage = () => {
     ];
   }, [summary]);
 
-  if (isLoading || !summary) {
+  if (isLoading || isShopLoading || !summary) {
     return (
       <div className="flex h-[420px] items-center justify-center">
         <div className="flex items-center gap-3 text-sm text-muted-foreground">
           <Loader2 className="h-5 w-5 animate-spin text-primary" />
           Loading dashboard...
         </div>
+      </div>
+    );
+  }
+
+  if (!shopData) {
+    return (
+      <div className="flex h-[420px] flex-col items-center justify-center space-y-4 text-center">
+        <div className="rounded-full bg-primary/10 p-5">
+          <Store className="h-10 w-10 text-primary" />
+        </div>
+        <div>
+          <h2 className="text-2xl font-semibold text-default-900">ยังไม่มีร้านค้า</h2>
+          <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
+            คุณจำเป็นต้องสร้างร้านค้าหรือสาขาก่อน จึงจะสามารถดูข้อมูลสรุปภาพรวมในหน้า Dashboard ได้
+          </p>
+        </div>
+        <Button
+          onClick={() => window.dispatchEvent(new CustomEvent("open-shop-dialog"))}
+          size="lg"
+          className="mt-2"
+        >
+          สร้างร้านค้าใหม่
+        </Button>
       </div>
     );
   }

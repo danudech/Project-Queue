@@ -31,7 +31,7 @@ public sealed class Users : IUsers
 
     }
 
-    public async Task<RegisterResponse?> LocalRegister(RegisterRequest data, string ip, string userAgent, CancellationToken ct)
+    public async Task<RegisterResponse?> LocalRegister(RegisterRequest data, string originUrl, string ip, string userAgent, CancellationToken ct)
     {
         _actionLog.Info("Registration attempt for user {EmailOrPhone}", data.Email ?? data.Phone ?? "unknown");
 
@@ -95,7 +95,7 @@ public sealed class Users : IUsers
             await _crud.InsertAsync(mailConfirmation, ct);
 
             await transaction.CommitAsync(ct);
-            string appUrl = _config["AppSettings:AppUrl"] ?? "http://localhost:3000";
+            string appUrl = !string.IsNullOrEmpty(originUrl) ? originUrl : _config["AppSettings:AppUrl"] ?? "http://localhost:3000";
             string currentLocale = data.locale ?? "en";
             string confirmationLink = $"{appUrl}/{currentLocale}/auth/mail-verify?token={token}";
 
@@ -140,7 +140,7 @@ public sealed class Users : IUsers
         };
     }
 
-    public async Task GetForgotPasswordRequestByEmail(ForgotPasswordRequest data, string ip, string userAgent, CancellationToken ct)
+    public async Task GetForgotPasswordRequestByEmail(ForgotPasswordRequest data, string originUrl, string ip, string userAgent, CancellationToken ct)
     {
         using var transaction = await _db.Database.BeginTransactionAsync(ct);
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == data.Email, ct);
@@ -161,14 +161,14 @@ public sealed class Users : IUsers
         await _crud.InsertAsync(mailConfirmation, ct);
 
         await transaction.CommitAsync(ct);
-        string appUrl = _config["AppSettings:AppUrl"] ?? "http://localhost:3000";
+        string appUrl = !string.IsNullOrEmpty(originUrl) ? originUrl : _config["AppSettings:AppUrl"] ?? "http://localhost:3000";
         string currentLocale = data.locale ?? "en";
         string confirmationLink = $"{appUrl}/{currentLocale}/auth/mail-verify?token={token}";
 
         await _emailService.SendForgotPasswordEmailAsync(user.Email, user.Name, confirmationLink);
     }
 
-    public async Task ResentConfirmationEmail(RegisterRequest data, string ip, string userAgent, CancellationToken ct)
+    public async Task ResentConfirmationEmail(RegisterRequest data, string originUrl, string ip, string userAgent, CancellationToken ct)
     {
         User? user = await _db.Users.FirstOrDefaultAsync(u => u.Email == data.Email, ct);
         if (user == null || string.IsNullOrWhiteSpace(user.Email) || string.IsNullOrWhiteSpace(user.Name)) return;
@@ -180,7 +180,7 @@ public sealed class Users : IUsers
 
         if (existingConfirmation != null)
         {
-            string appUrl = _config["AppSettings:AppUrl"] ?? "http://localhost:3000";
+            string appUrl = !string.IsNullOrEmpty(originUrl) ? originUrl : _config["AppSettings:AppUrl"] ?? "http://localhost:3000";
             string currentLocale = data.locale ?? "en";
             string confirmationLink = $"{appUrl}/{currentLocale}/auth/mail-verify?token={existingConfirmation.Token}";
 
