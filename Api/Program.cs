@@ -15,6 +15,7 @@ using Queue.Infrastructure.Service;
 using Queue.Infrastructure.Services;
 
 
+DotNetEnv.Env.Load();
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();

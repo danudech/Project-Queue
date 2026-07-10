@@ -12,7 +12,7 @@ A modern queue management system designed to improve customer experience by redu
 
 ## 🛠 Tech Stack
 - Backend: .NET (C#)
-- Frontend: Angular
+- Frontend: Next.js (React)
 - Database: SQL Server
 - Architecture: Clean Architecture
 
@@ -21,6 +21,11 @@ A modern queue management system designed to improve customer experience by redu
 2. Setup database and run migrations
 3. Configure environment variables
 4. Run backend and frontend
+
+## 🔒 Security Warning & Local Development
+Do **NOT** store sensitive information such as Database Connection Strings, JWT Secret Keys, or Email Credentials directly in the `appsettings.json` or source code repository. 
+Instead, please use [dotnet user-secrets](https://learn.microsoft.com/en-us/aspnet/core/security/app-secrets) for local development or Environment Variables in your production environment. 
+
 
 ## 🎯 Goals
 - Reduce waiting time
