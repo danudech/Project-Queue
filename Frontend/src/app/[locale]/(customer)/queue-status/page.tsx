@@ -44,7 +44,7 @@ export default function QueueStatusPage() {
                     <CardTitle className="text-lg">คิวบริการ</CardTitle>
                     <CardDescription>วันที่ {booking.bookingDate} เวลา {booking.bookingTime}</CardDescription>
                   </div>
-                  <Badge variant="outline" className="uppercase">{booking.status}</Badge>
+                  <Badge color="secondary" className="uppercase">{booking.status}</Badge>
                 </div>
               </CardHeader>
             </Card>

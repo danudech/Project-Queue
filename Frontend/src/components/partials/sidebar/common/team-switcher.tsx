@@ -4,7 +4,7 @@ import * as React from "react"
 import {
     ChevronsUpDown, Check, CirclePlus, Phone, Briefcase,
     Store, Loader2, Building2, ChevronRight, ChevronLeft,
-    MapPin, Clock, GitBranch, ChevronDown, Home,
+    MapPin, Clock, GitBranch, ChevronDown, Home, Ban,
 } from 'lucide-react'
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -48,13 +48,13 @@ import { storage } from "@/services/localstorage"
 // Constants
 // ─────────────────────────────────────────────────────────
 const DAYS = [
-    { value: 1, label: "จันทร์" },
-    { value: 2, label: "อังคาร" },
-    { value: 3, label: "พุธ" },
-    { value: 4, label: "พฤหัส" },
-    { value: 5, label: "ศุกร์" },
-    { value: 6, label: "เสาร์" },
-    { value: 0, label: "อาทิตย์" },
+    { value: 1, label: "day_monday" },
+    { value: 2, label: "day_tuesday" },
+    { value: 3, label: "day_wednesday" },
+    { value: 4, label: "day_thursday" },
+    { value: 5, label: "day_friday" },
+    { value: 6, label: "day_saturday" },
+    { value: 0, label: "day_sunday" },
 ] as const
 
 const STEPS = ["ข้อมูลร้าน", "ข้อมูลสาขา", "เวลาทำการ"] as const
@@ -62,31 +62,31 @@ const STEPS = ["ข้อมูลร้าน", "ข้อมูลสาขา
 // ─────────────────────────────────────────────────────────
 // Schemas
 // ─────────────────────────────────────────────────────────
-const step1Schema = z.object({
-    name: z.string().min(2, "ชื่อร้านต้องมีอย่างน้อย 2 ตัวอักษร"),
-    type: z.string().min(1, "กรุณาเลือกประเภทธุรกิจ"),
+const getStep1Schema = (t: any) => z.object({
+    name: z.string().min(2, t("validation_shopNameMin")),
+    type: z.string().min(1, t("validation_selectBusinessType")),
 })
 
-const step2Schema = z.object({
-    branchName: z.string().min(2, "ชื่อสาขาต้องมีอย่างน้อย 2 ตัวอักษร"),
+const getStep2Schema = (t: any) => z.object({
+    branchName: z.string().min(2, t("validation_branchNameMin")),
     branchPhone: z.string()
         .refine((val) => val === "" || /^0\d{9}$/.test(val), {
-            message: "เบอร์โทรต้องมี 10 หลักและขึ้นต้นด้วย 0"
+            message: t("validation_phoneFormat")
         })
         .optional()
         .or(z.literal("")),
     houseNo: z.string().optional(),
     street: z.string().optional(),
-    zipcode: z.string().length(5, "รหัสไปรษณีย์ต้องมี 5 หลัก"),
-    subdistrictId: z.number().min(1, "กรุณาเลือกตำบล"),
+    zipcode: z.string().length(5, t("validation_zipcodeLength")),
+    subdistrictId: z.number().min(1, t("validation_selectSubdistrict")),
     districtId: z.number(),
     provinceId: z.number(),
     districtName: z.string().optional(),
     provinceName: z.string().optional(),
 })
 
-type Step1Values = z.infer<typeof step1Schema>
-type Step2Values = z.infer<typeof step2Schema>
+type Step1Values = z.infer<ReturnType<typeof getStep1Schema>>
+type Step2Values = z.infer<ReturnType<typeof getStep2Schema>>
 
 const defaultHours = (): BusinessHour[] =>
     DAYS.map((d) => ({
@@ -100,10 +100,12 @@ const defaultHours = (): BusinessHour[] =>
 // StepIndicator
 // ─────────────────────────────────────────────────────────
 function StepIndicator({ current }: { current: number }) {
+    const t = useTranslations("Shop")
+    const stepLabels = [t("shopInfo"), t("branchInfo"), t("businessHours")]
     return (
         <div className="flex items-center gap-1.5 text-xs mt-3">
-            {STEPS.map((s, i) => (
-                <React.Fragment key={s}>
+            {stepLabels.map((s, i) => (
+                <React.Fragment key={i}>
                     <div className={cn(
                         "flex items-center gap-1 px-2 py-0.5 rounded-full transition-all duration-200",
                         i < current && "text-muted-foreground",
@@ -128,7 +130,7 @@ function StepIndicator({ current }: { current: number }) {
 // ─────────────────────────────────────────────────────────
 function StepFooter({
     onBack,
-    nextLabel = "ถัดไป",
+    nextLabel,
     isSubmitting = false,
     isLastStep = false,
 }: {
@@ -137,20 +139,22 @@ function StepFooter({
     isSubmitting?: boolean
     isLastStep?: boolean
 }) {
+    const t = useTranslations("Shop")
+    const resolvedNextLabel = nextLabel || t("next")
     return (
         <div className="px-6 pb-5 pt-4 flex items-center justify-between border-t">
             {onBack
                 ? <Button type="button" variant="ghost" size="sm" onClick={onBack} className="text-muted-foreground gap-1">
-                    <ChevronLeft className="h-3.5 w-3.5" />ย้อนกลับ
+                    <ChevronLeft className="h-3.5 w-3.5" />{t("back") || "Back"}
                 </Button>
                 : <div />
             }
             <Button type="submit" size="sm" disabled={isSubmitting} className="min-w-[110px] gap-1">
                 {isSubmitting
-                    ? <><Loader2 className="h-3.5 w-3.5 animate-spin" />กำลังสร้าง...</>
+                    ? <><Loader2 className="h-3.5 w-3.5 animate-spin" />{t("creating")}</>
                     : isLastStep
-                        ? <><Check className="h-3.5 w-3.5" />{nextLabel}</>
-                        : <>{nextLabel}<ChevronRight className="h-3.5 w-3.5" /></>
+                        ? <><Check className="h-3.5 w-3.5" />{resolvedNextLabel}</>
+                        : <>{resolvedNextLabel}<ChevronRight className="h-3.5 w-3.5" /></>
                 }
             </Button>
         </div>
@@ -162,10 +166,11 @@ function StepFooter({
 // ─────────────────────────────────────────────────────────
 function Step1({ onNext, saved }: { onNext: (v: Step1Values) => void; saved: Partial<Step1Values> }) {
     const locale = useLocale()
+    const t = useTranslations("Shop")
     const [shopTypes, setShopTypes] = React.useState<ShopType[]>([])
 
     const form = useForm<Step1Values>({
-        resolver: zodResolver(step1Schema),
+        resolver: zodResolver(getStep1Schema(t)),
         defaultValues: { name: "", type: "", ...saved },
     })
 
@@ -183,12 +188,12 @@ function Step1({ onNext, saved }: { onNext: (v: Step1Values) => void; saved: Par
                         <FormItem>
                             <FormLabel className="text-xs font-medium flex items-center gap-1.5">
                                 <Store className="h-3.5 w-3.5 text-muted-foreground" />
-                                ชื่อร้านค้า <span className="text-destructive">*</span>
+                                {t("shopName")} <span className="text-destructive">*</span>
                             </FormLabel>
                             <FormControl>
-                                <Input placeholder="เช่น คลินิกสุขภาพดี, ร้านตัดผม The Cut" className="h-10 text-sm" {...field} />
+                                <Input placeholder={t("shopNamePlaceholder")} className="h-10 text-sm" {...field} />
                             </FormControl>
-                            <p className="text-[11px] text-muted-foreground">ชื่อที่ลูกค้าเห็นเมื่อมาจองคิว</p>
+                            <p className="text-[11px] text-muted-foreground">{t("shopNameDesc")}</p>
                             <FormMessage className="text-xs" />
                         </FormItem>
                     )} />
@@ -197,28 +202,28 @@ function Step1({ onNext, saved }: { onNext: (v: Step1Values) => void; saved: Par
                         <FormItem>
                             <FormLabel className="text-xs font-medium flex items-center gap-1.5">
                                 <Briefcase className="h-3.5 w-3.5 text-muted-foreground" />
-                                ประเภทธุรกิจ <span className="text-destructive">*</span>
+                                {t("businessType")} <span className="text-destructive">*</span>
                             </FormLabel>
                             <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
                                     <SelectTrigger className="h-10 text-sm">
-                                        <SelectValue placeholder="เลือกประเภทธุรกิจ" />
+                                        <SelectValue placeholder={t("selectBusinessType")} />
                                     </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                    {shopTypes.map((t) => (
-                                        <SelectItem key={t.id} value={t.id.toString()} className="text-sm">
-                                            {locale === "th" ? t.nameTh : t.nameEn}
+                                    {shopTypes.map((type) => (
+                                        <SelectItem key={type.id} value={type.id.toString()} className="text-sm">
+                                            {locale === "th" ? type.nameTh : type.nameEn}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
-                            <p className="text-[11px] text-muted-foreground">ใช้ตั้งค่าเริ่มต้นให้เหมาะสม</p>
+                            <p className="text-[11px] text-muted-foreground">{t("businessTypeDesc")}</p>
                             <FormMessage className="text-xs" />
                         </FormItem>
                     )} />
                 </div>
-                <StepFooter nextLabel="ถัดไป" />
+                <StepFooter nextLabel={t("next")} />
             </form>
         </Form>
     )
@@ -228,13 +233,14 @@ function Step1({ onNext, saved }: { onNext: (v: Step1Values) => void; saved: Par
 // Step 2 — สาขา
 // ─────────────────────────────────────────────────────────
 function Step2({ onNext, onBack, saved }: { onNext: (v: Step2Values) => void; onBack: () => void; saved: Partial<Step2Values> }) {
+    const t = useTranslations("Shop")
     const [addressList, setAddressList] = React.useState<AddressType[] | null>(null)
     const [isLoading, setIsLoading] = React.useState(false)
 
     const form = useForm<Step2Values>({
         resolver: zodResolver(step2Schema),
         defaultValues: {
-            branchName: "สาขาหลัก",
+            branchName: t("defaultBranchName"),
             branchPhone: "",
             houseNo: "",
             street: "",
@@ -295,10 +301,10 @@ function Step2({ onNext, onBack, saved }: { onNext: (v: Step2Values) => void; on
                         <FormItem>
                             <FormLabel className="text-xs font-medium flex items-center gap-1.5">
                                 <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
-                                ชื่อสาขา <span className="text-destructive">*</span>
+                                {t("branchName")} <span className="text-destructive">*</span>
                             </FormLabel>
                             <FormControl>
-                                <Input placeholder="เช่น สาขาหลัก, สาขาสุขุมวิท" className="h-10 text-sm" {...field} />
+                                <Input placeholder={t("branchNamePlaceholder")} className="h-10 text-sm" {...field} />
                             </FormControl>
                             <FormMessage className="text-xs" />
                         </FormItem>
@@ -308,7 +314,7 @@ function Step2({ onNext, onBack, saved }: { onNext: (v: Step2Values) => void; on
                         <FormItem>
                             <FormLabel className="text-xs font-medium flex items-center gap-1.5">
                                 <Phone className="h-3.5 w-3.5 text-muted-foreground" />
-                                เบอร์โทรสาขา <span className="text-[11px] text-muted-foreground font-normal">(ไม่บังคับ)</span>
+                                {t("branchPhone")} <span className="text-[11px] text-muted-foreground font-normal">{t("optional")}</span>
                             </FormLabel>
                             <FormControl>
                                 <Input placeholder="0812345678" className="h-10 text-sm" type="tel" {...field} />
@@ -320,19 +326,19 @@ function Step2({ onNext, onBack, saved }: { onNext: (v: Step2Values) => void; on
                     <div className="space-y-3 pt-1 border-t border-dashed">
                         <p className="text-xs font-medium flex items-center gap-1.5 text-foreground/80">
                             <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-                            ที่อยู่สาขา
+                            {t("branchAddress")}
                         </p>
 
                         <div className="grid grid-cols-2 gap-2">
                             <FormField control={form.control} name="houseNo" render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="text-[11px] text-muted-foreground">บ้านเลขที่</FormLabel>
+                                    <FormLabel className="text-[11px] text-muted-foreground">{t("houseNo")}</FormLabel>
                                     <FormControl><Input placeholder="99/9" className="h-9 text-sm" {...field} /></FormControl>
                                 </FormItem>
                             )} />
                             <FormField control={form.control} name="street" render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="text-[11px] text-muted-foreground">ถนน</FormLabel>
+                                    <FormLabel className="text-[11px] text-muted-foreground">{t("street")}</FormLabel>
                                     <FormControl><Input placeholder="สุขุมวิท" className="h-9 text-sm" {...field} /></FormControl>
                                 </FormItem>
                             )} />
@@ -340,9 +346,9 @@ function Step2({ onNext, onBack, saved }: { onNext: (v: Step2Values) => void; on
 
                         <FormField control={form.control} name="zipcode" render={({ field }) => (
                             <FormItem>
-                                <FormLabel className="text-[11px] text-muted-foreground">รหัสไปรษณีย์</FormLabel>
+                                <FormLabel className="text-[11px] text-muted-foreground">{t("zipcode")}</FormLabel>
                                 <FormControl>
-                                    <Input {...field} maxLength={5} className="h-9 text-sm" placeholder={isLoading ? "กำลังโหลด..." : "10600"} />
+                                    <Input {...field} maxLength={5} className="h-9 text-sm" placeholder={isLoading ? t("loading") : "10600"} />
                                 </FormControl>
                                 <FormMessage className="text-xs" />
                             </FormItem>
@@ -350,7 +356,7 @@ function Step2({ onNext, onBack, saved }: { onNext: (v: Step2Values) => void; on
 
                         <FormField control={form.control} name="subdistrictId" render={({ field }) => (
                             <FormItem>
-                                <FormLabel className="text-[11px] text-muted-foreground">ตำบล / แขวง</FormLabel>
+                                <FormLabel className="text-[11px] text-muted-foreground">{t("subdistrict")}</FormLabel>
                                 <Select
                                     onValueChange={(val) => field.onChange(Number(val))}
                                     value={field.value > 0 ? field.value.toString() : ""}
@@ -358,7 +364,7 @@ function Step2({ onNext, onBack, saved }: { onNext: (v: Step2Values) => void; on
                                 >
                                     <FormControl>
                                         <SelectTrigger className="h-9 text-xs">
-                                            <SelectValue placeholder={isLoading ? "กำลังโหลด..." : "เลือกตำบล"} />
+                                            <SelectValue placeholder={isLoading ? t("loading") : t("selectSubdistrict")} />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
@@ -375,19 +381,19 @@ function Step2({ onNext, onBack, saved }: { onNext: (v: Step2Values) => void; on
 
                         <div className="grid grid-cols-2 gap-2">
                             <FormItem>
-                                <FormLabel className="text-[11px] text-muted-foreground">เขต / อำเภอ</FormLabel>
+                                <FormLabel className="text-[11px] text-muted-foreground">{t("district")}</FormLabel>
                                 <Input value={form.watch("districtName")} readOnly className="h-9 text-xs bg-muted/30 cursor-not-allowed" />
                                 <input type="hidden" {...form.register("districtId")} />
                             </FormItem>
                             <FormItem>
-                                <FormLabel className="text-[11px] text-muted-foreground">จังหวัด</FormLabel>
+                                <FormLabel className="text-[11px] text-muted-foreground">{t("province")}</FormLabel>
                                 <Input value={form.watch("provinceName")} readOnly className="h-9 text-xs bg-muted/30 cursor-not-allowed" />
                                 <input type="hidden" {...form.register("provinceId")} />
                             </FormItem>
                         </div>
                     </div>
                 </div>
-                <StepFooter onBack={onBack} nextLabel="ถัดไป" />
+                <StepFooter onBack={onBack} nextLabel={t("next")} />
             </form>
         </Form>
     )
@@ -396,12 +402,13 @@ function Step2({ onNext, onBack, saved }: { onNext: (v: Step2Values) => void; on
 // ─────────────────────────────────────────────────────────
 // Step 3 — เวลาทำการ
 // ─────────────────────────────────────────────────────────
-function Step3({ onSubmit, onBack, isSubmitting, submitLabel = "สร้างร้านค้า" }: {
+function Step3({ onSubmit, onBack, isSubmitting, submitLabel }: {
     onSubmit: (hours: BusinessHour[]) => void
     onBack: () => void
     isSubmitting: boolean
     submitLabel?: string
 }) {
+    const t = useTranslations("Shop")
     const [hours, setHours] = React.useState<BusinessHour[]>(defaultHours)
 
     const update = (dayOfWeek: number, patch: Partial<BusinessHour>) =>
@@ -419,7 +426,7 @@ function Step3({ onSubmit, onBack, isSubmitting, submitLabel = "สร้าง�
                 <div className="flex items-center justify-between">
                     <p className="text-xs font-medium flex items-center gap-1.5 text-foreground/80">
                         <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                        วันและเวลาทำการ
+                        {t("businessHoursLabel")}
                     </p>
                     <div className="flex gap-2 text-[11px]">
                         <button
@@ -427,11 +434,11 @@ function Step3({ onSubmit, onBack, isSubmitting, submitLabel = "สร้าง�
                             onClick={() => setHours((prev) => prev.map((h) => ({ ...h, isOpen: true })))}
                             className="text-primary hover:underline"
                         >
-                            เปิดทุกวัน
+                            {t("openAllDays")}
                         </button>
                         <span className="text-muted-foreground/40">|</span>
                         <button type="button" onClick={copyFirstOpen} className="text-primary hover:underline">
-                            copy เวลาจากวันแรก
+                            {t("copyFirstDayHours")}
                         </button>
                     </div>
                 </div>
@@ -453,7 +460,7 @@ function Step3({ onSubmit, onBack, isSubmitting, submitLabel = "สร้าง�
                                     "text-xs w-12 flex-shrink-0",
                                     h.isOpen ? "font-medium text-foreground" : "text-muted-foreground"
                                 )}>
-                                    {day.label}
+                                    {t(day.label as any)}
                                 </span>
                                 {h.isOpen ? (
                                     <div className="flex items-center gap-2 flex-1">
@@ -462,15 +469,15 @@ function Step3({ onSubmit, onBack, isSubmitting, submitLabel = "สร้าง�
                                         <Input type="time" value={h.closeTime} onChange={(e) => update(day.value, { closeTime: e.target.value })} className="h-8 text-xs w-[95px]" />
                                     </div>
                                 ) : (
-                                    <span className="text-xs text-muted-foreground flex-1">วันหยุด</span>
+                                    <span className="text-xs text-muted-foreground flex-1">{t("dayOff")}</span>
                                 )}
                             </div>
                         )
                     })}
                 </div>
-                <p className="text-[11px] text-muted-foreground pt-1">* แก้ไขเวลาทำการได้ในหน้าตั้งค่าร้าน</p>
+                <p className="text-[11px] text-muted-foreground pt-1">{t("editHoursNote")}</p>
             </div>
-            <StepFooter onBack={onBack} nextLabel={submitLabel} isSubmitting={isSubmitting} isLastStep />
+            <StepFooter onBack={onBack} nextLabel={submitLabel || t("next")} isSubmitting={isSubmitting} isLastStep />
         </form>
     )
 }
@@ -559,15 +566,15 @@ export default function TeamSwitcher({ className }: { className?: string }) {
             const res = await http.post<ShopResponse>("newshop", payload)
 
             if (res != null) {
-                toast.success("สร้างร้านค้าสำเร็จ!")
+                toast.success(t("createShopSuccess"))
                 await refetch()
                 handleClose(false)
             } else {
-                toast.error("สร้างร้านค้าไม่สำเร็จ")
+                toast.error(t("createShopFailed"))
             }
         } catch (err) {
             console.error(err)
-            toast.error("เกิดข้อผิดพลาด กรุณาลองใหม่")
+            toast.error(t("createShopFailed"))
         } finally {
             setIsSubmitting(false)
         }
@@ -597,15 +604,15 @@ export default function TeamSwitcher({ className }: { className?: string }) {
             const res = await http.post<ShopResponse>("newbranch", payload)
 
             if (res != null) {
-                toast.success("เพิ่มสาขาสำเร็จ!")
+                toast.success(t("addBranchSuccess"))
                 await refetch()
                 handleClose(false)
             } else {
-                toast.error("เพิ่มสาขาไม่สำเร็จ")
+                toast.error(t("addBranchFailed"))
             }
         } catch (err) {
             console.error(err)
-            toast.error("เกิดข้อผิดพลาด กรุณาลองใหม่")
+            toast.error(t("createShopFailed"))
         } finally {
             setIsSubmitting(false)
         }
@@ -638,25 +645,19 @@ export default function TeamSwitcher({ className }: { className?: string }) {
                     >
                         {isCollapsed ? (
                             <Button
-                                variant="outline"
-                                color="secondary"
+                                variant="ghost"
                                 role="combobox"
                                 aria-expanded={open}
                                 aria-label="Select a team"
-                                className={cn("h-14 w-14 mx-auto p-0 md:p-0 dark:border-secondary ring-offset-sidebar", className)}
+                                className={cn(
+                                    "h-12 w-12 mx-auto p-0 md:p-0 ring-offset-sidebar flex items-center justify-center transition-colors",
+                                    shopData 
+                                        ? "bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary" 
+                                        : "bg-muted/50 text-muted-foreground hover:bg-muted/80 hover:text-muted-foreground",
+                                    className
+                                )}
                             >
-                                <Avatar className="bg-transparent">
-                                    <StoreImage
-                                        height={24}
-                                        width={24}
-                                        src="/images/brand/ezqueue-mark-64.png"
-                                        alt="EZQueue logo"
-                                        className="rounded-lg object-cover w-6 h-6"
-                                    />
-                                    <AvatarFallback className="bg-transparent">
-                                        <Home className="h-4 w-4 text-muted-foreground" />
-                                    </AvatarFallback>
-                                </Avatar>
+                                {shopData ? <Store className="h-6 w-6" /> : <Ban className="h-6 w-6 opacity-70" />}
                             </Button>
                         ) : (
                             <Button
@@ -668,18 +669,12 @@ export default function TeamSwitcher({ className }: { className?: string }) {
                                 className={cn("h-auto py-3 px-3 justify-start dark:border-secondary ring-offset-sidebar w-full", className)}
                             >
                                 <div className="flex gap-2 flex-1 items-center">
-                                    <Avatar className="flex-none bg-transparent">
-                                        <StoreImage
-                                            height={28}
-                                            width={28}
-                                            src="/images/brand/ezqueue-mark-64.png"
-                                            alt="EZQueue logo"
-                                            className="rounded-lg object-cover w-7 h-7"
-                                        />
-                                        <AvatarFallback className="bg-transparent">
-                                            <Home className="h-4 w-4 text-muted-foreground" />
-                                        </AvatarFallback>
-                                    </Avatar>
+                                    <div className={cn(
+                                        "flex-none h-7 w-7 rounded-md flex items-center justify-center",
+                                        shopData ? "bg-primary/10 text-primary" : "bg-muted/50 text-muted-foreground"
+                                    )}>
+                                        {shopData ? <Store className="h-4 w-4" /> : <Ban className="h-4 w-4 opacity-70" />}
+                                    </div>
                                     <div className="flex-1 text-start w-[100px]">
                                         <div className="text-sm font-semibold text-default-900 truncate">
                                             {selectedShop?.name ?? t('noShop')}
@@ -701,11 +696,13 @@ export default function TeamSwitcher({ className }: { className?: string }) {
                         {/* ── Shop header — dark icon style ── */}
                         {shopData && (
                             <div className="flex items-center gap-3 px-3 py-3 border-b bg-muted/30">
-                                <div className="h-9 w-9 rounded-full bg-foreground/90 dark:bg-foreground/10 flex items-center justify-center flex-shrink-0">
-                                    <Home className="h-4 w-4 text-background dark:text-foreground" />
+                                <div className="h-9 w-9 flex items-center justify-center flex-shrink-0">
+                                    <div className="h-9 w-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                                        <Store className="h-5 w-5" />
+                                    </div>
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-[10px] text-muted-foreground leading-none mb-0.5">ร้านของฉัน</p>
+                                    <p className="text-[10px] text-muted-foreground leading-none mb-0.5">{t("myShop")}</p>
                                     <p className="text-sm font-semibold truncate leading-tight">{shopData.name}</p>
                                 </div>
                             </div>
@@ -717,7 +714,7 @@ export default function TeamSwitcher({ className }: { className?: string }) {
                                 <div className="px-3 pt-2.5 pb-1">
                                     <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1">
                                         <GitBranch className="h-3 w-3" />
-                                        เลือกสาขา
+                                        {t("selectBranch")}
                                     </p>
                                 </div>
                                 <CommandList className="max-h-40">
@@ -764,7 +761,7 @@ export default function TeamSwitcher({ className }: { className?: string }) {
                                         <div className="h-6 w-6 rounded-md bg-primary/10 flex items-center justify-center">
                                             <GitBranch className="h-3.5 w-3.5 text-primary" />
                                         </div>
-                                        เพิ่มสาขาใหม่
+                                        {t("addNewBranch")}
                                     </CommandItem>
                                 ) : (
                                     <CommandItem
@@ -774,7 +771,7 @@ export default function TeamSwitcher({ className }: { className?: string }) {
                                         <div className="h-6 w-6 rounded-md bg-primary/10 flex items-center justify-center">
                                             <CirclePlus className="h-3.5 w-3.5 text-primary" />
                                         </div>
-                                        เพิ่มร้านค้าใหม่
+                                        {t("addNewShop")}
                                     </CommandItem>
                                 )}
                             </CommandGroup>
@@ -787,23 +784,20 @@ export default function TeamSwitcher({ className }: { className?: string }) {
             <DialogContent className="sm:max-w-[440px] p-0 gap-0 overflow-hidden">
                 <div className="px-6 pt-5 pb-4 border-b bg-muted/30">
                     <div className="flex items-center gap-3">
-                        <div className="h-9 w-9 rounded-full bg-foreground/90 dark:bg-foreground/10 flex items-center justify-center flex-shrink-0">
-                            {dialogMode === "branch"
-                                ? <GitBranch className="h-4 w-4 text-background dark:text-foreground" />
-                                : <Home className="h-4 w-4 text-background dark:text-foreground" />
-                            }
+                        <div className="h-9 w-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+                            <Store className="h-5 w-5" />
                         </div>
                         <div className="flex-1 min-w-0">
                             <DialogTitle className="text-sm font-semibold leading-tight">
-                                {dialogMode === "branch" ? "เพิ่มสาขาใหม่" : "สร้างร้านค้าใหม่"}
+                                {dialogMode === "branch" ? t("addNewBranch") : t("createNewShop")}
                             </DialogTitle>
                             <DialogDescription className="text-[11px] mt-0.5">
                                 {dialogMode === "branch"
-                                    ? branchStep === 0 ? "ระบุข้อมูลและที่อยู่สาขา"
-                                        : "กำหนดวันและเวลาทำการของสาขา"
-                                    : step === 0 ? "กรอกข้อมูลเบื้องต้นของร้าน"
-                                        : step === 1 ? "ระบุที่ตั้งสาขาแรก — เพิ่มสาขาอื่นได้ในภายหลัง"
-                                            : "กำหนดวันและเวลาทำการเริ่มต้น"
+                                    ? branchStep === 0 ? t("branchDetailAndAddress")
+                                        : t("branchOperatingHours")
+                                    : step === 0 ? t("basicShopInfo")
+                                        : step === 1 ? t("firstBranchInfo")
+                                            : t("setInitialHours")
                                 }
                             </DialogDescription>
                         </div>
@@ -835,7 +829,7 @@ export default function TeamSwitcher({ className }: { className?: string }) {
                                 onSubmit={handleBranchSubmit}
                                 onBack={() => setBranchStep(0)}
                                 isSubmitting={isSubmitting}
-                                submitLabel="เพิ่มสาขา"
+                                submitLabel={t("addBranch")}
                             />
                         )}
 

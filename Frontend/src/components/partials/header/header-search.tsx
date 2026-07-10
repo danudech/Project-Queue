@@ -1,4 +1,6 @@
-'use client'
+"use client"
+
+import { useTranslations } from "next-intl";
 import React from "react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { X } from "lucide-react";
@@ -15,6 +17,7 @@ import { Link } from '@/i18n/routing';
 import { Icon } from "@/components/ui/icon";
 import { useConfig } from "@/hooks/use-config";
 const HeaderSearch = () => {
+    const t = useTranslations("Layout");
     const [config] = useConfig();
     if (config.layout === 'horizontal') return null
     return (

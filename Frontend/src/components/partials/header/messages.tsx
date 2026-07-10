@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ import shortImage from "@/public/images/all-img/short-image-2.png";
 import { Icon } from "@/components/ui/icon";
 
 const Messages = () => {
+    const t = useTranslations("Layout");
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>

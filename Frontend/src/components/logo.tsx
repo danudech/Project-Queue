@@ -16,7 +16,7 @@ const Logo = () => {
 
     if (config.sidebar === 'compact') {
         return <Link href="/dashboard" className="flex gap-2 items-center   justify-center    ">
-            <Image src="/images/brand/ezqueue-mark-64.png" alt="EZQueue" width={32} height={32} className="h-8 w-8 rounded-lg" />
+            <Image src="/images/brand/new-logo.jpg" alt="EZQueue" width={32} height={32} className="h-8 w-8 rounded-lg" />
 
         </Link>
     }
@@ -24,7 +24,7 @@ const Logo = () => {
 
     return (
         <Link href="/dashboard" className="flex gap-2 items-center    ">
-            <Image src="/images/brand/ezqueue-mark-64.png" alt="EZQueue" width={32} height={32} className="h-8 w-8 rounded-lg" />
+            <Image src="/images/brand/new-logo.jpg" alt="EZQueue" width={32} height={32} className="h-8 w-8 rounded-lg" />
             {(!config?.collapsed || hovered) && (
                 <h1 className="text-xl font-semibold text-default-900 ">
                     EZQueue

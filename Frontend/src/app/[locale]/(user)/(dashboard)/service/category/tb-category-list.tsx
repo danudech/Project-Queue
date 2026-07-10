@@ -41,19 +41,19 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { ServiceCategoryType } from "@/types/shop/catgory"
-import { columns } from "./columns"
+import { getColumns } from "./columns"
 import { useShop } from "@/hooks/use-me"
 import { http } from "@/lib/http/client"
 import toast from "react-hot-toast"
 import { storage } from "@/services/localstorage"
 
-const formSchema = z.object({
-    name: z.string().min(1, "กรุณากรอกชื่อ category").max(150, "ชื่อยาวเกิน 150 ตัวอักษร"),
-    shopId: z.string().min(1, "กรุณาเลือก Shop"),
-    isActive: z.boolean(),
+const getFormSchema = (t: any) => z.object({
+    name: z.string().min(1, t("validation.nameRequired")).max(150, t("validation.nameTooLong")),
+    shopId: z.number().min(1, t("validation.shopRequired")),
+    is_active: z.boolean().default(true),
 })
 
-type FormValues = z.infer<typeof formSchema>
+type FormValues = z.infer<ReturnType<typeof getFormSchema>>
 
 const ServiceCategoryPage = () => {
     const [tableData, setTableData] = React.useState<ServiceCategoryType[] | null>(null);
@@ -66,7 +66,7 @@ const ServiceCategoryPage = () => {
     const { data: shopData, isLoading } = useShop();
 
     const form = useForm<FormValues>({
-        resolver: zodResolver(formSchema),
+        resolver: zodResolver(getFormSchema(t)),
         defaultValues: { name: "", shopId: "", isActive: true },
     });
 
@@ -84,7 +84,7 @@ const ServiceCategoryPage = () => {
                     setTableData(shopcategory);
                 }
             } catch (error) {
-                toast.error("โหลดข้อมูลไม่สำเร็จ");
+                toast.error(tc("error.loadFailed"));
             }
         };
         fetchData();
@@ -117,7 +117,7 @@ const ServiceCategoryPage = () => {
                     item.id === row.id ? { ...item, isActive: row.isActive } : item
                 ) ?? null
             );
-            toast.error("ไม่สามารถเปลี่ยนสถานะได้");
+            toast.error(tc("error.statusChangeFailed"));
         }
     };
 
@@ -132,7 +132,7 @@ const ServiceCategoryPage = () => {
                 setTableData((prev) => prev?.filter((item) => item.id !== id) ?? null);
                 toast.success("ลบข้อมูลสำเร็จ");
             } catch (error) {
-                toast.error("ลบไม่สำเร็จ");
+                toast.error(tc("error.deleteFailed"));
             }
         }
     };
@@ -176,7 +176,7 @@ const ServiceCategoryPage = () => {
             setDialogOpen(false);
         } catch (error) {
             console.error(error);
-            toast.error("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
+            toast.error(tc("error.saveFailed"));
         }
     };
 
@@ -280,7 +280,7 @@ const ServiceCategoryPage = () => {
                                 render={({ field }) => (
                                     <FormItem className="flex items-center justify-between rounded-lg border p-3">
                                         <div className="space-y-0.5">
-                                            <FormLabel>สถานะการใช้งาน</FormLabel>
+                                            <FormLabel>{tc("form.statusLabel")}</FormLabel>
                                         </div>
                                         <FormControl>
                                             <Switch checked={field.value} onCheckedChange={field.onChange} />
@@ -290,8 +290,8 @@ const ServiceCategoryPage = () => {
                             />
 
                             <DialogFooter>
-                                <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>ยกเลิก</Button>
-                                <Button type="submit">บันทึก</Button>
+                                <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>{tc("cancel")}</Button>
+                                <Button type="submit">{tc("save")}</Button>
                             </DialogFooter>
                         </form>
                     </Form>

@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
@@ -21,6 +22,7 @@ export function TableToolbar({
   onAddClick,
   addButtonText = "เพิ่มข้อมูล",
 }: TableToolbarProps) {
+    const t = useTranslations("Common");
   return (
     <div className="flex items-center py-4 px-5">
       <div className="flex-1 text-xl font-medium text-default-900">{title}</div>

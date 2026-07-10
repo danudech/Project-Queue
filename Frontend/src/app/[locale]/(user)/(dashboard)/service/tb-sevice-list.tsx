@@ -48,7 +48,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { set, z } from "zod"
 import { ServiceCategoryType } from "@/types/shop/catgory"
 import { SetService } from "@/types/shop/service"
-import { columns } from "./columns"
+import { getColumns } from "./columns"
 import { useShop } from "@/hooks/use-me"
 import { http } from "@/lib/http/client"
 import toast from "react-hot-toast"
@@ -57,29 +57,22 @@ import { is } from "date-fns/locale"
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
 
-const formSchema = z.object({
-    name: z
-        .string()
-        .min(1, "กรุณากรอกชื่อบริการ")
-        .max(150, "ชื่อยาวเกิน 150 ตัวอักษร"),
-    shopId: z.string().min(1, "กรุณาเลือกร้านค้า"),
-    duration: z
-        .number({ message: "กรุณากรอกระยะเวลา" })
-        .int("ต้องเป็นจำนวนเต็ม")
-        .min(1, "ระยะเวลาต้องมากกว่า 0 นาที"),
-    price: z
-        .number({ message: "กรุณากรอกราคา" })
-        .min(0, "ราคาต้องไม่ติดลบ"),
-    categoryId: z
-        .number({ message: "กรุณาเลือกหมวดหมู่" })
-        .optional()
-        .refine((val) => val !== undefined && val > 0, {
-            message: "กรุณาเลือกหมวดหมู่",
-        }),
-    isActive: z.boolean(),
+const getFormSchema = (t: any) => z.object({
+    name: z.string().min(1, t("validation.nameRequired")).max(150, t("validation.nameTooLong")),
+    shopId: z.number().min(1, t("validation.shopRequired")),
+    duration: z.coerce.number({
+        required_error: t("validation.durationRequired"),
+        invalid_type_error: t("validation.durationInt"),
+    }).min(1, t("validation.durationMin")),
+    price: z.coerce.number({
+        required_error: t("validation.priceRequired"),
+        invalid_type_error: t("validation.durationInt"),
+    }).min(0, t("validation.priceMin")),
+    categoryId: z.number().min(1, t("validation.categoryRequired")),
+    isActive: z.boolean().default(true),
 })
 
-type FormValues = z.infer<typeof formSchema>
+type FormValues = z.infer<ReturnType<typeof getFormSchema>>
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -97,7 +90,7 @@ const ServicePage = () => {
     const { data: shopData } = useShop()
 
     const form = useForm<FormValues>({
-        resolver: zodResolver(formSchema),
+        resolver: zodResolver(getFormSchema(t)),
         defaultValues: {
             name: "",
             shopId: "",
@@ -132,7 +125,7 @@ const ServicePage = () => {
                 setCategoryData(categories)
                 setTableData(services)
             } catch {
-                toast.error("โหลดข้อมูลไม่สำเร็จ")
+                toast.error(tc("error.loadFailed"))
             } finally {
                 setIsLoading(false)
             }
@@ -160,7 +153,7 @@ const ServicePage = () => {
             setTableData((prev) =>
                 prev?.map((item) => item.id === row.id ? { ...item, isActive: row.isActive } : item) ?? null
             )
-            toast.error("ไม่สามารถเปลี่ยนสถานะได้")
+            toast.error(tc("error.statusChangeFailed"))
         }
     }
 
@@ -171,7 +164,7 @@ const ServicePage = () => {
             setTableData((prev) => prev?.filter((item) => item.id !== id) ?? null)
             toast.success("ลบบริการสำเร็จ")
         } catch {
-            toast.error("ลบไม่สำเร็จ")
+            toast.error(tc("error.deleteFailed"))
         }
     }
 
@@ -225,7 +218,7 @@ const ServicePage = () => {
             setDialogOpen(false)
         } catch (error) {
             console.error(error)
-            toast.error("เกิดข้อผิดพลาดในการบันทึกข้อมูล")
+            toast.error(tc("error.saveFailed"))
         } finally {
             setBtnLoading(false)
         }
@@ -285,8 +278,8 @@ const ServicePage = () => {
         <div className="w-full space-y-4">
             {/* 1. Toolbar */}
             <TableToolbar
-                title="บริการทั้งหมด"
-                searchPlaceholder="ค้นหาชื่อบริการ..."
+                title={t("toolbar.all")}
+                searchPlaceholder={t("toolbar.search")}
                 searchValue={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
                 onSearchChange={(val) => table.getColumn("name")?.setFilterValue(val)}
                 onAddClick={openAdd}
@@ -314,7 +307,7 @@ const ServicePage = () => {
                                 name="name"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>ชื่อบริการ</FormLabel>
+                                        <FormLabel>{t("form.name")}</FormLabel>
                                         <FormControl>
                                             <Input placeholder="เช่น ตัดผมชาย, สระผม, ทำเล็บ" {...field} />
                                         </FormControl>
@@ -330,7 +323,7 @@ const ServicePage = () => {
                                     name="duration"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>ระยะเวลา (นาที)</FormLabel>
+                                            <FormLabel>{t("form.duration")}</FormLabel>
                                             <FormControl>
                                                 <Input
                                                     type="number"
@@ -377,7 +370,7 @@ const ServicePage = () => {
                                 name="categoryId"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>หมวดหมู่</FormLabel>
+                                        <FormLabel>{t("form.category")}</FormLabel>
                                         <Select
                                             onValueChange={(val) => field.onChange(Number(val))}
                                             value={field.value ? String(field.value) : ""}
@@ -412,7 +405,7 @@ const ServicePage = () => {
                                 name="shopId"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>ร้านค้า</FormLabel>
+                                        <FormLabel>{t("form.shop")}</FormLabel>
                                         <FormControl>
                                             <Input {...field} value={shopData?.name || ""} disabled />
                                         </FormControl>
@@ -427,7 +420,7 @@ const ServicePage = () => {
                                 name="isActive"
                                 render={({ field }) => (
                                     <FormItem className="flex items-center justify-between rounded-lg border p-3">
-                                        <FormLabel className="cursor-pointer">สถานะการใช้งาน</FormLabel>
+                                        <FormLabel className="cursor-pointer">{tc("form.statusLabel")}</FormLabel>
                                         <FormControl>
                                             <Switch
                                                 checked={field.value}
@@ -447,7 +440,7 @@ const ServicePage = () => {
                                     ยกเลิก
                                 </Button>
                                 <Button type="submit" disabled={btnLoading}>
-                                    {btnLoading ? "กำลังบันทึก..." : "บันทึก"}
+                                    {btnLoading ? tc("saving") : "บันทึก"}
                                 </Button>
                             </DialogFooter>
                         </form>

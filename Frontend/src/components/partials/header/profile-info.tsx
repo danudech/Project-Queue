@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 
 const ProfileInfo = () => {
+
   const router = useRouter();
   const t = useTranslations("Menu");
   const { data, isLoading } = useProfile();

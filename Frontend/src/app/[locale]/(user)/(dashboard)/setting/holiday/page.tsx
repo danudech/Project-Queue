@@ -1,5 +1,6 @@
-"use client";
+"use client"
 
+import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 import { CalendarX2, Loader2, Plus, Search, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -42,6 +43,7 @@ const emptyForm = {
 };
 
 const SettingHolidayPage = () => {
+    const t = useTranslations("Settings.holiday");
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);

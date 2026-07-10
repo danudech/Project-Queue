@@ -18,7 +18,7 @@ const Footer = ({ copy, actions }: FooterProps) => {
               <Link href="#home" className="footer-logo">
                 <span className="ez-logo-mark">
                   <Image
-                    src="/images/brand/ezqueue-mark-64.png"
+                    src="/images/brand/new-logo.jpg"
                     alt=""
                     width={34}
                     height={34}

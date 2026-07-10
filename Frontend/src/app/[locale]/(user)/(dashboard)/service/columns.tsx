@@ -24,21 +24,21 @@ export const columns: ColumnDef<SetService>[] = [
   },
   {
     accessorKey: "name",
-    header: "ชื่อบริการ",
+    header: t("columns.name"),
     cell: ({ row }) => (
       <span className="font-medium text-default-900">{row.getValue("name")}</span>
     ),
   },
   {
     accessorKey: "duration",
-    header: "ระยะเวลา",
+    header: t("columns.duration"),
     cell: ({ row }) => (
       <span className="text-default-600 text-sm">{row.getValue("duration")} นาที</span>
     ),
   },
   {
     accessorKey: "price",
-    header: "ราคา",
+    header: t("columns.price"),
     cell: ({ row }) => {
       const price = row.getValue("price") as number
       return (
@@ -54,7 +54,7 @@ export const columns: ColumnDef<SetService>[] = [
   },
   {
     accessorKey: "isActive",
-    header: "Status",
+    header: tc("columns.status"),
     cell: ({ row, table }) => {
       const active = row.getValue("isActive") as boolean
       const meta = table.options.meta as any
@@ -65,14 +65,14 @@ export const columns: ColumnDef<SetService>[] = [
           className="capitalize cursor-pointer hover:opacity-80"
           onClick={() => meta?.toggleStatus(row.original)}
         >
-          {active ? "Active" : "Inactive"}
+          {active ? tc("status.active") : tc("status.inactive")}
         </Badge>
       )
     },
   },
   {
     accessorKey: "createdAt",
-    header: "วันที่สร้าง",
+    header: t("columns.createdAt"),
     cell: ({ row }) => {
       const dateValue = row.getValue("createdAt") as string;
       if (!dateValue) return "-";
@@ -101,7 +101,7 @@ export const columns: ColumnDef<SetService>[] = [
   },
   {
     id: "actions",
-    header: "Action",
+    header: tc("columns.action"),
     enableHiding: false,
     cell: ({ row, table }) => {
       const meta = table.options.meta as any
@@ -146,7 +146,7 @@ export const columns: ColumnDef<SetService>[] = [
                   <SquarePen className="w-3.5 h-3.5" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="top"><p>แก้ไข</p></TooltipContent>
+              <TooltipContent side="top"><p>{tc("tooltip.edit")}</p></TooltipContent>
             </Tooltip>
           </TooltipProvider>
 
@@ -168,7 +168,7 @@ export const columns: ColumnDef<SetService>[] = [
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="top" className="bg-destructive text-destructive-foreground">
-                <p>ลบข้อมูล</p>
+                <p>{tc("tooltip.delete")}</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>

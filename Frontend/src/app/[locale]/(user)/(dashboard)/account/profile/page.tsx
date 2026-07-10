@@ -85,7 +85,6 @@ export default function ProfilePage() {
       <Card className="border shadow-lg bg-card overflow-hidden rounded-2xl relative">
         {/* Decorative Header Banner */}
         <div className="h-40 w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-900 dark:via-indigo-900 dark:to-purple-900 relative overflow-hidden">
-          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay"></div>
           <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-white/10 dark:bg-white/5 rounded-full blur-3xl"></div>
           <div className="absolute -top-10 -left-10 w-40 h-40 bg-white/10 dark:bg-white/5 rounded-full blur-3xl"></div>
         </div>
@@ -128,7 +127,9 @@ export default function ProfilePage() {
                 <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
                   {profile?.name || tProfile("unknownUser")}
                   {profile?.status?.toLowerCase() === "active" && (
-                    <ShieldCheck className="w-5 h-5 text-emerald-500" title={tProfile("verifiedAccount")} />
+                    <span title={tProfile("verifiedAccount")}>
+                      <ShieldCheck className="w-5 h-5 text-emerald-500" />
+                    </span>
                   )}
                 </h2>
                 <div className="flex items-center text-muted-foreground text-sm gap-4">

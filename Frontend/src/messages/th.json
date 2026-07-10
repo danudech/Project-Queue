@@ -3,29 +3,51 @@
     "title": "สวัสดีชาวโลก!"
   },
   "Auth": {
-    "login_header": "เข้าสู่ระบบ",
-    "login_desc": "ลงชื่อเข้าใช้บัญชีของคุณเพื่อเริ่มใช้งาน EZQueue",
-    "signup_header": "ลงทะเบียน",
-    "signup_desc": "สร้างบัญชีเพื่อเริ่มใช้งาน EZQueue",
-    "unlock_title": "รอน้อยลง. ดีกว่าด้วย",
-    "unlock_performance": "บริการ.",
-    "or_continue": "หรือดำเนินการต่อด้วย",
-    "no_account": "ยังไม่มีบัญชีใช่ไหม?",
-    "already_registered": "ลงทะเบียนแล้วใช่ไหม?",
-    "sign_in": "เข้าสู่ระบบ",
-    "sign_up": "ลงทะเบียน",
-    "forgot_password": "ลืมรหัสผ่าน?",
-    "keep_me": "จดจำฉัน",
-    "reset_title": "รีเซ็ตรหัสผ่าน",
-    "reset_password": "รหัสผ่าน",
-    "reset_header": "ตั้งรหัสผ่านใหม่",
-    "reset_desc": "กรุณากำหนดรหัสผ่านใหม่ของคุณ",
-    "new_password": "รหัสผ่านใหม่",
-    "confirm_password": "ยืนยันรหัสผ่าน",
-    "reset_password_btn": "เปลี่ยนรหัสผ่าน",
-    "password_not_match": "รหัสผ่านไม่ตรงกัน",
-    "password_required": "กรุณากรอกรหัสผ่าน",
-    "back_to_login": "กลับไปเข้าสู่ระบบ"
+    "login": {
+      "title": "ยินดีต้อนรับกลับมา",
+      "subtitle": "เข้าสู่ระบบเพื่อจัดการร้านค้าของคุณ",
+      "email": "อีเมล",
+      "emailPlaceholder": "name@example.com",
+      "password": "รหัสผ่าน",
+      "passwordPlaceholder": "กรอกรหัสผ่านของคุณ",
+      "forgotPassword": "ลืมรหัสผ่าน?",
+      "submit": "เข้าสู่ระบบ",
+      "submitting": "กำลังเข้าสู่ระบบ...",
+      "noAccount": "ยังไม่มีบัญชีใช่หรือไม่?",
+      "register": "สมัครสมาชิก",
+      "toast": {
+        "success": "เข้าสู่ระบบสำเร็จ",
+        "failed": "อีเมลหรือรหัสผ่านไม่ถูกต้อง",
+        "error": "เข้าสู่ระบบไม่สำเร็จ"
+      }
+    },
+    "register": {
+      "title": "สร้างบัญชีใหม่",
+      "subtitle": "กรอกข้อมูลเพื่อเริ่มต้นใช้งาน",
+      "name": "ชื่อ-นามสกุล",
+      "namePlaceholder": "สมชาย ใจดี",
+      "email": "อีเมล",
+      "emailPlaceholder": "name@example.com",
+      "password": "รหัสผ่าน",
+      "passwordPlaceholder": "ตั้งรหัสผ่าน",
+      "confirmPassword": "ยืนยันรหัสผ่าน",
+      "confirmPlaceholder": "ยืนยันรหัสผ่านอีกครั้ง",
+      "submit": "สมัครสมาชิก",
+      "submitting": "กำลังสมัครสมาชิก...",
+      "hasAccount": "มีบัญชีอยู่แล้ว?",
+      "login": "เข้าสู่ระบบ",
+      "toast": {
+        "success": "สมัครสมาชิกสำเร็จ",
+        "failed": "สมัครสมาชิกไม่สำเร็จ"
+      },
+      "validation": {
+        "nameRequired": "กรุณากรอกชื่อ",
+        "emailRequired": "กรุณากรอกอีเมล",
+        "emailInvalid": "รูปแบบอีเมลไม่ถูกต้อง",
+        "passwordLength": "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร",
+        "passwordMismatch": "รหัสผ่านไม่ตรงกัน"
+      }
+    }
   },
   "EmailConfirmation": {
     "contact_us": "ติดต่อเรา",
@@ -253,10 +275,68 @@
   "Shop": {
     "noShop": "ยังไม่มีร้านค้า",
     "noBranch": "ยังไม่มีสาขา",
-    "noShopData": "ยังไม่มีข้อมูลร้าน",
-    "pleaseAddShop": "กรุณาเพิ่มข้อมูลร้านเพื่อเริ่มใช้งาน",
-    "needShopForDashboard": "คุณจำเป็นต้องสร้างร้านค้าหรือสาขาก่อน จึงจะสามารถดูข้อมูลสรุปภาพรวมในหน้า Dashboard ได้",
-    "createNewShop": "สร้างร้านค้าใหม่"
+    "noShopData": "ยังไม่มีข้อมูลร้านค้า",
+    "pleaseAddShop": "กรุณาเพิ่มร้านค้าเพื่อเริ่มต้นใช้งาน",
+    "needShopForDashboard": "คุณต้องสร้างร้านค้าหรือสาขาก่อน จึงจะสามารถดูภาพรวมของแดชบอร์ดได้",
+    "createNewShop": "สร้างร้านค้าใหม่",
+    "addNewBranch": "เพิ่มสาขาใหม่",
+    "shopInfo": "ข้อมูลร้าน",
+    "branchInfo": "ข้อมูลสาขา",
+    "businessHours": "เวลาทำการ",
+    "shopName": "ชื่อร้านค้า",
+    "shopNamePlaceholder": "เช่น คลินิกสุขภาพดี, ร้านตัดผม The Cut",
+    "shopNameDesc": "ชื่อที่ลูกค้าเห็นเมื่อมาจองคิว",
+    "businessType": "ประเภทธุรกิจ",
+    "selectBusinessType": "เลือกประเภทธุรกิจ",
+    "businessTypeDesc": "ใช้ตั้งค่าเริ่มต้นให้เหมาะสม",
+    "next": "ถัดไป",
+    "myShop": "ร้านของฉัน",
+    "selectBranch": "เลือกสาขา",
+    "basicShopInfo": "กรอกข้อมูลเบื้องต้นของร้าน",
+    "firstBranchInfo": "ระบุที่ตั้งสาขาแรก — เพิ่มสาขาอื่นได้ในภายหลัง",
+    "setInitialHours": "กำหนดวันและเวลาทำการเริ่มต้น",
+    "branchDetailAndAddress": "ระบุข้อมูลและที่อยู่สาขา",
+    "branchOperatingHours": "กำหนดวันและเวลาทำการของสาขา",
+    "day_monday": "จันทร์",
+    "day_tuesday": "อังคาร",
+    "day_wednesday": "พุธ",
+    "day_thursday": "พฤหัส",
+    "day_friday": "ศุกร์",
+    "day_saturday": "เสาร์",
+    "day_sunday": "อาทิตย์",
+    "validation_shopNameMin": "ชื่อร้านต้องมีอย่างน้อย 2 ตัวอักษร",
+    "validation_selectBusinessType": "กรุณาเลือกประเภทธุรกิจ",
+    "validation_branchNameMin": "ชื่อสาขาต้องมีอย่างน้อย 2 ตัวอักษร",
+    "validation_phoneFormat": "เบอร์โทรต้องมี 10 หลักและขึ้นต้นด้วย 0",
+    "validation_zipcodeLength": "รหัสไปรษณีย์ต้องมี 5 หลัก",
+    "validation_selectSubdistrict": "กรุณาเลือกตำบล",
+    "step_shopInfo": "ข้อมูลร้าน",
+    "step_branchInfo": "ข้อมูลสาขา",
+    "step_businessHours": "เวลาทำการ",
+    "creating": "กำลังสร้าง...",
+    "defaultBranchName": "สาขาหลัก",
+    "branchName": "ชื่อสาขา",
+    "branchNamePlaceholder": "เช่น สาขาหลัก, สาขาสุขุมวิท",
+    "branchPhone": "เบอร์โทรสาขา",
+    "branchAddress": "ที่อยู่สาขา",
+    "houseNo": "บ้านเลขที่",
+    "street": "ถนน",
+    "zipcode": "รหัสไปรษณีย์",
+    "subdistrict": "ตำบล / แขวง",
+    "selectSubdistrict": "เลือกตำบล",
+    "district": "เขต / อำเภอ",
+    "province": "จังหวัด",
+    "businessHoursLabel": "วันและเวลาทำการ",
+    "openAllDays": "เปิดทุกวัน",
+    "copyFirstDayHours": "copy เวลาจากวันแรก",
+    "dayOff": "วันหยุด",
+    "editHoursNote": "* แก้ไขเวลาทำการได้ในหน้าตั้งค่าร้าน",
+    "createShopSuccess": "สร้างร้านค้าสำเร็จ!",
+    "createShopFailed": "สร้างร้านค้าไม่สำเร็จ",
+    "addBranchSuccess": "เพิ่มสาขาสำเร็จ!",
+    "addBranchFailed": "เพิ่มสาขาไม่สำเร็จ",
+    "addBranch": "เพิ่มสาขา",
+    "addNewShop": "เพิ่มร้านค้าใหม่"
   },
   "Changelog": {
     "version": "เวอร์ชัน",
@@ -278,5 +358,296 @@
     "updateSuccess": "อัปเดตโปรไฟล์สำเร็จ!",
     "updateFailed": "การอัปเดตโปรไฟล์ล้มเหลว",
     "userRole": "ผู้ใช้งาน"
+  },
+  "Common": {
+    "save": "บันทึก",
+    "saving": "กำลังบันทึก...",
+    "saved": "บันทึกแล้ว",
+    "cancel": "ยกเลิก",
+    "back": "ย้อนกลับ",
+    "next": "ถัดไป",
+    "reset": "รีเซ็ต",
+    "loading": "กำลังโหลด...",
+    "search": "ค้นหา",
+    "addData": "เพิ่มข้อมูล",
+    "optional": "(ไม่บังคับ)",
+    "saveData": "บันทึกข้อมูล",
+    "viewAll": "ดูทั้งหมด",
+    "today": "วันนี้",
+    "menu": "เมนู",
+    "noResults": "ไม่พบข้อมูล",
+    "error": {
+      "loadFailed": "โหลดข้อมูลไม่สำเร็จ",
+      "saveFailed": "เกิดข้อผิดพลาดในการบันทึก",
+      "deleteFailed": "ลบไม่สำเร็จ",
+      "statusChangeFailed": "ไม่สามารถเปลี่ยนสถานะได้",
+      "tryAgain": "กรุณาลองใหม่"
+    },
+    "status": {
+      "active": "เปิดใช้งาน",
+      "inactive": "ปิดใช้งาน",
+      "toggleSuccess": "เปลี่ยนสถานะเรียบร้อยแล้ว"
+    },
+    "tooltip": {
+      "edit": "แก้ไข",
+      "delete": "ลบข้อมูล",
+      "activate": "เปิดการใช้งาน",
+      "deactivate": "ปิดการใช้งาน"
+    },
+    "columns": {
+      "status": "Status",
+      "action": "Action"
+    },
+    "form": {
+      "statusLabel": "สถานะการใช้งาน"
+    },
+    "units": {
+      "minutes": "นาที",
+      "timeSuffix": "น."
+    },
+    "calendar": {
+      "daysShort": [
+        "อา",
+        "จ",
+        "อ",
+        "พ",
+        "พฤ",
+        "ศ",
+        "ส"
+      ]
+    }
+  },
+  "customer": {
+    "validation": {
+      "nameRequired": "กรุณากรอกชื่อลูกค้า",
+      "nameTooLong": "ชื่อยาวเกิน 150 ตัวอักษร",
+      "phoneRequired": "กรุณากรอกเบอร์โทรศัพท์",
+      "phoneTooLong": "เบอร์โทรยาวเกิน 20 ตัวอักษร"
+    },
+    "steps": {
+      "info": "ข้อมูลลูกค้า",
+      "booking": "จองคิว"
+    },
+    "toast": {
+      "deleteSuccess": "ลบลูกค้าสำเร็จ",
+      "editSuccess": "แก้ไขข้อมูลลูกค้าสำเร็จ",
+      "addSuccess": "เพิ่มลูกค้าสำเร็จ"
+    },
+    "toolbar": {
+      "all": "ลูกค้าทั้งหมด",
+      "search": "ค้นหาชื่อลูกค้า...",
+      "add": "เพิ่มลูกค้า"
+    },
+    "dialog": {
+      "edit": "แก้ไขข้อมูลลูกค้า",
+      "add": "เพิ่มลูกค้าใหม่"
+    },
+    "form": {
+      "name": "ชื่อลูกค้า",
+      "phone": "เบอร์โทรศัพท์",
+      "bookTogether": "จองคิวพร้อมกัน"
+    },
+    "columns": {
+      "name": "ชื่อลูกค้า",
+      "phone": "เบอร์โทรศัพท์",
+      "createdAt": "วันที่สร้าง"
+    },
+    "confirm": {
+      "delete": "คุณต้องการลบลูกค้านี้ใช่หรือไม่?"
+    },
+    "booking": {
+      "dateLabel": "วันที่นัดหมาย",
+      "summary": "สรุปรายการ"
+    }
+  },
+  "service": {
+    "validation": {
+      "nameRequired": "กรุณากรอกชื่อบริการ",
+      "nameTooLong": "ชื่อยาวเกิน 150 ตัวอักษร",
+      "shopRequired": "กรุณาเลือกร้านค้า",
+      "durationRequired": "กรุณากรอกระยะเวลา",
+      "durationInt": "ต้องเป็นจำนวนเต็ม",
+      "durationMin": "ระยะเวลาต้องมากกว่า 0",
+      "priceRequired": "กรุณากรอกราคา",
+      "priceMin": "ราคาต้องไม่ติดลบ",
+      "categoryRequired": "กรุณาเลือกหมวดหมู่"
+    },
+    "toast": {
+      "deleteSuccess": "ลบข้อมูลสำเร็จ",
+      "editSuccess": "แก้ไขข้อมูลสำเร็จ",
+      "addSuccess": "เพิ่มข้อมูลสำเร็จ"
+    },
+    "toolbar": {
+      "all": "บริการทั้งหมด",
+      "search": "ค้นหาชื่อบริการ...",
+      "add": "เพิ่มบริการ"
+    },
+    "dialog": {
+      "edit": "แก้ไขบริการ",
+      "add": "เพิ่มบริการใหม่"
+    },
+    "form": {
+      "name": "ชื่อบริการ",
+      "duration": "ระยะเวลา (นาที)",
+      "price": "ราคา",
+      "category": "หมวดหมู่",
+      "shop": "ร้านค้า"
+    },
+    "columns": {
+      "name": "ชื่อบริการ",
+      "duration": "ระยะเวลา",
+      "price": "ราคา",
+      "createdAt": "วันที่สร้าง"
+    },
+    "confirm": {
+      "delete": "คุณต้องการลบข้อมูลนี้ใช่หรือไม่?"
+    }
+  },
+  "category": {
+    "validation": {
+      "nameRequired": "กรุณากรอกชื่อหมวดหมู่",
+      "nameTooLong": "ชื่อยาวเกิน 150 ตัวอักษร",
+      "shopRequired": "กรุณาเลือกร้านค้า"
+    },
+    "toast": {
+      "deleteSuccess": "ลบหมวดหมู่สำเร็จ",
+      "editSuccess": "แก้ไขหมวดหมู่สำเร็จ",
+      "addSuccess": "เพิ่มหมวดหมู่สำเร็จ"
+    },
+    "toolbar": {
+      "all": "หมวดหมู่ทั้งหมด",
+      "search": "ค้นหาชื่อหมวดหมู่...",
+      "add": "เพิ่มหมวดหมู่"
+    },
+    "dialog": {
+      "edit": "แก้ไขหมวดหมู่",
+      "add": "เพิ่มหมวดหมู่ใหม่"
+    },
+    "form": {
+      "name": "ชื่อหมวดหมู่",
+      "shop": "ร้านค้า"
+    },
+    "columns": {
+      "name": "ชื่อหมวดหมู่",
+      "shop": "ร้านค้า",
+      "createdAt": "วันที่สร้าง"
+    },
+    "confirm": {
+      "delete": "คุณต้องการลบข้อมูลนี้ใช่หรือไม่?"
+    }
+  },
+  "Settings": {
+    "shop": {
+      "title": "ตั้งค่าร้านค้า",
+      "description": "จัดการข้อมูลพื้นฐานและเวลาทำการของร้านค้า",
+      "basicInfo": "ข้อมูลพื้นฐาน",
+      "saveBasic": "บันทึกข้อมูล",
+      "hours": "เวลาทำการ",
+      "saveHours": "บันทึกเวลาทำการ",
+      "deleteShop": "ลบร้านค้า",
+      "deleteWarning": "หากลบแล้ว ข้อมูลทั้งหมดในร้านนี้จะหายไปอย่างถาวร",
+      "deleteButton": "ลบร้านค้า",
+      "toast": {
+        "loadFailed": "โหลดข้อมูลร้านค้าไม่สำเร็จ",
+        "saveSuccess": "บันทึกข้อมูลสำเร็จ",
+        "saveFailed": "เกิดข้อผิดพลาดในการบันทึก",
+        "hoursSuccess": "บันทึกเวลาทำการสำเร็จ",
+        "hoursFailed": "เกิดข้อผิดพลาดในการบันทึกเวลาทำการ",
+        "deleteSuccess": "ลบร้านค้าสำเร็จ",
+        "deleteFailed": "ลบร้านค้าไม่สำเร็จ"
+      }
+    },
+    "branch": {
+      "title": "ตั้งค่าสาขา",
+      "description": "จัดการข้อมูลสาขาและที่อยู่",
+      "toast": {
+        "loadFailed": "โหลดข้อมูลสาขาไม่สำเร็จ",
+        "saveSuccess": "บันทึกข้อมูลสาขาสำเร็จ",
+        "saveFailed": "เกิดข้อผิดพลาดในการบันทึก",
+        "deleteSuccess": "ลบสาขาสำเร็จ",
+        "deleteFailed": "ลบสาขาไม่สำเร็จ"
+      }
+    },
+    "holiday": {
+      "title": "ตั้งค่าวันหยุด",
+      "description": "จัดการวันหยุดพิเศษของร้านค้า",
+      "add": "เพิ่มวันหยุด"
+    }
+  },
+  "Book": {
+    "title": "จองคิวบริการ",
+    "selectShop": "เลือกร้านค้า",
+    "selectService": "เลือกบริการ",
+    "selectDate": "เลือกวันที่",
+    "selectTime": "เลือกเวลา",
+    "yourInfo": "ข้อมูลของคุณ",
+    "confirm": "ยืนยันการจอง",
+    "success": "จองคิวสำเร็จ!",
+    "noShops": "ไม่มีร้านค้าที่เปิดรับจอง",
+    "noServices": "ไม่มีบริการ",
+    "noSlots": "ไม่มีเวลาว่างในวันนี้",
+    "form": {
+      "name": "ชื่อของคุณ",
+      "phone": "เบอร์โทรศัพท์",
+      "note": "หมายเหตุ (ถ้ามี)"
+    }
+  },
+  "Layout": {
+    "profile": {
+      "title": "โปรไฟล์",
+      "settings": "ตั้งค่า",
+      "billing": "การเรียกเก็บเงิน",
+      "logout": "ออกจากระบบ"
+    },
+    "notifications": {
+      "title": "การแจ้งเตือน",
+      "markAllAsRead": "ทำเครื่องหมายอ่านแล้วทั้งหมด",
+      "viewAll": "ดูการแจ้งเตือนทั้งหมด",
+      "empty": "ไม่มีการแจ้งเตือนใหม่",
+      "youHave": "คุณมี",
+      "unread": "ข้อความที่ยังไม่ได้อ่าน"
+    },
+    "messages": {
+      "title": "ข้อความ",
+      "viewAll": "ดูข้อความทั้งหมด",
+      "empty": "ไม่มีข้อความใหม่"
+    },
+    "search": {
+      "placeholder": "ค้นหา...",
+      "noResults": "ไม่พบข้อมูล"
+    },
+    "navigation": {
+      "dashboard": "หน้าหลัก",
+      "queue": "จัดการคิว",
+      "customers": "รายชื่อลูกค้า",
+      "services": "รายการบริการ",
+      "categories": "หมวดหมู่บริการ",
+      "settings": "การตั้งค่า",
+      "shops": "ข้อมูลร้าน",
+      "branches": "ข้อมูลสาขา",
+      "holidays": "วันหยุด",
+      "switchShop": "สลับร้านค้า"
+    },
+    "footer": {
+      "copyright": "สงวนลิขสิทธิ์",
+      "terms": "ข้อกำหนดการให้บริการ",
+      "privacy": "นโยบายความเป็นส่วนตัว"
+    },
+    "error": {
+      "404": "ไม่พบหน้าเว็บ",
+      "500": "เกิดข้อผิดพลาด",
+      "404Message": "หน้าที่คุณกำลังค้นหาไม่มีอยู่หรือถูกย้ายไปแล้ว",
+      "500Message": "เกิดข้อผิดพลาดในระบบ กรุณาลองใหม่อีกครั้ง",
+      "backHome": "กลับสู่หน้าหลัก",
+      "tryAgain": "ลองใหม่อีกครั้ง"
+    }
+  },
+  "Dashboard": {
+    "title": "ภาพรวม",
+    "totalCustomers": "ลูกค้าทั้งหมด",
+    "totalBookings": "การจองทั้งหมด",
+    "revenue": "รายได้",
+    "recentActivity": "ความเคลื่อนไหวล่าสุด",
+    "noActivity": "ไม่มีความเคลื่อนไหวล่าสุด"
   }
 }

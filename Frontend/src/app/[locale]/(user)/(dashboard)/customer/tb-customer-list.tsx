@@ -60,7 +60,7 @@ import { CommonTable } from "@/components/partials/react-table/common-table"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { columns } from "./columns"
+import { getColumns } from "./columns"
 import { useShop } from "@/hooks/use-me"
 import { http } from "@/lib/http/client"
 import { cn } from "@/lib/utils"
@@ -80,25 +80,14 @@ const TIME_SLOTS = [
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
 
-const formSchema = z.object({
-    // customer fields
-    name: z
-        .string()
-        .min(1, "กรุณากรอกชื่อลูกค้า")
-        .max(150, "ชื่อยาวเกิน 150 ตัวอักษร"),
-    phone: z
-        .string()
-        .min(1, "กรุณากรอกเบอร์โทรศัพท์")
-        .max(20, "เบอร์โทรยาวเกิน 20 ตัวอักษร"),
-    isActive: z.boolean(),
-    // booking fields (optional)
-    serviceId: z.number().optional(),
-    bookingDate: z.date().optional(),
-    bookingTime: z.string().optional(),
-    note: z.string().optional(),
+const getFormSchema = (t: any) => z.object({
+    name: z.string().min(1, t("validation.nameRequired")).max(150, t("validation.nameTooLong")),
+    phone: z.string().min(1, t("validation.phoneRequired")).max(20, t("validation.phoneTooLong")),
+    is_active: z.boolean().default(true),
+    isBooking: z.boolean().default(false),
 })
 
-type FormValues = z.infer<typeof formSchema>
+type FormValues = z.infer<ReturnType<typeof getFormSchema>>
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -154,7 +143,7 @@ const CustomerPage = () => {
     const { data: shopData } = useShop() as { data: ShopResponse | null }
 
     const form = useForm<FormValues>({
-        resolver: zodResolver(formSchema),
+        resolver: zodResolver(getFormSchema(t)),
         defaultValues: {
             name: "",
             phone: "",
@@ -180,7 +169,7 @@ const CustomerPage = () => {
                 const customers = await http.get<CustomerType[]>("customer")
                 setTableData(customers)
             } catch {
-                toast.error("โหลดข้อมูลไม่สำเร็จ")
+                toast.error(tc("error.loadFailed"))
             }
         }
         fetchAll()
@@ -208,7 +197,7 @@ const CustomerPage = () => {
                     item.id === row.id ? { ...item, isActive: row.isActive } : item
                 ) ?? null
             )
-            toast.error("ไม่สามารถเปลี่ยนสถานะได้")
+            toast.error(tc("error.statusChangeFailed"))
         }
     }
 
@@ -217,9 +206,9 @@ const CustomerPage = () => {
         try {
             await http.delete<boolean>("customer", { params: { customerId: id } })
             setTableData((prev) => prev?.filter((item) => item.id !== id) ?? null)
-            toast.success("ลบลูกค้าสำเร็จ")
+            toast.success(t("toast.deleteSuccess"))
         } catch {
-            toast.error("ลบไม่สำเร็จ")
+            toast.error(tc("error.deleteFailed"))
         }
     }
 
@@ -244,7 +233,7 @@ const CustomerPage = () => {
                                 : r
                         ) ?? null
                     )
-                    toast.success("แก้ไขข้อมูลลูกค้าสำเร็จ")
+                    toast.success(t("toast.editSuccess"))
                 }
             } else {
                 // ── Create customer ──
@@ -280,7 +269,7 @@ const CustomerPage = () => {
             handleCloseDialog()
         } catch (error) {
             console.error(error)
-            toast.error("เกิดข้อผิดพลาดในการบันทึกข้อมูล")
+            toast.error(tc("error.saveFailed"))
         } finally {
             setBtnLoading(false)
         }
@@ -337,8 +326,8 @@ const CustomerPage = () => {
         <div className="w-full space-y-4">
             {/* 1. Toolbar */}
             <TableToolbar
-                title="ลูกค้าทั้งหมด"
-                searchPlaceholder="ค้นหาชื่อลูกค้า..."
+                title={t("toolbar.all")}
+                searchPlaceholder={t("toolbar.search")}
                 searchValue={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
                 onSearchChange={(val) => table.getColumn("name")?.setFilterValue(val)}
                 onAddClick={openAdd}
@@ -410,7 +399,7 @@ const CustomerPage = () => {
                                         name="isActive"
                                         render={({ field }) => (
                                             <FormItem className="flex items-center justify-between rounded-lg border p-3">
-                                                <FormLabel className="cursor-pointer">สถานะการใช้งาน</FormLabel>
+                                                <FormLabel className="cursor-pointer">{tc("form.statusLabel")}</FormLabel>
                                                 <FormControl>
                                                     <Switch
                                                         checked={field.value}
@@ -443,7 +432,7 @@ const CustomerPage = () => {
                                                         <CalendarIcon className="w-4 h-4" />
                                                     </div>
                                                     <div>
-                                                        <p className="text-sm font-medium">จองคิวพร้อมกัน</p>
+                                                        <p className="text-sm font-medium">{t("form.bookTogether")}</p>
                                                         <p className="text-xs text-muted-foreground">เพิ่มการนัดหมายทันที</p>
                                                     </div>
                                                 </div>
@@ -471,7 +460,7 @@ const CustomerPage = () => {
                                             </Button>
                                         ) : (
                                             <Button type="submit" disabled={btnLoading}>
-                                                {btnLoading ? "กำลังบันทึก..." : "บันทึก"}
+                                                {btnLoading ? tc("saving") : "บันทึก"}
                                             </Button>
                                         )}
                                     </DialogFooter>
@@ -550,7 +539,7 @@ const CustomerPage = () => {
                                     />
 
                                     {/* วันที่ */}
-                                    <BookingDateField control={form.control} name="bookingDate" />
+                                    <BookingDateField t={t} tc={tc} control={form.control} name="bookingDate" />
 
                                     {/* เวลา */}
                                     <FormField
@@ -630,7 +619,7 @@ const CustomerPage = () => {
                                             ย้อนกลับ
                                         </Button>
                                         <Button type="submit" disabled={btnLoading}>
-                                            {btnLoading ? "กำลังบันทึก..." : "บันทึกและจองคิว"}
+                                            {btnLoading ? tc("saving") : "บันทึกและจองคิว"}
                                         </Button>
                                     </DialogFooter>
                                 </>

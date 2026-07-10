@@ -108,7 +108,7 @@ const SettingShopPage = () => {
       {/* ── Section 2: ข้อมูลพื้นฐาน ── */}
       <Card>
         <div className="border-b border-default-200 px-6 py-4">
-          <p className="text-sm font-medium text-default-900">ข้อมูลพื้นฐาน</p>
+          <p className="text-sm font-medium text-default-900">{t("basicInfo")}</p>
           <p className="mt-0.5 text-xs text-default-500">ชื่อร้าน คำอธิบาย และช่องทางติดต่อ</p>
         </div>
 

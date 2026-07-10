@@ -74,6 +74,7 @@ function statusLabel(status: QueueStatus) {
 }
 
 const DashboardPage = () => {
+    const t = useTranslations("Dashboard");
   const router = useRouter();
   const tShop = useTranslations("Shop");
   const { data: shopData, isLoading: isShopLoading } = useShop();

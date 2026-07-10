@@ -1,4 +1,6 @@
-'use client'
+"use client"
+
+import { useTranslations } from "next-intl";
 import { Input } from '@/components/ui/input'
 import { useConfig } from '@/hooks/use-config'
 import React from 'react'
@@ -17,6 +19,7 @@ import {
 } from "@/components/ui/hover-card"
 import { useMenuHoverConfig } from '@/hooks/use-menu-hover';
 const SearchBar = () => {
+    const t = useTranslations("Layout");
     const [config] = useConfig()
     const [hoverConfig] = useMenuHoverConfig();
     const { hovered } = hoverConfig;

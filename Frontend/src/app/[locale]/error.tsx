@@ -1,4 +1,7 @@
-"use client"; // Error components must be Client Components
+"use client"
+
+import { useTranslations } from "next-intl";
+// Error components must be Client Components
 
 
 import { Button } from "@/components/ui/button";

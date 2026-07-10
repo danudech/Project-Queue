@@ -1,4 +1,6 @@
-'use client'; 
+"use client"
+
+import { useTranslations } from "next-intl";
 import React from 'react'
 import FooterContent from './footer-content'
 import { Link } from "@/components/navigation"
@@ -6,6 +8,7 @@ import Image from 'next/image'
 import { Icon } from "@/components/ui/icon";
 
 const DashCodeFooter = () => {
+    const t = useTranslations("Layout");
     return (
         <FooterContent>
             <div className=' md:flex  justify-between text-default-600 hidden'>

@@ -157,14 +157,7 @@ export function MenuClassic({ }) {
                     </nav>
                 ) : (
                     <nav className="mt-8 h-full w-full">
-                        <div className="mt-8 flex flex-col items-center justify-center text-center px-4">
-                            <div className="text-lg font-semibold text-default-800">
-                                {tShop('noShopData')}
-                            </div>
-                            <p className="text-sm text-default-500 mt-2">
-                                {tShop('pleaseAddShop')}
-                            </p>
-                        </div>
+                        {/* No Shop Data text removed as requested */}
                     </nav>
                 )}
             </ScrollArea>

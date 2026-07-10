@@ -1,7 +1,9 @@
+import { useTranslations } from "next-intl";
 import { Link } from '@/i18n/routing';
 import Image from "next/image";
 
 export default function NotFound() {
+    const t = useTranslations("Layout");
     return (
         <div className="min-h-screen flex flex-col justify-center items-center text-center py-20 bg-background">
             <Image src="/images/all-img/404-2.svg" alt="" height={300} width={300} />

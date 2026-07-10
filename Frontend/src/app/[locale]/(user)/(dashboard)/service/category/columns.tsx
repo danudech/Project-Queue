@@ -25,21 +25,21 @@ export const columns: ColumnDef<ServiceCategoryType>[] = [
   },
   {
     accessorKey: "name",
-    header: "ชื่อ Category",
+    header: t("columns.name"),
     cell: ({ row }) => (
       <span className="font-medium text-default-900">{row.getValue("name")}</span>
     ),
   },
   {
     accessorKey: "shopName",
-    header: "Shop",
+    header: t("columns.shop"),
     cell: ({ row }) => (
       <span className="text-default-600 text-sm">{row.getValue("shopName")}</span>
     ),
   },
   {
     accessorKey: "isActive",
-    header: "Status",
+    header: tc("columns.status"),
     cell: ({ row, table }) => {
       const active = row.getValue("isActive") as boolean;
       const meta = table.options.meta as any;
@@ -50,14 +50,14 @@ export const columns: ColumnDef<ServiceCategoryType>[] = [
           className="capitalize cursor-pointer hover:opacity-80"
           onClick={() => meta?.toggleStatus(row.original)}
         >
-          {active ? "Active" : "Inactive"}
+          {active ? tc("status.active") : tc("status.inactive")}
         </Badge>
       );
     },
   },
   {
     accessorKey: "createdAt",
-    header: "วันที่สร้าง",
+    header: t("columns.createdAt"),
     cell: ({ row }) => {
       const dateValue = row.getValue("createdAt") as string;
       if (!dateValue) return "-";
@@ -86,7 +86,7 @@ export const columns: ColumnDef<ServiceCategoryType>[] = [
   },
   {
     id: "actions",
-    header: "Action",
+    header: tc("columns.action"),
     enableHiding: false,
     cell: ({ row, table }) => {
       const meta = table.options.meta as any;
@@ -129,7 +129,7 @@ export const columns: ColumnDef<ServiceCategoryType>[] = [
                   <SquarePen className="w-3.5 h-3.5" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="top"><p>แก้ไข</p></TooltipContent>
+              <TooltipContent side="top"><p>{tc("tooltip.edit")}</p></TooltipContent>
             </Tooltip>
           </TooltipProvider>
 
@@ -142,7 +142,7 @@ export const columns: ColumnDef<ServiceCategoryType>[] = [
                   size="icon"
                   className="w-7 h-7 border-default-200 text-destructive hover:bg-destructive/10"
                   onClick={() => {
-                    if (confirm("คุณต้องการลบข้อมูลนี้ใช่หรือไม่?")) {
+                    if (confirm(t("confirm.delete"))) {
                       meta?.deleteRow(row.original.id);
                     }
                   }}
@@ -151,7 +151,7 @@ export const columns: ColumnDef<ServiceCategoryType>[] = [
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="top" className="bg-destructive text-destructive-foreground">
-                <p>ลบข้อมูล</p>
+                <p>{tc("tooltip.delete")}</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
