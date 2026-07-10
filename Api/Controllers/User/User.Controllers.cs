@@ -1,0 +1,69 @@
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Queue.Api.Common;
+using Queue.Api.Models.Response;
+using Queue.Application.Interfaces;
+
+namespace Queue.Api.Controllers.User;
+
+[ApiController]
+[Route("api/v1/user")]
+public class UserController : ControllerBase
+{
+    private readonly IUsers _user;
+    private readonly IActionLog _actionLog;
+
+    public UserController(IUsers user, IActionLog actionLog)
+    {
+        _user = user;
+        _actionLog = actionLog;
+    }
+
+    [Authorize]
+    [HttpPut("profile")]
+    public async Task<ActionResult<ApiResponse<bool>>> UpdateProfile([FromForm] Queue.Application.DTO.Request.UpdateProfileRequest req, CancellationToken ct)
+    {
+        try
+        {
+            int userId = int.Parse(User.FindFirst("uid")?.Value ?? "0");
+            if (userId == 0) return Unauthorized(ApiResponse<bool>.Fail("Unauthorized"));
+
+            _actionLog.Info("UpdateProfile request (UserId={UserId})", userId);
+            
+            bool result = await _user.UpdateProfile(userId, req, ct);
+            if (!result)
+                return NotFound(ApiResponse<bool>.Fail("User not found"));
+
+            return Ok(ApiResponse<bool>.Ok(true, "Profile updated successfully"));
+        }
+        catch (Exception ex)
+        {
+            _actionLog.Error(ex, "UpdateProfile failed");
+            return StatusCode(500, ApiResponse<bool>.Fail(ex.Message));
+        }
+    }
+
+    [Authorize]
+    [HttpDelete("{userId}")]
+    public async Task<ActionResult<ApiResponse<bool>>> DeleteUser(int userId, CancellationToken ct)
+    {
+        try
+        {
+            _actionLog.Info("DeleteUser request (UserId={UserId})", userId);
+            
+            bool result = await _user.DeleteUser(userId, ct);
+            if (!result)
+                return NotFound(ApiResponse<bool>.Fail("User not found"));
+
+            return Ok(ApiResponse<bool>.Ok(true, "User deleted successfully"));
+        }
+        catch (Exception ex)
+        {
+            _actionLog.Error(ex, "DeleteUser failed (UserId={UserId})", userId);
+            return StatusCode(500, ApiResponse<bool>.Fail(ex.Message));
+        }
+    }
+}

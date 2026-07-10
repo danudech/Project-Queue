@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useShop } from "@/hooks/use-me";
+import { useTranslations } from "next-intl";
 
 type QueueStatus = "waiting" | "in_progress" | "completed";
 
@@ -74,6 +75,7 @@ function statusLabel(status: QueueStatus) {
 
 const DashboardPage = () => {
   const router = useRouter();
+  const tShop = useTranslations("Shop");
   const { data: shopData, isLoading: isShopLoading } = useShop();
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -143,9 +145,9 @@ const DashboardPage = () => {
           <Store className="h-10 w-10 text-primary" />
         </div>
         <div>
-          <h2 className="text-2xl font-semibold text-default-900">ยังไม่มีร้านค้า</h2>
+          <h2 className="text-2xl font-semibold text-default-900">{tShop('noShop')}</h2>
           <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
-            คุณจำเป็นต้องสร้างร้านค้าหรือสาขาก่อน จึงจะสามารถดูข้อมูลสรุปภาพรวมในหน้า Dashboard ได้
+            {tShop('needShopForDashboard')}
           </p>
         </div>
         <Button
@@ -153,7 +155,7 @@ const DashboardPage = () => {
           size="lg"
           className="mt-2"
         >
-          สร้างร้านค้าใหม่
+          {tShop('createNewShop')}
         </Button>
       </div>
     );

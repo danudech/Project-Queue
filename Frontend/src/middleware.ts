@@ -2,12 +2,7 @@ import createMiddleware from "next-intl/middleware";
 import { NextRequest, NextResponse } from "next/server";
 import { locales } from "./config";
 
-function isExpired(expUtc?: string) {
-  if (!expUtc) return true;
-  const expMs = Date.parse(expUtc);
-  if (!Number.isFinite(expMs)) return true;
-  return Date.now() >= expMs;
-}
+import { isExpired } from "./utils/token";
 
 const handleI18nRouting = createMiddleware({
   locales: ["en", "th"],

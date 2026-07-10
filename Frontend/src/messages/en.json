@@ -250,9 +250,33 @@
     "myProfile": "My Profile",
     "logout": "Logout"
   },
+  "Shop": {
+    "noShop": "No Shop",
+    "noBranch": "No Branch",
+    "noShopData": "No Shop Data",
+    "pleaseAddShop": "Please add a shop to get started",
+    "needShopForDashboard": "You need to create a shop or branch first before you can view the dashboard overview.",
+    "createNewShop": "Create New Shop"
+  },
   "Changelog": {
     "version": "Version's",
     "changelog": "CHANGELOG",
     "versionHistory": "VERSION HISTORY"
+  },
+  "Profile": {
+    "desc": "Manage your personal information, security preferences, and public avatar.",
+    "fullName": "Full Name",
+    "fullNamePlaceholder": "Enter your full name",
+    "phoneNumber": "Phone Number",
+    "phoneNumberPlaceholder": "Enter your phone number",
+    "cancel": "Cancel",
+    "saveChanges": "Save Changes",
+    "saving": "Saving...",
+    "changeAvatar": "Change avatar",
+    "unknownUser": "Unknown User",
+    "verifiedAccount": "Verified Account",
+    "updateSuccess": "Profile updated successfully!",
+    "updateFailed": "Failed to update profile",
+    "userRole": "User"
   }
 }

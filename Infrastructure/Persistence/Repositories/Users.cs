@@ -1,5 +1,6 @@
 
 
+using System.IO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Queue.Application.DTO.Request;
@@ -18,17 +19,16 @@ public sealed class Users : IUsers
     private readonly IEmailService _emailService;
     private readonly ICrudService _crud;
     private readonly IConfiguration _config;
+    private readonly Microsoft.Extensions.Hosting.IHostEnvironment _env;
 
-
-    public Users(IActionLog actionLog, QueueDbContext db, IEmailService emailService, ICrudService crud, IConfiguration config)
-
+    public Users(IActionLog actionLog, QueueDbContext db, IEmailService emailService, ICrudService crud, IConfiguration config, Microsoft.Extensions.Hosting.IHostEnvironment env)
     {
         _actionLog = actionLog;
         _db = db;
         _emailService = emailService;
         _config = config;
         _crud = crud;
-
+        _env = env;
     }
 
     public async Task<RegisterResponse?> LocalRegister(RegisterRequest data, string originUrl, string ip, string userAgent, CancellationToken ct)
@@ -252,6 +252,87 @@ public sealed class Users : IUsers
         auth.LastLoginAt = DateTime.UtcNow;
         await _crud.UpdateAsync(auth, ct);
 
+        return true;
+    }
+
+    public async Task<bool> UpdateProfile(int userId, UpdateProfileRequest data, CancellationToken ct)
+    {
+        var user = await _db.Users
+            .Include(u => u.UserImages)
+            .FirstOrDefaultAsync(u => u.Id == userId, ct);
+
+        if (user == null) return false;
+
+        user.Name = data.Name;
+        user.Phone = data.Phone ?? string.Empty;
+        user.UpdatedAt = DateTime.UtcNow;
+
+        if (data.ProfilePicture != null && data.ProfilePicture.Length > 0)
+        {
+            var oldImages = user.UserImages.Where(ui => ui.IsPrimary).ToList();
+            foreach (var oldImage in oldImages)
+            {
+                if (!string.IsNullOrEmpty(oldImage.FileUrl))
+                {
+                    var oldFilePath = Path.Combine(_env.ContentRootPath, "wwwroot", oldImage.FileUrl.TrimStart('/'));
+                    if (System.IO.File.Exists(oldFilePath))
+                    {
+                        System.IO.File.Delete(oldFilePath);
+                    }
+                }
+                await _crud.DeleteAsync(oldImage, ct);
+            }
+
+            var uploadsFolder = Path.Combine(_env.ContentRootPath, "wwwroot", "uploads", "profiles");
+            if (!Directory.Exists(uploadsFolder))
+                Directory.CreateDirectory(uploadsFolder);
+
+            var uniqueFileName = $"{Guid.NewGuid()}_{data.ProfilePicture.FileName}";
+            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await data.ProfilePicture.CopyToAsync(stream, ct);
+            }
+
+            var newImage = new UserImage
+            {
+                UserId = user.Id,
+                FileUrl = $"/uploads/profiles/{uniqueFileName}",
+                FileName = data.ProfilePicture.FileName,
+                ContentType = data.ProfilePicture.ContentType,
+                FileSize = data.ProfilePicture.Length,
+                IsPrimary = true,
+                CreatedAt = DateTime.UtcNow
+            };
+            await _crud.InsertAsync(newImage, ct);
+        }
+
+        await _crud.UpdateAsync(user, ct);
+        return true;
+    }
+
+    public async Task<bool> DeleteUser(int userId, CancellationToken ct)
+    {
+        var user = await _db.Users
+            .Include(u => u.UserImages)
+            .FirstOrDefaultAsync(u => u.Id == userId, ct);
+
+        if (user == null) return false;
+
+        foreach (var img in user.UserImages)
+        {
+            if (!string.IsNullOrEmpty(img.FileUrl))
+            {
+                var filePath = Path.Combine(_env.ContentRootPath, "wwwroot", img.FileUrl.TrimStart('/'));
+                if (System.IO.File.Exists(filePath))
+                {
+                    System.IO.File.Delete(filePath);
+                }
+            }
+        }
+
+        await _crud.DeleteAsync(user, ct);
         return true;
     }
 }

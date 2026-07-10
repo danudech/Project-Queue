@@ -27,7 +27,9 @@ const IconNav = ({ menuList }: IconNavProps) => {
     return (
         <div className=' h-full bg-sidebar  border-r border-default-200 dark:border-secondary border-dashed w-[72px]'>
             <div className="text-center py-5">
-                <Image src="/images/brand/ezqueue-mark-64.png" alt="EZQueue" width={32} height={32} className="h-8 w-8 rounded-lg mx-auto" />
+                <Link href="/dashboard">
+                    <Image src="/images/brand/ezqueue-mark-64.png" alt="EZQueue" width={32} height={32} className="h-8 w-8 rounded-lg mx-auto" />
+                </Link>
             </div>
             <ScrollArea className="[&>div>div[style]]:!block h-full">
                 <nav className="mt-8 h-full w-full ">

@@ -43,14 +43,11 @@ export default async function RootLayout({
       <body className={`${inter.className} dashcode-app`}>
         <NextIntlClientProvider messages={messages} locale={locale}>
           <ThemeProvider attribute="class"
-
             defaultTheme="light">
             <MountedProvider>
-
               <DirectionProvider direction={direction}>
                 {children}
               </DirectionProvider>
-
             </MountedProvider>
             <Toaster />
             <SonnerToaster />

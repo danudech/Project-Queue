@@ -7,6 +7,7 @@ import QueryProvider from "@/components/providers/query-provider";
 import LayoutContentProvider from "@/providers/content.provider";
 import LayoutProvider from "@/providers/layout.provider";
 import SiteBreadcrumb from "@/components/site-breadcrumb";
+import { StoreSyncProvider } from "@/components/providers/store-sync-provider";
 
 export const metadata: Metadata = {
     title: "EZQueue User Dashboard",
@@ -16,18 +17,20 @@ export const metadata: Metadata = {
 export default function DashboardLayout({ children }: any) {
     return (
         <QueryProvider>
-            <LayoutProvider >
-                <ThemeCustomize />
-                <DashCodeHeader />
-                <DashCodeSidebar />
-                <LayoutContentProvider>
-                    <div>
-                        <SiteBreadcrumb />
-                        {children}
-                    </div>
-                </LayoutContentProvider>
-                <DashCodeFooter />
-            </LayoutProvider>
+            <StoreSyncProvider>
+                <LayoutProvider >
+                    <ThemeCustomize />
+                    <DashCodeHeader />
+                    <DashCodeSidebar />
+                    <LayoutContentProvider>
+                        <div>
+                            <SiteBreadcrumb />
+                            {children}
+                        </div>
+                    </LayoutContentProvider>
+                    <DashCodeFooter />
+                </LayoutProvider>
+            </StoreSyncProvider>
         </QueryProvider>
     );
 }

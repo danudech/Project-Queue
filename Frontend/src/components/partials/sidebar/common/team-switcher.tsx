@@ -37,7 +37,7 @@ import { useConfig } from "@/hooks/use-config"
 import { useMenuHoverConfig } from "@/hooks/use-menu-hover"
 import { useShop } from "@/hooks/use-me"
 import { AddShop, BusinessHour, ShopType } from "@/types/shop/shoptype"
-import { useLocale } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import { http } from "@/lib/http/client"
 import { AddressType } from "@/types/address/address-type"
 import { ShopResponse } from "@/types/shop/shop-responsd"
@@ -482,6 +482,7 @@ export default function TeamSwitcher({ className }: { className?: string }) {
     const [config] = useConfig()
     const [hoverConfig] = useMenuHoverConfig()
     const { hovered } = hoverConfig
+    const t = useTranslations("Shop")
 
     const { data: shopData, isLoading, refetch } = useShop()
 
@@ -644,15 +645,15 @@ export default function TeamSwitcher({ className }: { className?: string }) {
                                 aria-label="Select a team"
                                 className={cn("h-14 w-14 mx-auto p-0 md:p-0 dark:border-secondary ring-offset-sidebar", className)}
                             >
-                                <Avatar>
+                                <Avatar className="bg-transparent">
                                     <StoreImage
                                         height={24}
                                         width={24}
-                                        src="/images/icon/store.svg"
-                                        alt="store icon"
-                                        className="grayscale"
+                                        src="/images/brand/ezqueue-mark-64.png"
+                                        alt="EZQueue logo"
+                                        className="rounded-lg object-cover w-6 h-6"
                                     />
-                                    <AvatarFallback>
+                                    <AvatarFallback className="bg-transparent">
                                         <Home className="h-4 w-4 text-muted-foreground" />
                                     </AvatarFallback>
                                 </Avatar>
@@ -667,25 +668,25 @@ export default function TeamSwitcher({ className }: { className?: string }) {
                                 className={cn("h-auto py-3 px-3 justify-start dark:border-secondary ring-offset-sidebar w-full", className)}
                             >
                                 <div className="flex gap-2 flex-1 items-center">
-                                    <Avatar className="flex-none">
+                                    <Avatar className="flex-none bg-transparent">
                                         <StoreImage
                                             height={28}
                                             width={28}
-                                            src="/images/icon/store.svg"
-                                            alt="store icon"
-                                            className="grayscale"
+                                            src="/images/brand/ezqueue-mark-64.png"
+                                            alt="EZQueue logo"
+                                            className="rounded-lg object-cover w-7 h-7"
                                         />
-                                        <AvatarFallback>
+                                        <AvatarFallback className="bg-transparent">
                                             <Home className="h-4 w-4 text-muted-foreground" />
                                         </AvatarFallback>
                                     </Avatar>
                                     <div className="flex-1 text-start w-[100px]">
                                         <div className="text-sm font-semibold text-default-900 truncate">
-                                            {selectedShop?.name ?? "ยังไม่มีร้านค้า"}
+                                            {selectedShop?.name ?? t('noShop')}
                                         </div>
                                         <div className="text-xs font-normal text-default-500 dark:text-default-700 truncate flex items-center gap-1">
                                             <GitBranch className="h-2.5 w-2.5 flex-shrink-0" />
-                                            {selectedBranch?.name ?? "ยังไม่มีสาขา"}
+                                            {selectedBranch?.name ?? t('noBranch')}
                                         </div>
                                     </div>
                                     <ChevronsUpDown className="ml-auto h-5 w-5 shrink-0 text-default-500 dark:text-default-700" />

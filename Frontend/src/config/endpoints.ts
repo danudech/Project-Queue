@@ -13,6 +13,7 @@ export const internalEndpoints = {
   verifyaccount: "/api/user/verifyaccount",
   resetpassword: "/api/user/resetpassword",
   forgotpassword: "/api/auth/forgot-password",
+  updateprofile: "/api/user/updateprofile",
 
   shopdata: "/api/shop/get-shop",
   shoptype: "/api/shop/shop-type",
@@ -43,6 +44,7 @@ export const externalEndpoints = {
   userlogin: "/api/v1/auth/login",
   resetpassword: "/api/v1/user/resetpassword",
   forgotpassword: "/api/v1/auth/forgot-password",
+  updateprofile: "/api/v1/user/profile",
 
   shopdata: "/api/v1/shop/get-shop",
   shoptype: "/api/v1/shop/shop-type",

@@ -149,6 +149,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("Cors");
+app.UseStaticFiles();
 
 app.UseMiddleware<LoggingMiddleware>();
 app.UseAuthentication();

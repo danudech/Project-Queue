@@ -35,7 +35,7 @@ export function SheetMenu() {
             </SheetTrigger>
             <SheetContent className="sm:w-72 px-3 h-full flex flex-col" side="left">
                 <SheetHeader>
-                    <Link href="/dashboard/analytics" className="flex gap-2 items-center     ">
+                    <Link href="/dashboard" className="flex gap-2 items-center     ">
                         <Image src="/images/brand/ezqueue-mark-64.png" alt="EZQueue" width={32} height={32} className="h-8 w-8 rounded-lg" />
                         <h1 className="text-xl font-semibold text-default-900 ">
                             EZQueue

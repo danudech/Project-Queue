@@ -24,7 +24,7 @@ const notoSansThai = Noto_Sans_Thai({
 
 export const metadata: Metadata = {
   title: "EZQueue | Queue and Booking Platform",
-  description: "Frontend mockup for queue, booking, CRM, payments, and shop operations.",
+  description: "EZQueue is the ultimate queue management, booking, CRM, and shop operations platform for modern businesses. Fast, secure, and easy to use.",
   icons: {
     icon: [
       { url: "/favicon.ico" },

@@ -15,7 +15,7 @@ const Logo = () => {
     const isDesktop = useMediaQuery('(min-width: 1280px)');
 
     if (config.sidebar === 'compact') {
-        return <Link href="/dashboard/analytics" className="flex gap-2 items-center   justify-center    ">
+        return <Link href="/dashboard" className="flex gap-2 items-center   justify-center    ">
             <Image src="/images/brand/ezqueue-mark-64.png" alt="EZQueue" width={32} height={32} className="h-8 w-8 rounded-lg" />
 
         </Link>
@@ -23,7 +23,7 @@ const Logo = () => {
     if (config.sidebar === 'two-column' || !isDesktop) return null
 
     return (
-        <Link href="/dashboard/analytics" className="flex gap-2 items-center    ">
+        <Link href="/dashboard" className="flex gap-2 items-center    ">
             <Image src="/images/brand/ezqueue-mark-64.png" alt="EZQueue" width={32} height={32} className="h-8 w-8 rounded-lg" />
             {(!config?.collapsed || hovered) && (
                 <h1 className="text-xl font-semibold text-default-900 ">

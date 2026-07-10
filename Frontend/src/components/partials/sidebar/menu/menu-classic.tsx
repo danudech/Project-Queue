@@ -32,6 +32,7 @@ import { useShop } from '@/hooks/use-me';
 export function MenuClassic({ }) {
     // translate
     const t = useTranslations("Menu")
+    const tShop = useTranslations("Shop")
     const pathname = usePathname();
     const params = useParams<{ locale: string; }>();
     const direction = getLangDir(params?.locale ?? '');
@@ -158,10 +159,10 @@ export function MenuClassic({ }) {
                     <nav className="mt-8 h-full w-full">
                         <div className="mt-8 flex flex-col items-center justify-center text-center px-4">
                             <div className="text-lg font-semibold text-default-800">
-                                ยังไม่มีข้อมูลร้าน
+                                {tShop('noShopData')}
                             </div>
                             <p className="text-sm text-default-500 mt-2">
-                                กรุณาเพิ่มข้อมูลร้านเพื่อเริ่มใช้งาน
+                                {tShop('pleaseAddShop')}
                             </p>
                         </div>
                     </nav>
