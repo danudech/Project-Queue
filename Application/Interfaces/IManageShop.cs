@@ -10,6 +10,7 @@ public interface IManageShop
     Task<ShopResponse?> GetShopById(int userId, int BranchId, string ip, string userAgent, CancellationToken ct);
     Task<List<MasterStatus>> MasterShopType(int? typeid, string ip, string userAgent, CancellationToken ct);
     Task<ShopResponse?> CreateShop(int userId, CreateShopRequest request, string ip, string userAgent, CancellationToken ct);
+    Task<ShopResponse?> UpdateShop(int userId, UpdateShopRequest request, string ip, string userAgent, CancellationToken ct);
     Task<ShopResponse?> CreateBranch(int userId, CreateShopRequest request, string ip, string userAgent, CancellationToken ct);
     Task<List<ShopCategoryResponse>?> GetShopCategoryById(int shopId, int? branchId, string ip, string userAgent, CancellationToken ct);
     Task<ShopCategoryResponse> AddShopCategory(int userId, ShopCategoryRequest request, string ip, string userAgent, CancellationToken ct);

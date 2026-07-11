@@ -7,6 +7,8 @@ using Queue.Domain.Entities;
 using Queue.Infrastructure.Service;
 using Queue.Infrastructure.Services;
 
+using Microsoft.Extensions.Hosting;
+
 namespace Queue.Infrastructure.Persistence.Repositories;
 
 public sealed class ManageShop : IManageShop
@@ -16,17 +18,16 @@ public sealed class ManageShop : IManageShop
     private readonly ICrudService _crud;
     private readonly IConfiguration _config;
     private readonly DateTimeService _dateTime;
+    private readonly IHostEnvironment _env;
 
-
-    public ManageShop(IActionLog actionLog, QueueDbContext db, ICrudService crud, IConfiguration config, DateTimeService dateTime)
-
+    public ManageShop(IActionLog actionLog, QueueDbContext db, ICrudService crud, IConfiguration config, DateTimeService dateTime, IHostEnvironment env)
     {
         _actionLog = actionLog;
         _db = db;
         _config = config;
         _dateTime = dateTime;
         _crud = crud;
-
+        _env = env;
     }
 
     public async Task<ShopResponse?> GetShopById(int userId, int BranchId, string ip, string userAgent, CancellationToken ct)
@@ -37,6 +38,7 @@ public sealed class ManageShop : IManageShop
 
             Shop? shop = await _db.Shops
                 .AsNoTracking()
+                .Include(s => s.ShopSettings)
                 .Include(s => s.Status)
                 .Include(s => s.Services)
                 .Include(s => s.ShopBranches)
@@ -533,6 +535,146 @@ public sealed class ManageShop : IManageShop
         }
     }
 
+    public async Task<ShopResponse?> UpdateShop(int userId, UpdateShopRequest request, string ip, string userAgent, CancellationToken ct)
+    {
+        _actionLog.Info("Updating shop (UserId={UserId}, IP={IP})", userId, ip);
+        try
+        {
+            var shop = await _db.Shops
+                .Include(s => s.ShopSettings)
+                .Include(s => s.Status)
+                .Include(s => s.Services)
+                .Include(s => s.ShopBranches)
+                    .ThenInclude(b => b.Address)
+                        .ThenInclude(a => a.Subdistrict)
+                            .ThenInclude(sd => sd.District)
+                                .ThenInclude(d => d.Province)
+                .FirstOrDefaultAsync(s => s.OwnerId == userId, ct);
+
+            if (shop == null) return null;
+
+            bool shopUpdated = false;
+
+            if (request.IsActive.HasValue)
+            {
+                shop.IsActive = request.IsActive.Value;
+                shopUpdated = true;
+            }
+
+            if (!string.IsNullOrEmpty(request.Name))
+            {
+                shop.Name = request.Name;
+                shopUpdated = true;
+            }
+
+            if (request.TypeId.HasValue)
+            {
+                shop.TypeId = request.TypeId.Value;
+                shopUpdated = true;
+            }
+
+            if (shopUpdated)
+            {
+                shop.UpdatedAt = DateTime.UtcNow;
+                await _crud.UpdateAsync(shop, ct);
+            }
+
+            if (request.Logo != null && request.Logo.Length > 0)
+            {
+                var logoSetting = shop.ShopSettings.FirstOrDefault(s => s.Key == "Logo");
+                
+                // Delete old file
+                if (logoSetting != null && !string.IsNullOrEmpty(logoSetting.Value))
+                {
+                    var oldFilePath = Path.Combine(_env.ContentRootPath, "wwwroot", logoSetting.Value.TrimStart('/'));
+                    if (System.IO.File.Exists(oldFilePath))
+                    {
+                        System.IO.File.Delete(oldFilePath);
+                    }
+                }
+
+                var uploadsFolder = Path.Combine(_env.ContentRootPath, "wwwroot", "uploads", "shops");
+                if (!Directory.Exists(uploadsFolder))
+                    Directory.CreateDirectory(uploadsFolder);
+
+                var uniqueFileName = $"{Guid.NewGuid()}_{request.Logo.FileName}";
+                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await request.Logo.CopyToAsync(stream, ct);
+                }
+
+                var fileUrl = $"/uploads/shops/{uniqueFileName}";
+
+                if (logoSetting == null)
+                {
+                    logoSetting = new ShopSetting
+                    {
+                        ShopId = shop.Id,
+                        BranchId = request.BranchId > 0 ? request.BranchId : null,
+                        Key = "Logo",
+                        Value = fileUrl,
+                        CreatedAt = DateTime.UtcNow,
+                        CreatedBy = userId
+                    };
+                    await _crud.InsertAsync(logoSetting, ct);
+                }
+                else
+                {
+                    logoSetting.Value = fileUrl;
+                    if (request.BranchId > 0) logoSetting.BranchId = request.BranchId;
+                    logoSetting.UpdatedAt = DateTime.UtcNow;
+                    logoSetting.UpdatedBy = userId;
+                    await _crud.UpdateAsync(logoSetting, ct);
+                }
+            }
+
+            // Update Description if provided
+            if (request.Description != null)
+            {
+                var descSetting = shop.ShopSettings.FirstOrDefault(s => s.Key == "Description");
+                if (descSetting == null)
+                {
+                    await _crud.InsertAsync(new ShopSetting { ShopId = shop.Id, BranchId = request.BranchId > 0 ? request.BranchId : null, Key = "Description", Value = request.Description, CreatedAt = DateTime.UtcNow, CreatedBy = userId }, ct);
+                }
+                else
+                {
+                    descSetting.Value = request.Description;
+                    if (request.BranchId > 0) descSetting.BranchId = request.BranchId;
+                    descSetting.UpdatedAt = DateTime.UtcNow;
+                    descSetting.UpdatedBy = userId;
+                    await _crud.UpdateAsync(descSetting, ct);
+                }
+            }
+
+            // Update Email if provided
+            if (request.Email != null)
+            {
+                var emailSetting = shop.ShopSettings.FirstOrDefault(s => s.Key == "Email");
+                if (emailSetting == null)
+                {
+                    await _crud.InsertAsync(new ShopSetting { ShopId = shop.Id, BranchId = request.BranchId > 0 ? request.BranchId : null, Key = "Email", Value = request.Email, CreatedAt = DateTime.UtcNow, CreatedBy = userId }, ct);
+                }
+                else
+                {
+                    emailSetting.Value = request.Email;
+                    if (request.BranchId > 0) emailSetting.BranchId = request.BranchId;
+                    emailSetting.UpdatedAt = DateTime.UtcNow;
+                    emailSetting.UpdatedBy = userId;
+                    await _crud.UpdateAsync(emailSetting, ct);
+                }
+            }
+
+            return MapToResponse(shop, request.BranchId ?? 0);
+        }
+        catch (Exception ex)
+        {
+            _actionLog.Error(ex, "Error updating shop (UserId={UserId})", userId);
+            return null;
+        }
+    }
+
     // ================= Private Helper Methods =================
 
     private static ShopResponse MapToResponse(Shop shop, int branchId = 0) => new()
@@ -543,7 +685,14 @@ public sealed class ManageShop : IManageShop
         OwnerId = shop.OwnerId,
         Status = shop.StatusId,
         IsActive = shop.IsActive,
-        ShopBranches = shop.ShopBranches?.Where(b => b.Id == branchId).Select(b => new BranchDto
+        Phone = shop.ShopBranches?.FirstOrDefault(b => branchId == 0 || b.Id == branchId)?.Phone ?? string.Empty,
+        Address = shop.ShopBranches?.FirstOrDefault(b => branchId == 0 || b.Id == branchId)?.Address != null 
+                    ? MapAddress(shop.ShopBranches.FirstOrDefault(b => branchId == 0 || b.Id == branchId)!.Address)!.FullAddress 
+                    : string.Empty,
+        Logo = shop.ShopSettings?.FirstOrDefault(s => s.Key == "Logo")?.Value,
+        Description = shop.ShopSettings?.FirstOrDefault(s => s.Key == "Description")?.Value,
+        Email = shop.ShopSettings?.FirstOrDefault(s => s.Key == "Email")?.Value,
+        ShopBranches = shop.ShopBranches?.Where(b => branchId == 0 || b.Id == branchId).Select(b => new BranchDto
         {
             Id = b.Id,
             Name = b.Name ?? string.Empty,

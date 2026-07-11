@@ -78,4 +78,34 @@ public class ManageShopController : ControllerBase
             return StatusCode(500, ApiResponse<List<MasterStatus>>.Fail(ex.Message));
         }
     }
+
+    [Authorize]
+    [HttpPut("update-shop")]
+    public async Task<ActionResult<ApiResponse<ShopResponse?>>> UpdateShop([FromForm] UpdateShopRequest request, CancellationToken ct)
+    {
+        string ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        string ua = HttpContext.Request.Headers.UserAgent.ToString();
+        string userId = User.FindFirst("uid")?.Value ?? "0";
+        try
+        {
+            (bool status, string message, string refreshtoken) = await _istokenrefresh.UserHasConsent(HttpContext, ip, ua, ct);
+            if (!status)
+                return Unauthorized(ApiResponse<ShopResponse>.Fail(message));
+                
+            _actionLog.Info("Update shop request (UserId={UserId})", userId);
+            
+            ShopResponse? resp = await _shop.UpdateShop(int.Parse(userId), request, ip, ua, ct);
+            if (resp == null)
+            {
+                return NotFound(ApiResponse<ShopResponse?>.Fail("Shop not found or you are not the owner"));
+            }
+
+            return Ok(ApiResponse<ShopResponse?>.Ok(resp, "Shop updated successfully"));
+        }
+        catch (Exception ex)
+        {
+            _actionLog.Error(ex, "Update shop failed (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, ua);
+            return StatusCode(500, ApiResponse<ShopResponse?>.Fail(ex.Message));
+        }
+    }
 }

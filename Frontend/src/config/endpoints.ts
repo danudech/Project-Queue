@@ -19,6 +19,7 @@ export const internalEndpoints = {
   shoptype: "/api/shop/shop-type",
   newshop: "/api/shop/new-shop",
   newbranch: "/api/shop/new-branch",
+  updateshop: "/api/shop/update-shop",
 
   shopcategory: "/api/shop-category",
   shopservices: "/api/shop-services",
@@ -50,6 +51,7 @@ export const externalEndpoints = {
   shoptype: "/api/v1/shop/shop-type",
   newshop: "/api/v1/shop/new-shop",
   newbranch: "/api/v1/shop/new-branch",
+  updateshop: "/api/v1/shop/update-shop",
 
   shopcategory: "/api/v1/shop/category/get-category",
   newshopcategory: "/api/v1/shop/category/add-category",

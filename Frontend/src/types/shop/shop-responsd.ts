@@ -14,6 +14,8 @@ export interface ShopResponse {
   services: SetService[];
   logo : string;
   isActive : boolean;
+  description?: string;
+  email?: string;
 }
 
 export interface ShopBusinessHour {

@@ -7,13 +7,35 @@ import { Icon } from "@/components/ui/icon";
 import Image from "next/image";
 import { Link } from "@/i18n/routing";
 import { useShop } from "@/hooks/use-me";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
+import { http } from "@/lib/http/client";
+import { env } from "@/config/env";
+import { ShopType } from "@/types/shop/shoptype";
 
 const SettingShopPage = () => {
   const t = useTranslations("Settings.shop");
   const { data: shopData, isLoading } = useShop();
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [shopTypes, setShopTypes] = useState<ShopType[]>([]);
+  const locale = useLocale();
+
+  const getLogoUrl = (url: string | null | undefined) => {
+    if (!url) return "https://avatars.githubusercontent.com/u/9919?s=200&v=4";
+    if (url.startsWith("http")) return url;
+    return `${env.apiBaseUrl.replace('/api/v1', '')}${url}`;
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      const objectUrl = URL.createObjectURL(file);
+      setPreviewUrl(objectUrl);
+    }
+  };
 
   // Note
   useEffect(() => {
@@ -22,11 +44,37 @@ const SettingShopPage = () => {
     }
   }, [shopData?.isActive]);
 
+  useEffect(() => {
+    http.get<ShopType[]>("shoptype")
+      .then((res) => { if (res) setShopTypes(res) })
+      .catch(console.error);
+  }, []);
+
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      // Note
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const formData = new FormData();
+      if (selectedFile) formData.append("Logo", selectedFile);
+      formData.append("IsActive", String(isOpen));
+      
+      const branchId = shopData?.shopBranches?.[0]?.id;
+      if (branchId) formData.append("BranchId", String(branchId));
+      
+      const descEl = document.getElementById("shop-description") as HTMLTextAreaElement;
+      if (descEl) formData.append("Description", descEl.value);
+      
+      const emailEl = document.getElementById("shop-email") as HTMLInputElement;
+      if (emailEl) formData.append("Email", emailEl.value);
+      
+      const nameEl = document.getElementById("shop-name") as HTMLInputElement;
+      if (nameEl) formData.append("Name", nameEl.value);
+      
+      const typeEl = document.getElementById("shop-type") as HTMLSelectElement;
+      if (typeEl && typeEl.value) formData.append("TypeId", typeEl.value);
+
+      // TODO: Connect with actual update API when ready
+      await http.put("updateshop", formData);
+      window.location.reload(); // Refresh to show new data
     } finally {
       setIsSaving(false);
     }
@@ -55,16 +103,23 @@ const SettingShopPage = () => {
                 <Image
                   width={300}
                   height={300}
-                  src={shopData.logo ?? "https://avatars.githubusercontent.com/u/9919?s=200&v=4"}
+                  src={previewUrl || getLogoUrl(shopData.logo)}
                   alt={shopData.name}
                   className="w-full h-full object-cover rounded-full"
                 />
-                <Link
-                  href="#"
-                  className="absolute right-2 h-8 w-8 bg-default-50 text-default-600 rounded-full shadow-sm flex flex-col items-center justify-center md:top-[140px] top-[100px]"
+                <label
+                  htmlFor="shop-logo-upload"
+                  className="absolute right-2 cursor-pointer h-8 w-8 bg-default-50 text-default-600 rounded-full shadow-sm flex flex-col items-center justify-center md:top-[140px] top-[100px] hover:bg-default-100 transition-colors"
                 >
                   <Icon icon="heroicons:pencil-square" />
-                </Link>
+                </label>
+                <input
+                  id="shop-logo-upload"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
               </div>
             </div>
 
@@ -117,6 +172,7 @@ const SettingShopPage = () => {
             <div className="space-y-1.5">
               <label className="text-xs text-default-500">{t("shopName")} *</label>
               <input
+                id="shop-name"
                 type="text"
                 defaultValue={shopData.name}
                 className="h-9 w-full rounded-md border border-default-200 bg-default-50 px-3 text-sm text-default-900 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-default-800"
@@ -124,11 +180,13 @@ const SettingShopPage = () => {
             </div>
             <div className="space-y-1.5">
               <label className="text-xs text-default-500">{t("businessType")}</label>
-              <select className="h-9 w-full rounded-md border border-default-200 bg-default-50 px-3 text-sm text-default-900 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-default-800">
+              <select id="shop-type" defaultValue={shopData.type} className="h-9 w-full rounded-md border border-default-200 bg-default-50 px-3 text-sm text-default-900 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-default-800">
                 <option value="">{t("selectBusinessType")}</option>
-                <option value="barber">{t("typeBarber")}</option>
-                <option value="salon">{t("typeSalon")}</option>
-                <option value="spa">{t("typeSpa")}</option>
+                {shopTypes.map((type) => (
+                  <option key={type.id} value={type.id.toString()}>
+                    {locale === "th" ? type.nameTh : type.nameEn}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -136,7 +194,9 @@ const SettingShopPage = () => {
           <div className="space-y-1.5">
             <label className="text-xs text-default-500">{t("descriptionLabel")}</label>
             <textarea
+              id="shop-description"
               rows={3}
+              defaultValue={shopData.description ?? ""}
               placeholder={t("descriptionPlaceholder")}
               className="w-full rounded-md border border-default-200 bg-default-50 px-3 py-2 text-sm text-default-900 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-default-800"
             />
@@ -150,12 +210,15 @@ const SettingShopPage = () => {
                 defaultValue={shopData.phone ?? ""}
                 placeholder="0XX-XXX-XXXX"
                 className="h-9 w-full rounded-md border border-default-200 bg-default-50 px-3 text-sm text-default-900 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-default-800"
+                readOnly
               />
             </div>
             <div className="space-y-1.5">
               <label className="text-xs text-default-500">{t("email")}</label>
               <input
+                id="shop-email"
                 type="email"
+                defaultValue={shopData.email ?? ""}
                 placeholder="shop@example.com"
                 className="h-9 w-full rounded-md border border-default-200 bg-default-50 px-3 text-sm text-default-900 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-default-800"
               />

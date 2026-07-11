@@ -15,6 +15,8 @@ import { Button } from "@/components/ui/button";
 import { Building2, Store, CalendarDays, Phone, Briefcase } from "lucide-react";
 
 const CreateStoreModernForm = () => {
+  const t = useTranslations("Shop");
+  const tc = useTranslations("Common");
   return (
     <div className="max-w-3xl mx-auto p-8 bg-white rounded-3xl shadow-lg border border-slate-100">
       

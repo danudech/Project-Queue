@@ -1,6 +1,6 @@
 "use client";
 
-import React, { use, useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -16,27 +16,28 @@ import { toast } from "sonner";
 import { InputGroup, InputGroupText } from "@/components/ui/input-group";
 import { http } from "@/lib/http/client";
 import { ProfileUser } from "@/types/user";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { storage } from "@/services/localstorage";
 import { useSearchParams } from "next/navigation";
 
-const schema = z.object({
-  email: z.string().email({ message: "Your email is invalid." }),
-  password: z
-    .string()
-    .min(4, { message: "Password must be at least 4 characters" }),
-  remember: z.boolean().optional(),
-});
+const getSchema = (t: ReturnType<typeof useTranslations>) =>
+  z.object({
+    email: z.string().email({ message: t("validation.emailInvalid") }),
+    password: z
+      .string()
+      .min(4, { message: t("validation.passwordLength") }),
+    remember: z.boolean().optional(),
+  });
 
-type LoginFormValues = z.infer<typeof schema>;
+type LoginFormValues = z.infer<ReturnType<typeof getSchema>>;
 
 const LoginForm = () => {
   const router = useRouter();
-  const t = useTranslations("Auth");
+  const t = useTranslations("Auth.login");
   const [loading, setLoading] = React.useState(false);
   const [showPassword, setShowPassword] = React.useState(false);
   const searchParams = useSearchParams();
-  const locale = useLocale();
+  const schema = useMemo(() => getSchema(t), [t]);
 
   const {
     register,
@@ -83,7 +84,7 @@ const LoginForm = () => {
       setLoading(true);
 
       const login = await http.post<ProfileUser>("userlogin", data);
-      toast.success("Successfully logged in");
+      toast.success(t("toast.success"));
 
       if (data.remember) {
         await storage.set("remember", JSON.stringify(data));
@@ -108,37 +109,36 @@ const LoginForm = () => {
 
       router.push(redirectTo);
     } catch (err: any) {
-      toast.error(err.message || "Something went wrong");
+      toast.error(err.message || t("toast.error"));
       setLoading(false);
     }
   };
 
   const getGroupClass = (error: any) =>
     cn(
-      "merged border rounded-md transition-all duration-200 flex items-center",
-      "focus-within:ring-1 focus-within:ring-primary focus-within:border-primary",
-      error ? "border-destructive" : "border-default-300",
+      "merged flex h-12 items-center rounded-md border bg-white transition-colors duration-200",
+      "focus-within:border-emerald-600 focus-within:ring-2 focus-within:ring-emerald-100",
+      error ? "border-destructive" : "border-slate-200",
       loading && "opacity-50 cursor-not-allowed",
     );
 
   const inputBaseClass =
-    "border-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent w-full h-9 pl-1 text-sm";
+    "h-11 w-full border-none bg-transparent pl-1 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0";
 
   const iconWrapperClass =
-    "bg-transparent border-none text-default-500 px-2.5 flex items-center justify-center";
+    "flex items-center justify-center border-none bg-transparent px-3 text-slate-400";
 
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
       className={cn(
-        "mt-5 2xl:mt-7 space-y-5",
+        "space-y-6",
         loading && "opacity-70 pointer-events-none",
       )}
     >
-      {/* EMAIL */}
       <div className="space-y-2">
-        <Label htmlFor="email" className="font-medium text-default-700">
-          Email
+        <Label htmlFor="email" className="text-sm font-medium text-slate-800">
+          {t("email")}
         </Label>
 
         <InputGroup className={getGroupClass(errors.email)}>
@@ -151,7 +151,7 @@ const LoginForm = () => {
             {...register("email")}
             type="email"
             id="email"
-            placeholder="your-email@email.com"
+            placeholder={t("emailPlaceholder")}
             className={inputBaseClass}
           />
         </InputGroup>
@@ -163,10 +163,9 @@ const LoginForm = () => {
         )}
       </div>
 
-      {/* PASSWORD */}
       <div className="space-y-2">
-        <Label htmlFor="password" className="font-medium text-default-700">
-          Password
+        <Label htmlFor="password" className="text-sm font-medium text-slate-800">
+          {t("password")}
         </Label>
 
         <InputGroup className={getGroupClass(errors.password)}>
@@ -179,7 +178,7 @@ const LoginForm = () => {
             {...register("password")}
             type={showPassword ? "text" : "password"}
             id="password"
-            placeholder="your-password"
+            placeholder={t("passwordPlaceholder")}
             className={inputBaseClass}
           />
 
@@ -203,7 +202,6 @@ const LoginForm = () => {
         )}
       </div>
 
-      {/* REMEMBER + FORGOT */}
       <div className="flex justify-between items-center">
         <Controller
           name="remember"
@@ -218,9 +216,9 @@ const LoginForm = () => {
               />
               <Label
                 htmlFor="remember"
-                className="cursor-pointer text-sm text-default-600 font-normal leading-tight"
+                className="cursor-pointer text-sm font-normal leading-tight text-slate-600"
               >
-                {t("keep_me")}
+                {t("keepMe")}
               </Label>
             </div>
           )}
@@ -228,22 +226,21 @@ const LoginForm = () => {
 
         <Link
           href="/auth/forgot-password"
-          className="text-sm text-default-800 dark:text-default-400 leading-6 font-medium hover:underline"
+          className="text-sm font-medium leading-6 text-slate-900 hover:underline"
         >
-          {t("forgot_password")}
+          {t("forgotPassword")}
         </Link>
       </div>
 
-      {/* BUTTON */}
       <Button
         type="submit"
         fullWidth
         disabled={loading}
         size="lg"
-        className="h-9 shadow-sm transition-all active:scale-[0.98]"
+        className="h-12 rounded-md bg-emerald-700 text-base font-semibold shadow-none transition-colors hover:bg-emerald-800 active:bg-emerald-900"
       >
         {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        {loading ? `${t("sign_in")}...` : t("sign_in")}
+        {loading ? t("submitting") : t("submit")}
       </Button>
     </form>
   );

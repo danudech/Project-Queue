@@ -14,6 +14,9 @@ public class ShopResponse
     public List<BranchDto>? ShopBranches { get; set; } = new List<BranchDto>();
     public List<Service>? Services { get; set; } = new List<Service>();
     public bool IsActive { get; set; } = true;
+    public string? Logo { get; set; }
+    public string? Description { get; set; }
+    public string? Email { get; set; }
 }
 
 public class BranchDto

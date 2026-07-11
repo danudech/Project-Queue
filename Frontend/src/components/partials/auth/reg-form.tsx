@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Icon } from "@/components/ui/icon";
@@ -18,7 +18,7 @@ import { useRouter } from "next/navigation";
 import { storage } from "@/services/localstorage";
 
 const RegForm = () => {
-  const t = useTranslations("Auth");
+  const t = useTranslations("Auth.register");
   const [loading, setLoading] = React.useState(false);
   const locale = useLocale();
   const router = useRouter();
@@ -27,7 +27,6 @@ const RegForm = () => {
   const {
     register,
     handleSubmit,
-    watch,
     control,
     formState: { errors },
   } = useForm<UserRegister>({
@@ -46,51 +45,49 @@ const RegForm = () => {
       setLoading(true);
 
       const login = await http.post<UserRegisterResponse>("userregister", data);
-      const message = login.code === "success" ? "Successfully registered" : login.code === "idle" ? "Registration is idle" : "Registration failed";
+      const message = login.code === "success" ? t("toast.success") : login.code === "idle" ? t("toast.idle") : t("toast.failed");
       toast.success(login.message || message);
       await storage.set("registration", JSON.stringify(data));
       // Note
       await sleep(2000);
       router.push(`/${locale}/auth/mail-confirm`);
     } catch (err: any) {
-      toast.error(err.message || "Something went wrong");
+      toast.error(err.message || t("toast.error"));
       setLoading(false);
     }
   };
 
   const getGroupClass = (error: any) => cn(
-    "merged border rounded-md transition-all duration-200 flex items-center",
-    "focus-within:ring-1 focus-within:ring-primary focus-within:border-primary",
-    error ? "border-destructive" : "border-default-300"
+    "merged flex h-12 items-center rounded-md border bg-white transition-colors duration-200",
+    "focus-within:border-emerald-600 focus-within:ring-2 focus-within:ring-emerald-100",
+    error ? "border-destructive" : "border-slate-200"
   );
 
-  const iconWrapperClass = "bg-transparent border-none text-default-500 px-2.5 flex items-center justify-center";
-  const inputBaseClass = "border-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent w-full h-9 pl-1 text-sm";
+  const iconWrapperClass = "flex items-center justify-center border-none bg-transparent px-3 text-slate-400";
+  const inputBaseClass = "h-11 w-full border-none bg-transparent pl-1 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0";
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
 
-      {/* FULL NAME */}
-      <div className="space-y-1">
-        <Label htmlFor="name" className="text-default-700 font-medium">Your Name</Label>
+      <div className="space-y-2">
+        <Label htmlFor="name" className="text-sm font-medium text-slate-800">{t("name")}</Label>
         <InputGroup className={getGroupClass(errors.name)}>
           <InputGroupText className={iconWrapperClass}>
             <Icon icon="mdi:user" fontSize={16} />
           </InputGroupText>
           <Input
             id="name"
-            placeholder="Your Name"
+            placeholder={t("namePlaceholder")}
             size="sm"
-            {...register("name", { required: "Name is required" })}
+            {...register("name", { required: t("validation.nameRequired") })}
             className={inputBaseClass}
           />
         </InputGroup>
         {errors.name && <p className="text-xs text-destructive mt-1">{errors.name.message}</p>}
       </div>
 
-      {/* EMAIL */}
-      <div className="space-y-1">
-        <Label htmlFor="email" className="text-default-700 font-medium">Email</Label>
+      <div className="space-y-2">
+        <Label htmlFor="email" className="text-sm font-medium text-slate-800">{t("email")}</Label>
         <InputGroup className={getGroupClass(errors.email)}>
           <InputGroupText className={iconWrapperClass}>
             <Icon icon="ic:outline-email" fontSize={16} />
@@ -99,12 +96,12 @@ const RegForm = () => {
             type="email"
             id="email"
             size="sm"
-            placeholder="Your email"
+            placeholder={t("emailPlaceholder")}
             {...register("email", {
-              required: "Email is required",
+              required: t("validation.emailRequired"),
               pattern: {
                 value: /^\S+@\S+$/i,
-                message: "Invalid email format",
+                message: t("validation.emailInvalid"),
               },
             })}
             className={inputBaseClass}
@@ -113,9 +110,8 @@ const RegForm = () => {
         {errors.email && <p className="text-xs text-destructive mt-1">{errors.email.message}</p>}
       </div>
 
-      {/* PHONE (Optional but Validated if entered) */}
-      <div className="space-y-1">
-        <Label htmlFor="phone" className="text-default-700 font-medium">Phone (Optional)</Label>
+      <div className="space-y-2">
+        <Label htmlFor="phone" className="text-sm font-medium text-slate-800">{t("phone")}</Label>
         <InputGroup className={getGroupClass(errors.phone)}>
           <InputGroupText className={iconWrapperClass}>
             <Icon icon="tdesign:call" fontSize={16} />
@@ -129,9 +125,9 @@ const RegForm = () => {
               required: false, // Note
               validate: (value) => {
                 if (!value) return true; // Note
-                if (!/^0/.test(value)) return "Phone number must start with 0";
-                if (value.length !== 10) return "Phone number must be 10 digits";
-                if (!/^\d+$/.test(value)) return "Numbers only";
+                if (!/^0/.test(value)) return t("validation.phoneStart");
+                if (value.length !== 10) return t("validation.phoneLength");
+                if (!/^\d+$/.test(value)) return t("validation.phoneDigits");
                 return true;
               }
             })}
@@ -141,12 +137,11 @@ const RegForm = () => {
         {errors.phone && <p className="text-xs text-destructive mt-1">{errors.phone.message}</p>}
       </div>
 
-      {/* TERMS & CONDITIONS */}
       <div className="pt-2">
         <Controller
           name="acceptTerms"
           control={control}
-          rules={{ required: "You must accept the terms" }}
+          rules={{ required: t("validation.termsRequired") }}
           render={({ field }) => (
             <div className="flex items-start gap-2">
               <Checkbox
@@ -155,8 +150,8 @@ const RegForm = () => {
                 onCheckedChange={field.onChange}
                 className={cn(errors.acceptTerms && "border-destructive")}
               />
-              <Label htmlFor="acceptTerms" className="text-sm font-normal leading-tight cursor-pointer text-default-600">
-                You accept our <a href="#" className="text-primary font-medium hover:underline">Terms & Conditions</a> and <a href="#" className="text-primary hover:underline font-medium">Privacy Policy</a>
+              <Label htmlFor="acceptTerms" className="cursor-pointer text-sm font-normal leading-5 text-slate-600">
+                {t("termsPrefix")} <a href="#" className="font-medium text-emerald-700 hover:underline">{t("terms")}</a> {t("termsAnd")} <a href="#" className="font-medium text-emerald-700 hover:underline">{t("privacy")}</a>
               </Label>
             </div>
           )}
@@ -168,12 +163,12 @@ const RegForm = () => {
         fullWidth
         disabled={loading}
         size="lg"
-        className="w-full h-9 text-base shadow-sm mt-2 transition-all active:scale-[0.98]"
+        className="mt-2 h-12 w-full rounded-md bg-emerald-700 text-base font-semibold shadow-none transition-colors hover:bg-emerald-800 active:bg-emerald-900"
       >
         {loading && (
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
         )}
-        {loading ? `${t("sign_up")}...` : t("sign_up")}
+        {loading ? t("submitting") : t("submit")}
       </Button>
     </form>
   );
