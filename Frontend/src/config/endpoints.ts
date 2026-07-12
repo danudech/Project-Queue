@@ -20,12 +20,17 @@ export const internalEndpoints = {
   newshop: "/api/shop/new-shop",
   newbranch: "/api/shop/new-branch",
   updateshop: "/api/shop/update-shop",
+  updatebranch: "/api/shop/update-branch",
 
   shopcategory: "/api/shop-category",
   shopservices: "/api/shop-services",
 
   customer: "/api/customer",
   booking: "/api/booking",
+
+  businesshours: "/api/shop/business-hours",
+  holidays: "/api/shop/holidays",
+  queuerules: "/api/shop/queue-rules",
 
   addressbyzipcode: "/api/address",
 } as const;
@@ -52,6 +57,7 @@ export const externalEndpoints = {
   newshop: "/api/v1/shop/new-shop",
   newbranch: "/api/v1/shop/new-branch",
   updateshop: "/api/v1/shop/update-shop",
+  updatebranch: "/api/v1/shop/update-branch",
 
   shopcategory: "/api/v1/shop/category/get-category",
   newshopcategory: "/api/v1/shop/category/add-category",
@@ -67,6 +73,10 @@ export const externalEndpoints = {
   newcustomer: "/api/v1/customer/add-customer",
   updatecustomer: "/api/v1/customer/update-customer",
   deletecustomer: "/api/v1/customer/delete-customer",
+
+  businesshours: "/api/v1/shop/business-hours",
+  holidays: "/api/v1/shop/holidays",
+  queuerules: "/api/v1/shop/queue-rules",
 
   addressbyzipcode: "/api/v1/address/by-zipcode",
 } as const;

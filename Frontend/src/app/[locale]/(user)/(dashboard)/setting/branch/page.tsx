@@ -14,6 +14,7 @@ import { AddressType } from "@/types/address/address-type";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { http } from "@/lib/http/client";
+import { env } from "@/config/env";
 import {
   Form,
   FormControl,
@@ -85,6 +86,12 @@ const SettingShopBranchPage = () => {
     address: AddressDto | null;
     list: AddressType[];
   } | null>(null);
+
+  const getLogoUrl = (url: string | null | undefined) => {
+    if (!url) return "https://avatars.githubusercontent.com/u/9919?s=200&v=4";
+    if (url.startsWith("http")) return url;
+    return `${env.apiBaseUrl.replace('/api/v1', '')}${url}`;
+  };
 
   const form = useForm<BranchValues>({
     resolver: zodResolver(getBranchSchema(t)),
@@ -220,15 +227,34 @@ const SettingShopBranchPage = () => {
     form.handleSubmit(async (values) => {
       setIsSaving(true);
       try {
-        // Note
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        if (!selectedBranch) return;
+        
+        const formData = new FormData();
+        formData.append("BranchId", selectedBranch.id.toString());
+        formData.append("IsActive", String(isOpen));
+        
+        if (values.branchName !== selectedBranch.name) {
+          formData.append("BranchName", values.branchName);
+        }
+        if (values.branchPhone !== undefined && values.branchPhone !== selectedBranch.phone) {
+          formData.append("BranchPhone", values.branchPhone);
+        }
+        if (values.houseNo) formData.append("HouseNo", values.houseNo);
+        if (values.street) formData.append("Street", values.street);
+        if (values.subdistrictId > 0) formData.append("SubdistrictId", values.subdistrictId.toString());
+        if (values.zipcode) formData.append("Zipcode", values.zipcode);
+        
+        await http.put("updatebranch", formData);
+        
         setSaveSuccess(true);
         setTimeout(() => setSaveSuccess(false), 2500);
+      } catch (err) {
+        console.error(err);
       } finally {
         setIsSaving(false);
       }
     }),
-    [form]
+    [form, selectedBranch, isOpen]
   );
 
   // ── Loading state ───────────────────────────────────────────────────────────
@@ -269,10 +295,7 @@ const SettingShopBranchPage = () => {
               <div className="relative mx-auto mb-4 h-[140px] w-[140px] overflow-hidden rounded-full ring-4 ring-default-50 dark:ring-default-700 md:mx-0 md:mb-0 md:h-[186px] md:w-[186px]">
                 <Image
                   fill
-                  src={
-                    shopData.logo ??
-                    "https://avatars.githubusercontent.com/u/9919?s=200&v=4"
-                  }
+                  src={getLogoUrl(shopData.logo)}
                   alt={shopData.name}
                   className="object-cover"
                 />

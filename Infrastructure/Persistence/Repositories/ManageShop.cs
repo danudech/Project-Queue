@@ -2,6 +2,7 @@ using System.Runtime.InteropServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Queue.Application.DTO.Request;
+using Queue.Application.DTO.Response;
 using Queue.Application.Interfaces;
 using Queue.Domain.Entities;
 using Queue.Infrastructure.Service;
@@ -673,6 +674,276 @@ public sealed class ManageShop : IManageShop
             _actionLog.Error(ex, "Error updating shop (UserId={UserId})", userId);
             return null;
         }
+    }
+
+    public async Task<ShopResponse?> UpdateBranch(int userId, UpdateBranchRequest request, string ip, string userAgent, CancellationToken ct)
+    {
+        _actionLog.Info("Updating branch (UserId={UserId}, BranchId={BranchId}, IP={IP})", userId, request.BranchId, ip);
+        try
+        {
+            var shop = await _db.Shops
+                .Include(s => s.ShopSettings)
+                .Include(s => s.Status)
+                .Include(s => s.Services)
+                .Include(s => s.ShopBranches)
+                    .ThenInclude(b => b.Address)
+                        .ThenInclude(a => a.Subdistrict)
+                            .ThenInclude(sd => sd.District)
+                                .ThenInclude(d => d.Province)
+                .FirstOrDefaultAsync(s => s.OwnerId == userId, ct);
+
+            if (shop == null) return null;
+
+            var branch = shop.ShopBranches.FirstOrDefault(b => b.Id == request.BranchId);
+            if (branch == null) return null;
+
+            bool branchUpdated = false;
+
+            if (request.IsActive.HasValue)
+            {
+                branch.IsActive = request.IsActive.Value;
+                branchUpdated = true;
+            }
+
+            if (!string.IsNullOrEmpty(request.BranchName))
+            {
+                branch.Name = request.BranchName;
+                branchUpdated = true;
+            }
+
+            if (!string.IsNullOrEmpty(request.BranchPhone))
+            {
+                branch.Phone = request.BranchPhone;
+                branchUpdated = true;
+            }
+
+            if (branchUpdated)
+            {
+                branch.UpdatedAt = DateTime.UtcNow;
+                branch.UpdatedBy = userId;
+                await _crud.UpdateAsync(branch, ct);
+            }
+
+            // Update Address if any address fields are provided
+            if (branch.Address != null && (
+                request.HouseNo != null || request.Street != null || request.SubdistrictId.HasValue || request.Zipcode != null))
+            {
+                if (request.HouseNo != null) branch.Address.HouseNo = request.HouseNo;
+                if (request.Street != null) branch.Address.Street = request.Street;
+                if (request.SubdistrictId.HasValue) branch.Address.SubdistrictId = request.SubdistrictId.Value;
+                if (request.Zipcode != null) branch.Address.Zipcode = request.Zipcode;
+
+                branch.Address.UpdatedAt = DateTime.UtcNow;
+                branch.Address.UpdatedBy = userId;
+                await _crud.UpdateAsync(branch.Address, ct);
+            }
+
+            return MapToResponse(shop, branch.Id);
+        }
+        catch (Exception ex)
+        {
+            _actionLog.Error(ex, "Error updating branch (UserId={UserId})", userId);
+            return null;
+        }
+    }
+
+    public async Task<List<BusinessHourResponse>> GetBusinessHours(int branchId, CancellationToken ct)
+    {
+        var hours = await _db.ShopBusinessHours
+            .Where(h => h.BranchId == branchId)
+            .OrderBy(h => h.DayOfWeek)
+            .ToListAsync(ct);
+            
+        return hours.Select(h => new BusinessHourResponse
+        {
+            DayOfWeek = h.DayOfWeek,
+            IsOpen = h.IsActive,
+            OpenTime = h.OpenTime.ToString("HH:mm"),
+            CloseTime = h.CloseTime.ToString("HH:mm")
+        }).ToList();
+    }
+
+    public async Task<List<BusinessHourResponse>> UpdateBusinessHours(int userId, UpdateBusinessHoursRequest request, string ip, string userAgent, CancellationToken ct)
+    {
+        var branch = await _db.ShopBranches
+            .Include(b => b.Shop)
+            .Include(b => b.ShopBusinessHours)
+            .FirstOrDefaultAsync(b => b.Id == request.BranchId, ct);
+            
+        if (branch == null || branch.Shop.OwnerId != userId) return new List<BusinessHourResponse>();
+        
+        foreach (var h in request.Hours)
+        {
+            var existing = branch.ShopBusinessHours.FirstOrDefault(b => b.DayOfWeek == h.DayOfWeek);
+            TimeOnly openTime = TimeOnly.TryParse(h.OpenTime, out var ot) ? ot : new TimeOnly(0, 0);
+            TimeOnly closeTime = TimeOnly.TryParse(h.CloseTime, out var ctTime) ? ctTime : new TimeOnly(0, 0);
+            
+            if (existing != null)
+            {
+                existing.IsActive = h.IsOpen;
+                existing.OpenTime = openTime;
+                existing.CloseTime = closeTime;
+                existing.UpdatedAt = DateTime.UtcNow;
+                existing.UpdatedBy = userId;
+                await _crud.UpdateAsync(existing, ct);
+            }
+            else
+            {
+                var newHour = new ShopBusinessHour
+                {
+                    BranchId = request.BranchId,
+                    DayOfWeek = h.DayOfWeek,
+                    IsActive = h.IsOpen,
+                    OpenTime = openTime,
+                    CloseTime = closeTime,
+                    CreatedAt = DateTime.UtcNow,
+                    CreatedBy = userId
+                };
+                await _crud.InsertAsync(newHour, ct);
+                branch.ShopBusinessHours.Add(newHour);
+            }
+        }
+        
+        return branch.ShopBusinessHours.OrderBy(h => h.DayOfWeek).Select(h => new BusinessHourResponse
+        {
+            DayOfWeek = h.DayOfWeek,
+            IsOpen = h.IsActive,
+            OpenTime = h.OpenTime.ToString("HH:mm"),
+            CloseTime = h.CloseTime.ToString("HH:mm")
+        }).ToList();
+    }
+
+    public async Task<List<HolidayResponse>> GetHolidays(int branchId, CancellationToken ct)
+    {
+        var holidays = await _db.ShopHolidays
+            .Where(h => h.BranchId == branchId)
+            .OrderBy(h => h.HolidayDate)
+            .ToListAsync(ct);
+            
+        return holidays.Select(h => new HolidayResponse
+        {
+            Id = h.Id,
+            Date = h.HolidayDate.ToString("yyyy-MM-dd"),
+            Name = h.Reason
+        }).ToList();
+    }
+
+    public async Task<HolidayResponse?> AddHoliday(int userId, AddHolidayRequest request, string ip, string userAgent, CancellationToken ct)
+    {
+        var branch = await _db.ShopBranches
+            .Include(b => b.Shop)
+            .FirstOrDefaultAsync(b => b.Id == request.BranchId, ct);
+            
+        if (branch == null || branch.Shop.OwnerId != userId) return null;
+        
+        DateOnly date = DateOnly.TryParse(request.Date, out var dt) ? dt : DateOnly.FromDateTime(DateTime.UtcNow);
+        
+        var holiday = new ShopHoliday
+        {
+            ShopId = branch.ShopId,
+            BranchId = request.BranchId,
+            HolidayDate = date,
+            Reason = request.Name,
+            CreatedAt = DateTime.UtcNow,
+            CreatedBy = userId
+        };
+        
+        await _crud.InsertAsync(holiday, ct);
+        
+        return new HolidayResponse
+        {
+            Id = holiday.Id,
+            Date = holiday.HolidayDate.ToString("yyyy-MM-dd"),
+            Name = holiday.Reason
+        };
+    }
+
+    public async Task<bool> DeleteHoliday(int userId, int holidayId, string ip, string userAgent, CancellationToken ct)
+    {
+        var holiday = await _db.ShopHolidays
+            .Include(h => h.Shop)
+            .FirstOrDefaultAsync(h => h.Id == holidayId, ct);
+            
+        if (holiday == null || holiday.Shop.OwnerId != userId) return false;
+        
+        await _crud.DeleteAsync(holiday, ct);
+        return true;
+    }
+
+    public async Task<QueueRulesResponse> GetQueueRules(int branchId, CancellationToken ct)
+    {
+        var settings = await _db.ShopSettings
+            .AsNoTracking()
+            .Where(s => s.BranchId == branchId && s.Key.StartsWith("queue."))
+            .ToListAsync(ct);
+
+        var rules = new QueueRulesResponse();
+
+        foreach (var s in settings)
+        {
+            if (s.Key == "queue.slot_interval" && int.TryParse(s.Value, out int slot))
+                rules.SlotInterval = slot;
+            else if (s.Key == "queue.advance_booking_window" && int.TryParse(s.Value, out int adv))
+                rules.AdvanceBookingWindow = adv;
+            else if (s.Key == "queue.buffer_between_services" && int.TryParse(s.Value, out int buf))
+                rules.BufferBetweenServices = buf;
+        }
+
+        return rules;
+    }
+
+    public async Task<QueueRulesResponse> UpdateQueueRules(int userId, UpdateQueueRulesRequest request, string ip, string userAgent, CancellationToken ct)
+    {
+        var branch = await _db.ShopBranches
+            .Include(b => b.Shop)
+            .FirstOrDefaultAsync(b => b.Id == request.BranchId, ct);
+
+        if (branch == null || branch.Shop.OwnerId != userId)
+            throw new Exception("Unauthorized to modify queue rules for this branch");
+
+        var settings = await _db.ShopSettings
+            .Where(s => s.BranchId == request.BranchId && s.Key.StartsWith("queue."))
+            .ToListAsync(ct);
+
+        var values = new Dictionary<string, string>
+        {
+            { "queue.slot_interval", request.SlotInterval.ToString() },
+            { "queue.advance_booking_window", request.AdvanceBookingWindow.ToString() },
+            { "queue.buffer_between_services", request.BufferBetweenServices.ToString() }
+        };
+
+        foreach (var kvp in values)
+        {
+            var setting = settings.FirstOrDefault(s => s.Key == kvp.Key);
+            if (setting != null)
+            {
+                setting.Value = kvp.Value;
+                setting.UpdatedAt = DateTime.UtcNow;
+                setting.UpdatedBy = userId;
+                _db.ShopSettings.Update(setting);
+            }
+            else
+            {
+                _db.ShopSettings.Add(new ShopSetting
+                {
+                    ShopId = branch.ShopId,
+                    BranchId = request.BranchId,
+                    Key = kvp.Key,
+                    Value = kvp.Value,
+                    CreatedAt = DateTime.UtcNow,
+                    CreatedBy = userId
+                });
+            }
+        }
+
+        await _db.SaveChangesAsync(ct);
+
+        return new QueueRulesResponse
+        {
+            SlotInterval = request.SlotInterval,
+            AdvanceBookingWindow = request.AdvanceBookingWindow,
+            BufferBetweenServices = request.BufferBetweenServices
+        };
     }
 
     // ================= Private Helper Methods =================
