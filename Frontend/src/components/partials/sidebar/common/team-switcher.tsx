@@ -35,7 +35,7 @@ import {
 import { Switch } from "@/components/ui/switch"
 import { useConfig } from "@/hooks/use-config"
 import { useMenuHoverConfig } from "@/hooks/use-menu-hover"
-import { useShop } from "@/hooks/use-me"
+import { useShop, useProfile } from "@/hooks/use-me"
 import { AddShop, BusinessHour, ShopType } from "@/types/shop/shoptype"
 import { useLocale, useTranslations } from "next-intl"
 import { http } from "@/lib/http/client"
