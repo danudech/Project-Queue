@@ -9,5 +9,7 @@ public class ShopServiceResponse
     public decimal Price { get; set; }
     public int CategoryId { get; set; }
     public bool IsActive { get; set; }
+    public string StaffSelectionMode { get; set; } = "OPTIONAL";
+    public List<int> StaffIds { get; set; } = new();
     public DateTime CreatedAt { get; set; }
 }

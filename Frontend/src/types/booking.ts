@@ -1,18 +1,31 @@
 export interface BookingDto {
   id: number;
-  customerId: number;
+  guid: string;
   serviceId: number;
+  serviceName: string;
   branchId: number;
-  bookingDate: string;
-  bookingTime: string;
+  queueSlotId: number;
+  date: string;
+  startTime: string;
+  customerName: string;
+  staffId?: number | null;
+  staffName?: string | null;
   status: string;
-  createdAt: string;
+  remark?: string | null;
 }
 
 export interface CreateBookingDto {
-  customerId: number;
   serviceId: number;
   branchId: number;
-  bookingDate: string;
-  bookingTime: string;
+  queueSlotId: number;
+  staffId?: number;
+  remark?: string;
+}
+
+export interface AvailableSlotDto {
+  id: number;
+  date: string;
+  startTime: string;
+  endTime: string;
+  remaining: number;
 }

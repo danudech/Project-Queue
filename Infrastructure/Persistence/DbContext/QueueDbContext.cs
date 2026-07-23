@@ -139,6 +139,8 @@ public partial class QueueDbContext : DbContext
 
         modelBuilder.Entity<Booking>(entity =>
         {
+            entity.HasIndex(e => e.AssignedStaffId, "IX_Bookings_AssignedStaffId");
+
             entity.HasIndex(e => e.BranchId, "IX_Bookings_BranchId");
 
             entity.HasIndex(e => e.Guid, "IX_Bookings_Guid").IsUnique();
@@ -153,6 +155,11 @@ public partial class QueueDbContext : DbContext
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Guid).HasDefaultValueSql("(newid())");
+
+            entity.HasOne(d => d.AssignedStaff).WithMany(p => p.AssignedBookings)
+                .HasForeignKey(d => d.AssignedStaffId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("FK_Bookings_AssignedStaff");
 
             entity.HasOne(d => d.Branch).WithMany(p => p.Bookings)
                 .HasForeignKey(d => d.BranchId)
@@ -409,20 +416,35 @@ public partial class QueueDbContext : DbContext
 
         modelBuilder.Entity<Domain.Entities.Queue>(entity =>
         {
+            entity.HasIndex(e => e.AssignedStaffId, "IX_Queues_AssignedStaffId");
+
             entity.HasIndex(e => e.BranchId, "IX_Queues_BranchId");
 
             entity.HasIndex(e => e.Guid, "IX_Queues_Guid").IsUnique();
 
+            entity.HasIndex(e => e.ServiceId, "IX_Queues_ServiceId");
+
             entity.HasIndex(e => e.StatusId, "IX_Queues_StatusId");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+            entity.Property(e => e.CustomerName).HasMaxLength(150);
             entity.Property(e => e.Guid).HasDefaultValueSql("(newid())");
             entity.Property(e => e.Type).HasMaxLength(20);
+
+            entity.HasOne(d => d.AssignedStaff).WithMany(p => p.AssignedQueues)
+                .HasForeignKey(d => d.AssignedStaffId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("FK_Queues_AssignedStaff");
 
             entity.HasOne(d => d.Branch).WithMany(p => p.Queues)
                 .HasForeignKey(d => d.BranchId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Queues_Branch");
+
+            entity.HasOne(d => d.Service).WithMany(p => p.Queues)
+                .HasForeignKey(d => d.ServiceId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("FK_Queues_Service");
 
             entity.HasOne(d => d.Status).WithMany(p => p.Queues)
                 .HasForeignKey(d => d.StatusId)
@@ -509,6 +531,9 @@ public partial class QueueDbContext : DbContext
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Name).HasMaxLength(150);
             entity.Property(e => e.Price).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.StaffSelectionMode)
+                .HasMaxLength(20)
+                .HasDefaultValue("OPTIONAL");
 
             entity.HasOne(d => d.Branch).WithMany(p => p.Services)
                 .HasForeignKey(d => d.BranchId)
@@ -706,12 +731,19 @@ public partial class QueueDbContext : DbContext
 
         modelBuilder.Entity<ShopStaff>(entity =>
         {
-            entity.HasIndex(e => new { e.BranchId, e.UserId }, "IX_ShopStaffs_BranchId_UserId").IsUnique();
+            entity.HasIndex(e => new { e.BranchId, e.UserId }, "IX_ShopStaffs_BranchId_UserId")
+                .IsUnique()
+                .HasFilter("([UserId] IS NOT NULL)");
 
             entity.HasIndex(e => e.ShopId, "IX_ShopStaffs_ShopId");
 
+            entity.Property(e => e.CanServeQueues).HasDefaultValue(true);
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+            entity.Property(e => e.Email).HasMaxLength(255);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.IsAvailable).HasDefaultValue(true);
+            entity.Property(e => e.Name).HasMaxLength(150);
+            entity.Property(e => e.Phone).HasMaxLength(20);
             entity.Property(e => e.Role).HasMaxLength(50);
 
             entity.HasOne(d => d.Branch).WithMany(p => p.ShopStaffs)
@@ -726,7 +758,6 @@ public partial class QueueDbContext : DbContext
 
             entity.HasOne(d => d.User).WithMany(p => p.ShopStaffs)
                 .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_SS_User");
         });
 

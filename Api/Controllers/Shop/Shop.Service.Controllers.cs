@@ -74,6 +74,8 @@ public class ShopServiceController : ControllerBase
         catch (Exception ex)
         {
             _actionLog.Error(ex, "Add shop service failed (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, ua);
+            if (ex is InvalidOperationException) return BadRequest(ApiResponse<ShopServiceResponse>.Fail(ex.Message));
+            if (ex is UnauthorizedAccessException) return StatusCode(403, ApiResponse<ShopServiceResponse>.Fail(ex.Message));
             return StatusCode(500, ApiResponse<ShopServiceResponse>.Fail(ex.Message));
         }
     }
@@ -97,6 +99,8 @@ public class ShopServiceController : ControllerBase
         catch (Exception ex)
         {
             _actionLog.Error(ex, "Update shop service failed (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, ua);
+            if (ex is InvalidOperationException) return BadRequest(ApiResponse<ShopServiceResponse>.Fail(ex.Message));
+            if (ex is KeyNotFoundException) return NotFound(ApiResponse<ShopServiceResponse>.Fail(ex.Message));
             return StatusCode(500, ApiResponse<ShopServiceResponse>.Fail(ex.Message));
         }
     }
@@ -114,12 +118,14 @@ public class ShopServiceController : ControllerBase
             if (!status)
                 return Unauthorized(ApiResponse<string>.Fail(message));
             _actionLog.Info("Delete shop service request (UserId={UserId}, ServiceId={ServiceId}, IP={IP}, UserAgent={UserAgent})", userId, serviceId, ip, ua);
-            await _shop.DeleteShopService(int.Parse(userId), serviceId, ip, ua, ct);
+            bool deleted = await _shop.DeleteShopService(int.Parse(userId), serviceId, ip, ua, ct);
+            if (!deleted) return NotFound(ApiResponse<string>.Fail("Service not found"));
             return Ok(ApiResponse<string>.Ok("Service deleted successfully"));
         }
         catch (Exception ex)
         {
             _actionLog.Error(ex, "Delete shop service failed (UserId={UserId}, ServiceId={ServiceId}, IP={IP}, UserAgent={UserAgent})", userId, serviceId, ip, ua);
+            if (ex is KeyNotFoundException) return NotFound(ApiResponse<string>.Fail(ex.Message));
             return StatusCode(500, ApiResponse<string>.Fail(ex.Message));
         }
     }

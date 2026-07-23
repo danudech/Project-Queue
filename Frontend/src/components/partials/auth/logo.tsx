@@ -5,7 +5,7 @@ const Logo = () => {
   return (
     <div>
       <Image
-        src="/images/brand/new-logo.jpg"
+        src="/images/brand/new-logo-transparent.png"
         alt="EZQueue"
         width={320}
         height={100}

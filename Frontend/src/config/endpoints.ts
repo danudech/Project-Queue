@@ -1,5 +1,3 @@
-import { add } from "@dnd-kit/utilities";
-
 export const internalEndpoints = {
   health: "/api/health",
   signout: "/api/auth/logout",
@@ -27,9 +25,15 @@ export const internalEndpoints = {
 
   customer: "/api/customer",
   booking: "/api/booking",
+  staff: "/api/operations/staff",
+  staffinvite: "/api/operations/staff/invite",
+  slots: "/api/operations/slots",
+  queues: "/api/operations/queues",
+  catalog: "/api/operations/catalog",
 
   businesshours: "/api/shop/business-hours",
   holidays: "/api/shop/holidays",
+  holidaySync: "/api/shop/holidays/sync",
   queuerules: "/api/shop/queue-rules",
 
   addressbyzipcode: "/api/address",
@@ -68,6 +72,14 @@ export const externalEndpoints = {
   newservices: "/api/v1/shop/services/add-service",
   updateservices: "/api/v1/shop/services/update-service",
   deleteservices: "/api/v1/shop/services/delete-service",
+
+  staff: "/api/v1/operations/staff",
+  staffinvite: "/api/v1/operations/staff/invite",
+  eligiblestaff: "/api/v1/operations/staff/eligible",
+  slots: "/api/v1/operations/slots",
+  bookings: "/api/v1/operations/bookings",
+  queues: "/api/v1/operations/queues",
+  catalog: "/api/v1/operations/catalog",
 
   customer: "/api/v1/customer/get-customer",
   newcustomer: "/api/v1/customer/add-customer",

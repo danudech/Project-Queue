@@ -37,6 +37,7 @@ obj/
 *.mdb
 *.opendb
 *.VC.db
+*.lscache
 
 # Rider
 .idea/
@@ -94,3 +95,6 @@ docker-compose.override.yml
 ##################################################
 *.tmp
 *.temp
+
+# Runtime uploads (keep user-generated files outside source control)
+Api/wwwroot/uploads/

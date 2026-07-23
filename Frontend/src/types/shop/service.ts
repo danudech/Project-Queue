@@ -9,5 +9,7 @@ export type SetService = {
     categoryId: number;
     categoryName?: string;
     isActive: boolean;
+    staffSelectionMode: "AUTO" | "OPTIONAL" | "REQUIRED";
+    staffIds: number[];
     createdAt?: string;
 }

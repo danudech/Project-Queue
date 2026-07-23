@@ -456,10 +456,16 @@ namespace Queue.Infrastructure.Migrations
                     // ShopId เก็บไว้เพื่อ query ภาพรวมระดับ Shop ได้ง่าย
                     ShopId = table.Column<int>(),
                     BranchId = table.Column<int>(),
-                    UserId = table.Column<int>(),
+                    UserId = table.Column<int>(nullable: true),
+                    Name = table.Column<string>(maxLength: 150),
+                    Email = table.Column<string>(maxLength: 255, nullable: true),
+                    Phone = table.Column<string>(maxLength: 20, nullable: true),
                     // Role string ยังเก็บไว้เป็น display/legacy
                     // การตรวจสิทธิ์จริงใช้ BranchUserRoleMaps แทน
                     Role = table.Column<string>(maxLength: 50),
+                    CanServeQueues = table.Column<bool>(defaultValue: true),
+                    CanLogin = table.Column<bool>(defaultValue: false),
+                    IsAvailable = table.Column<bool>(defaultValue: true),
                     IsActive = table.Column<bool>(defaultValue: true),
                     CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
                     CreatedBy = table.Column<int>(nullable: true),
@@ -479,7 +485,8 @@ namespace Queue.Infrastructure.Migrations
                 name: "IX_ShopStaffs_BranchId_UserId",
                 table: "ShopStaffs",
                 columns: new[] { "BranchId", "UserId" },
-                unique: true);
+                unique: true,
+                filter: "[UserId] IS NOT NULL");
 
             migrationBuilder.CreateIndex("IX_ShopStaffs_ShopId", "ShopStaffs", "ShopId");
 
@@ -757,6 +764,7 @@ namespace Queue.Infrastructure.Migrations
                     Name = table.Column<string>(maxLength: 150),
                     Duration = table.Column<int>(),
                     Price = table.Column<decimal>(type: "decimal(10,2)"),
+                    StaffSelectionMode = table.Column<string>(maxLength: 20, defaultValue: "OPTIONAL"),
                     IsActive = table.Column<bool>(defaultValue: true),
                     CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
                     CreatedBy = table.Column<int>(nullable: true),
@@ -852,6 +860,7 @@ namespace Queue.Infrastructure.Migrations
                     UserId = table.Column<int>(),
                     BranchId = table.Column<int>(),
                     QueueSlotId = table.Column<int>(),
+                    AssignedStaffId = table.Column<int>(nullable: true),
                     QueueCategoryId = table.Column<int>(nullable: true),
                     QueueNumber = table.Column<int>(nullable: true),
                     Remark = table.Column<string>(nullable: true),
@@ -867,6 +876,7 @@ namespace Queue.Infrastructure.Migrations
                     table.ForeignKey("FK_Bookings_User", x => x.UserId, "Users", "Id");
                     table.ForeignKey("FK_Bookings_Branch", x => x.BranchId, "ShopBranches", "Id");
                     table.ForeignKey("FK_Bookings_Slot", x => x.QueueSlotId, "QueueSlots", "Id");
+                    table.ForeignKey("FK_Bookings_AssignedStaff", x => x.AssignedStaffId, "ShopStaffs", "Id", onDelete: ReferentialAction.SetNull);
                     table.ForeignKey("FK_Bookings_Category", x => x.QueueCategoryId, "QueueCategories", "Id");
                     table.ForeignKey("FK_Bookings_Status", x => x.StatusId, "MasterStatuses", "Id");
                 });
@@ -877,6 +887,7 @@ namespace Queue.Infrastructure.Migrations
             migrationBuilder.CreateIndex("IX_Bookings_QueueSlotId", "Bookings", "QueueSlotId");
             migrationBuilder.CreateIndex("IX_Bookings_QueueCategoryId", "Bookings", "QueueCategoryId");
             migrationBuilder.CreateIndex("IX_Bookings_QueueNumber", "Bookings", "QueueNumber");
+            migrationBuilder.CreateIndex("IX_Bookings_AssignedStaffId", "Bookings", "AssignedStaffId");
 
             migrationBuilder.CreateTable(
                 name: "BookingServices",
@@ -902,6 +913,9 @@ namespace Queue.Infrastructure.Migrations
                     Guid = table.Column<Guid>(defaultValueSql: "NEWID()"),
                     BranchId = table.Column<int>(),
                     QueueNumber = table.Column<int>(),
+                    ServiceId = table.Column<int>(nullable: true),
+                    AssignedStaffId = table.Column<int>(nullable: true),
+                    CustomerName = table.Column<string>(maxLength: 150, nullable: true),
                     StatusId = table.Column<int>(),
                     Type = table.Column<string>(maxLength: 20),
                     CreatedAt = table.Column<DateTime>(defaultValueSql: "GETDATE()"),
@@ -913,12 +927,16 @@ namespace Queue.Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_Queues", x => x.Id);
                     table.ForeignKey("FK_Queues_Branch", x => x.BranchId, "ShopBranches", "Id");
+                    table.ForeignKey("FK_Queues_Service", x => x.ServiceId, "Services", "Id", onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey("FK_Queues_AssignedStaff", x => x.AssignedStaffId, "ShopStaffs", "Id", onDelete: ReferentialAction.SetNull);
                     table.ForeignKey("FK_Queues_Status", x => x.StatusId, "MasterStatuses", "Id");
                 });
 
             migrationBuilder.CreateIndex("IX_Queues_Guid", "Queues", "Guid", unique: true);
             migrationBuilder.CreateIndex("IX_Queues_StatusId", "Queues", "StatusId");
             migrationBuilder.CreateIndex("IX_Queues_BranchId", "Queues", "BranchId");
+            migrationBuilder.CreateIndex("IX_Queues_ServiceId", "Queues", "ServiceId");
+            migrationBuilder.CreateIndex("IX_Queues_AssignedStaffId", "Queues", "AssignedStaffId");
 
             migrationBuilder.CreateTable(
                 name: "QueueLogs",

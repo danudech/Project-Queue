@@ -37,3 +37,9 @@ Instead, please use [dotnet user-secrets](https://learn.microsoft.com/en-us/aspn
 - Analytics dashboard
 - Multi-branch support
 - Queue prediction system
+
+## Work continuation
+
+If this task is continued by Antigravity or another coding agent, start with
+[`ANTIGRAVITY_HANDOFF.md`](./ANTIGRAVITY_HANDOFF.md). It records the current
+frontend design rules, completed work, remaining scope, and verification commands.

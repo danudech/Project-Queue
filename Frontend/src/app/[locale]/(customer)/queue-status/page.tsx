@@ -43,8 +43,8 @@ export default function QueueStatusPage() {
               <CardHeader className="pb-3">
                 <div className="flex justify-between items-start">
                   <div>
-                    <CardTitle className="text-lg">{t("serviceQueue")}</CardTitle>
-                    <CardDescription>{t("dateTime", { date: booking.bookingDate, time: booking.bookingTime })}</CardDescription>
+                    <CardTitle className="text-lg">{booking.serviceName || t("serviceQueue")}</CardTitle>
+                    <CardDescription>{t("dateTime", { date: booking.date, time: booking.startTime })}{booking.staffName ? ` · ${booking.staffName}` : ""}</CardDescription>
                   </div>
                   <Badge color="secondary" className="uppercase">{booking.status}</Badge>
                 </div>

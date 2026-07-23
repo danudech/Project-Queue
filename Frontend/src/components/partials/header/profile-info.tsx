@@ -14,28 +14,17 @@ import {
 import Image from "next/image";
 import { Icon } from "@/components/ui/icon"
 import { useProfile } from "@/hooks/use-me";
-import { Link, useRouter } from '@/i18n/routing';
-import { http } from "@/lib/http/client";
-import { toast } from "sonner";
+import { Link } from '@/i18n/routing';
 import { useTranslations } from "next-intl";
+import { useLogout } from "@/hooks/use-logout";
 
 const ProfileInfo = () => {
 
-  const router = useRouter();
   const t = useTranslations("Menu");
   const { data, isLoading } = useProfile();
+  const { logout, isLoggingOut } = useLogout();
 
   if (isLoading) return <div>Loading...</div>;
-
-  const handleLogout = async () => {
-    try {
-      await http.get("signout");
-      toast.success("Logged out");
-      router.push("/auth/login");
-    } catch (err) {
-      toast.error("Logout failed");
-    }
-  };
 
   return (
     <div className="md:block hidden">
@@ -93,18 +82,15 @@ const ProfileInfo = () => {
             className="flex items-center gap-2 text-sm font-medium text-default-600 capitalize my-1 px-3 cursor-pointer"
           >
 
-            <div>
-              <form
-                action={async () => {
-                  await handleLogout();
-                }}
-              >
-                <button type="submit" className=" w-full  flex  items-center gap-2" >
-                  <Icon icon="heroicons:power" className="w-4 h-4" />
-                  {t('logout')}
-                </button>
-              </form>
-            </div>
+            <button
+              type="button"
+              className="flex w-full items-center gap-2"
+              disabled={isLoggingOut}
+              onClick={() => void logout()}
+            >
+              <Icon icon="heroicons:power" className="h-4 w-4" />
+              {t('logout')}
+            </button>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

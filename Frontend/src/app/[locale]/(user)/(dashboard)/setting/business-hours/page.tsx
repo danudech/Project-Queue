@@ -5,6 +5,7 @@ import { Check, Clock, Copy, Loader2, Save } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { http } from "@/lib/http/client";
@@ -165,16 +166,12 @@ const SettingBusinessHoursPage = () => {
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardContent className="flex flex-col gap-4 p-6 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground">Shop settings</p>
-            <h1 className="mt-1 text-2xl font-semibold text-default-900">Business hours & Queue rules</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Configure weekly opening hours and queue behaviors for your branch.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
+      <DashboardPageHeader
+        eyebrow="Shop settings"
+        title="Business hours & Queue rules"
+        description="Configure weekly opening hours and queue behaviors for your branch."
+        actions={
+          <>
             <Button variant="outline" onClick={copyMondayToWeekdays} className="gap-2">
               <Copy className="h-4 w-4" />
               Copy Monday
@@ -183,9 +180,9 @@ const SettingBusinessHoursPage = () => {
               {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : saved ? <Check className="h-4 w-4" /> : <Save className="h-4 w-4" />}
               {isSaving ? "Saving..." : saved ? "Saved" : "Save hours"}
             </Button>
-          </div>
-        </CardContent>
-      </Card>
+          </>
+        }
+      />
 
       <div className="grid gap-6 xl:grid-cols-[1.4fr_0.8fr]">
         <Card>

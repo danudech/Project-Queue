@@ -35,5 +35,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'always',
       priority: 0.9,
     },
+    ...(['en', 'th'] as const).flatMap((locale) => [
+      {
+        url: `${baseUrl}/${locale}/terms`,
+        lastModified: new Date('2026-07-22'),
+        changeFrequency: 'yearly' as const,
+        priority: 0.3,
+      },
+      {
+        url: `${baseUrl}/${locale}/privacy`,
+        lastModified: new Date('2026-07-22'),
+        changeFrequency: 'yearly' as const,
+        priority: 0.3,
+      },
+    ]),
   ]
 }

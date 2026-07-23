@@ -57,7 +57,7 @@ public sealed class Users : IUsers
         using var transaction = await _db.Database.BeginTransactionAsync(ct);
         try
         {
-            Role? customerRole = await _db.Roles.FirstOrDefaultAsync(r => r.Name == "Customer", ct);
+            Role? adminRole = await _db.Roles.FirstOrDefaultAsync(r => r.Name == "Admin", ct);
 
             User _newUser = new User
             {
@@ -72,7 +72,7 @@ public sealed class Users : IUsers
                     {
                         new UserRoleMap
                         {
-                            RoleId = customerRole?.Id ?? 2
+                            RoleId = adminRole?.Id ?? 1
                         }
                     }
             };

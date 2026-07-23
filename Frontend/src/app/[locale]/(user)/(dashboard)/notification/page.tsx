@@ -5,6 +5,7 @@ import { Bell, CheckCheck, Loader2, Mail, MessageSquare, Search, Settings } from
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 
@@ -113,21 +114,17 @@ const NotificationPage = () => {
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardContent className="flex flex-col gap-4 p-6 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground">Notification center</p>
-            <h1 className="mt-1 text-2xl font-semibold text-default-900">Notifications</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Review booking alerts, system updates, and message delivery mockups.
-            </p>
-          </div>
+      <DashboardPageHeader
+        eyebrow="Notification center"
+        title="Notifications"
+        description="Review booking alerts, system updates, and message delivery mockups."
+        actions={
           <Button variant="outline" onClick={markAllRead} className="gap-2">
             <CheckCheck className="h-4 w-4" />
             Mark all as read
           </Button>
-        </CardContent>
-      </Card>
+        }
+      />
 
       <div className="grid gap-6 xl:grid-cols-[1.4fr_0.8fr]">
         <Card>
@@ -157,7 +154,7 @@ const NotificationPage = () => {
                 {filteredNotifications.map((item) => (
                   <div
                     key={item.id}
-                    className="flex gap-3 rounded-md border border-default-200 p-4 transition-colors hover:bg-default-50"
+                    className="flex gap-3 rounded-md border border-default-200 p-4 transition-colors hover:bg-default-200 dark:hover:bg-default-300"
                   >
                     <div className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
                       {item.channel === "email" ? (

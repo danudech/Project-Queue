@@ -42,16 +42,16 @@ public sealed class ManageShop : IManageShop
                 .Include(s => s.ShopSettings)
                 .Include(s => s.Status)
                 .Include(s => s.Services)
-                .Include(s => s.ShopBranches)
+                .Include(s => s.ShopBranches.Where(b => b.Shop.OwnerId == userId || b.ShopStaffs.Any(ss => ss.UserId == userId && ss.IsActive && ss.CanLogin)))
                     .ThenInclude(b => b.Address)
                         .ThenInclude(a => a.Subdistrict)
                             .ThenInclude(sd => sd.District)
                                 .ThenInclude(d => d.Province)
-                .Include(s => s.ShopBranches)
+                .Include(s => s.ShopBranches.Where(b => b.Shop.OwnerId == userId || b.ShopStaffs.Any(ss => ss.UserId == userId && ss.IsActive && ss.CanLogin)))
                     .ThenInclude(b => b.ShopBusinessHours)
-                .Include(s => s.ShopBranches)
+                .Include(s => s.ShopBranches.Where(b => b.Shop.OwnerId == userId || b.ShopStaffs.Any(ss => ss.UserId == userId && ss.IsActive && ss.CanLogin)))
                     .ThenInclude(b => b.ShopHolidays)
-                .FirstOrDefaultAsync(s => s.OwnerId == userId, ct);
+                .FirstOrDefaultAsync(s => s.OwnerId == userId || s.ShopStaffs.Any(ss => ss.UserId == userId && ss.IsActive && ss.CanLogin), ct);
 
             if (shop == null)
             {
@@ -105,9 +105,20 @@ public sealed class ManageShop : IManageShop
         }
     }
 
+    private async Task EnsureAdminRoleAsync(int userId, CancellationToken ct)
+    {
+        bool isAdmin = await _db.UserRoleMaps
+            .AnyAsync(ur => ur.UserId == userId && (ur.Role.Name == "Admin" || ur.RoleId == 1), ct);
+        if (!isAdmin)
+        {
+            throw new UnauthorizedAccessException("Only Admin users can create or edit shop/branch information.");
+        }
+    }
+
     public async Task<ShopResponse?> CreateShop(int userId, CreateShopRequest request, string ip, string userAgent, CancellationToken ct)
     {
         _actionLog.Info("Creating new shop (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, userAgent);
+        await EnsureAdminRoleAsync(userId, ct);
         await using var transaction = await _db.Database.BeginTransactionAsync(ct);
         try
         {
@@ -180,6 +191,7 @@ public sealed class ManageShop : IManageShop
     public async Task<ShopResponse?> CreateBranch(int userId, CreateShopRequest request, string ip, string userAgent, CancellationToken ct)
     {
         _actionLog.Info("Creating new branch (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, userAgent);
+        await EnsureAdminRoleAsync(userId, ct);
         await using var transaction = await _db.Database.BeginTransactionAsync(ct);
         try
         {
@@ -302,6 +314,7 @@ public sealed class ManageShop : IManageShop
 
     public async Task<ShopCategoryResponse> UpdateShopCategory(int userId, ShopCategoryRequest request, string ip, string userAgent, CancellationToken ct)
     {
+        await EnsureAdminRoleAsync(userId, ct);
         _actionLog.Info("Updating shop category (UserId={UserId}, CategoryId={CategoryId}, IP={IP}, UserAgent={UserAgent})", userId, request.Id ?? 0, ip, userAgent);
         try
         {
@@ -341,6 +354,7 @@ public sealed class ManageShop : IManageShop
 
     public async Task<bool> DeleteShopCategory(int userId, int categoryId, string ip, string userAgent, CancellationToken ct)
     {
+        await EnsureAdminRoleAsync(userId, ct);
         _actionLog.Info("Deleting shop category (UserId={UserId}, CategoryId={CategoryId}, IP={IP}, UserAgent={UserAgent})", userId, categoryId, ip, userAgent);
         try
         {
@@ -400,6 +414,7 @@ public sealed class ManageShop : IManageShop
 
     public async Task<ShopServiceResponse> AddShopService(int userId, ShopServiceRequest request, string ip, string userAgent, CancellationToken ct)
     {
+        await EnsureAdminRoleAsync(userId, ct);
         _actionLog.Info("Adding shop service (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, userAgent);
         try
         {
@@ -456,6 +471,7 @@ public sealed class ManageShop : IManageShop
 
     public async Task<ShopServiceResponse> UpdateShopService(int userId, ShopServiceRequest request, string ip, string userAgent, CancellationToken ct)
     {
+        await EnsureAdminRoleAsync(userId, ct);
         _actionLog.Info("Updating shop service (UserId={UserId}, ServiceId={ServiceId}, IP={IP}, UserAgent={UserAgent})", userId, request.Id ?? 0, ip, userAgent);
         try
         {
@@ -509,6 +525,7 @@ public sealed class ManageShop : IManageShop
 
     public async Task<bool> DeleteShopService(int userId, int serviceId, string ip, string userAgent, CancellationToken ct)
     {
+        await EnsureAdminRoleAsync(userId, ct);
         _actionLog.Info("Deleting shop service (UserId={UserId}, ServiceId={ServiceId}, IP={IP}, UserAgent={UserAgent})", userId, serviceId, ip, userAgent);
         try
         {
@@ -538,6 +555,8 @@ public sealed class ManageShop : IManageShop
 
     public async Task<ShopResponse?> UpdateShop(int userId, UpdateShopRequest request, string ip, string userAgent, CancellationToken ct)
     {
+        await EnsureAdminRoleAsync(userId, ct);
+
         _actionLog.Info("Updating shop (UserId={UserId}, IP={IP})", userId, ip);
         try
         {
@@ -678,6 +697,8 @@ public sealed class ManageShop : IManageShop
 
     public async Task<ShopResponse?> UpdateBranch(int userId, UpdateBranchRequest request, string ip, string userAgent, CancellationToken ct)
     {
+        await EnsureAdminRoleAsync(userId, ct);
+
         _actionLog.Info("Updating branch (UserId={UserId}, BranchId={BranchId}, IP={IP})", userId, request.BranchId, ip);
         try
         {
@@ -765,6 +786,7 @@ public sealed class ManageShop : IManageShop
 
     public async Task<List<BusinessHourResponse>> UpdateBusinessHours(int userId, UpdateBusinessHoursRequest request, string ip, string userAgent, CancellationToken ct)
     {
+        await EnsureAdminRoleAsync(userId, ct);
         var branch = await _db.ShopBranches
             .Include(b => b.Shop)
             .Include(b => b.ShopBusinessHours)
@@ -830,6 +852,7 @@ public sealed class ManageShop : IManageShop
 
     public async Task<HolidayResponse?> AddHoliday(int userId, AddHolidayRequest request, string ip, string userAgent, CancellationToken ct)
     {
+        await EnsureAdminRoleAsync(userId, ct);
         var branch = await _db.ShopBranches
             .Include(b => b.Shop)
             .FirstOrDefaultAsync(b => b.Id == request.BranchId, ct);
@@ -860,6 +883,7 @@ public sealed class ManageShop : IManageShop
 
     public async Task<bool> DeleteHoliday(int userId, int holidayId, string ip, string userAgent, CancellationToken ct)
     {
+        await EnsureAdminRoleAsync(userId, ct);
         var holiday = await _db.ShopHolidays
             .Include(h => h.Shop)
             .FirstOrDefaultAsync(h => h.Id == holidayId, ct);
@@ -894,6 +918,7 @@ public sealed class ManageShop : IManageShop
 
     public async Task<QueueRulesResponse> UpdateQueueRules(int userId, UpdateQueueRulesRequest request, string ip, string userAgent, CancellationToken ct)
     {
+        await EnsureAdminRoleAsync(userId, ct);
         var branch = await _db.ShopBranches
             .Include(b => b.Shop)
             .FirstOrDefaultAsync(b => b.Id == request.BranchId, ct);

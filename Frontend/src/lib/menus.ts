@@ -313,7 +313,7 @@ export function getMenuList(pathname: string, t: any): Group[] {
         },
         {
           id: "logout",
-          href: "/auth/logout",
+          href: "/auth/login",
           label: t("logout"),
           active: false,
           icon: "heroicons-outline:arrow-right-on-rectangle",

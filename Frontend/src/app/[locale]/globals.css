@@ -184,8 +184,31 @@
     @apply border-border;
   }
 
+  html {
+    font-size: 16px;
+  }
+
   body {
     @apply text-foreground;
+    font-family: var(--font-ez-latin), var(--font-ez-thai), Arial, sans-serif;
+    font-size: 1rem;
+    line-height: 1.6;
+    letter-spacing: -0.006em;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  html[lang="th"] body {
+    letter-spacing: 0;
+    line-height: 1.65;
+  }
+
+  button,
+  input,
+  optgroup,
+  select,
+  textarea {
+    font-family: inherit;
   }
 
   .input-group :not(:first-child) input {
@@ -539,5 +562,4 @@ html[dir=rtl] .react-select .select__loading-indicator {
   overflow-y: auto;
   width: 100%;
 }
-
 

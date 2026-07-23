@@ -1,12 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import {
   CalendarClock,
   CheckCircle2,
   Clock3,
-  Loader2,
   Scissors,
   TrendingUp,
   Users,
@@ -15,9 +13,12 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header";
+import { DashboardStatCard } from "@/components/dashboard/dashboard-stat-card";
 import { Progress } from "@/components/ui/progress";
-import { useShop } from "@/hooks/use-me";
+import { useShop, useProfile } from "@/hooks/use-me";
 import { useTranslations } from "next-intl";
+import RouteLoadingScreen from "@/components/route-loading-screen";
 
 type QueueStatus = "waiting" | "in_progress" | "completed";
 
@@ -74,11 +75,10 @@ function statusLabel(status: QueueStatus) {
 }
 
 const DashboardPage = () => {
-  const t = useTranslations("Dashboard");
   const tc = useTranslations("Common");
-  const router = useRouter();
   const tShop = useTranslations("Shop");
   const { data: shopData, isLoading: isShopLoading } = useShop();
+  const { data: profile } = useProfile();
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -130,76 +130,59 @@ const DashboardPage = () => {
   }, [summary]);
 
   if (isLoading || isShopLoading || !summary) {
-    return (
-      <div className="flex h-[420px] items-center justify-center">
-        <div className="flex items-center gap-3 text-sm text-muted-foreground">
-          <Loader2 className="h-5 w-5 animate-spin text-primary" />
-          Loading dashboard...
-        </div>
-      </div>
-    );
+    return <RouteLoadingScreen />;
   }
 
   if (!shopData) {
+    const isAdmin = profile?.role === "Admin";
     return (
       <div className="flex h-[420px] flex-col items-center justify-center space-y-4 text-center">
         <div className="rounded-full bg-primary/10 p-5">
           <Store className="h-10 w-10 text-primary" />
         </div>
         <div>
-          <h2 className="text-2xl font-semibold text-default-900">{tShop('noShop')}</h2>
+          <h2 className="text-2xl font-semibold text-default-900">{isAdmin ? tShop('noShop') : tShop('noShopStaff')}</h2>
           <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
-            {tShop('needShopForDashboard')}
+            {isAdmin ? tShop('needShopForDashboard') : tShop('needShopForDashboardStaff')}
           </p>
         </div>
-        <Button
-          onClick={() => window.dispatchEvent(new CustomEvent("open-shop-dialog"))}
-          size="lg"
-          className="mt-2"
-        >
-          {tShop('createNewShop')}
-        </Button>
+        {isAdmin && (
+          <Button
+            onClick={() => window.dispatchEvent(new CustomEvent("open-shop-dialog"))}
+            size="lg"
+            className="mt-2"
+          >
+            {tShop('createNewShop')}
+          </Button>
+        )}
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <Card className="overflow-hidden">
-        <CardContent className="p-6">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Today overview</p>
-              <h1 className="mt-1 text-2xl font-semibold text-default-900">{shopName}</h1>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Mock dashboard for queue activity, revenue, and upcoming appointments.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
+      <DashboardPageHeader
+        eyebrow="Today overview"
+        title={shopName}
+        description="Queue activity, revenue, and upcoming appointments."
+        actions={
+          <>
               <Button variant="outline">Export report</Button>
               <Button>New booking</Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </>
+        }
+      />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {stats.map((item) => {
-          const Icon = item.icon;
-          return (
-            <Card key={item.label}>
-              <CardContent className="flex items-center gap-4 p-5">
-                <div className={`flex h-11 w-11 items-center justify-center rounded-md ${item.tone}`}>
-                  <Icon className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">{item.label}</p>
-                  <p className="text-2xl font-semibold text-default-900">{item.value}</p>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+        {stats.map((item, index) => (
+          <DashboardStatCard
+            key={item.label}
+            icon={item.icon}
+            label={item.label}
+            value={item.value}
+            tone={index === 1 ? "warning" : index === 2 ? "success" : index === 3 ? "info" : "primary"}
+          />
+        ))}
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">

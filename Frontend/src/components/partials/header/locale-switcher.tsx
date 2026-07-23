@@ -14,6 +14,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import Image from 'next/image';
+import { startRouteLoading } from '@/lib/route-loading';
 
 export default function LocalSwitcher() {
     const [isPending, startTransition] = useTransition();
@@ -24,6 +25,7 @@ export default function LocalSwitcher() {
 
     const onSelectChange = (nextLocale: string) => {
         startTransition(() => {
+            startRouteLoading();
             router.replace(pathname, { locale: nextLocale });
         });
     };

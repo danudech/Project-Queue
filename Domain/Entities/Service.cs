@@ -19,6 +19,8 @@ public partial class Service
 
     public decimal Price { get; set; }
 
+    public string StaffSelectionMode { get; set; } = null!;
+
     public bool IsActive { get; set; }
 
     public DateTime CreatedAt { get; set; }
@@ -32,6 +34,8 @@ public partial class Service
     public virtual ICollection<BookingService> BookingServices { get; set; } = new List<BookingService>();
 
     public virtual ShopBranch Branch { get; set; } = null!;
+
+    public virtual ICollection<Queue> Queues { get; set; } = new List<Queue>();
 
     public virtual ICollection<ServiceCategoryMap> ServiceCategoryMaps { get; set; } = new List<ServiceCategoryMap>();
 

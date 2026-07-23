@@ -490,6 +490,7 @@ export default function TeamSwitcher({ className }: { className?: string }) {
     const t = useTranslations("Shop")
 
     const { data: shopData, isLoading, refetch } = useShop()
+    const { data: profile } = useProfile()
 
     const [open, setOpen] = React.useState(false)
     const [showDialog, setShowDialog] = React.useState(false)
@@ -582,8 +583,8 @@ export default function TeamSwitcher({ className }: { className?: string }) {
         setIsSubmitting(true)
         try {
             const payload: AddShop = {
-                shopname: shopData?.name!,
-                shoptype: shopData?.type!,
+                shopname: shopData?.name ?? "",
+                shoptype: shopData?.type ?? "",
                 branch: {
                     branchName: step2Data.branchName!,
                     branchPhone: step2Data.branchPhone ?? "",
@@ -750,26 +751,28 @@ export default function TeamSwitcher({ className }: { className?: string }) {
                         <CommandList>
                             <CommandGroup>
                                 {/* Section */}
-                                {shopData ? (
-                                    <CommandItem
-                                        onSelect={() => { setOpen(false); setDialogMode("branch"); setShowDialog(true) }}
-                                        className="text-sm gap-2 text-primary font-medium mx-1 rounded-md my-1"
-                                    >
-                                        <div className="h-6 w-6 rounded-md bg-primary/10 flex items-center justify-center">
-                                            <GitBranch className="h-3.5 w-3.5 text-primary" />
-                                        </div>
-                                        {t("addNewBranch")}
-                                    </CommandItem>
-                                ) : (
-                                    <CommandItem
-                                        onSelect={() => { setOpen(false); setDialogMode("shop"); setShowDialog(true) }}
-                                        className="text-sm gap-2 text-primary font-medium mx-1 rounded-md my-1"
-                                    >
-                                        <div className="h-6 w-6 rounded-md bg-primary/10 flex items-center justify-center">
-                                            <CirclePlus className="h-3.5 w-3.5 text-primary" />
-                                        </div>
-                                        {t("addNewShop")}
-                                    </CommandItem>
+                                {profile?.role === "Admin" && (
+                                    shopData ? (
+                                        <CommandItem
+                                            onSelect={() => { setOpen(false); setDialogMode("branch"); setShowDialog(true) }}
+                                            className="text-sm gap-2 text-primary font-medium mx-1 rounded-md my-1"
+                                        >
+                                            <div className="h-6 w-6 rounded-md bg-primary/10 flex items-center justify-center">
+                                                <GitBranch className="h-3.5 w-3.5 text-primary" />
+                                            </div>
+                                            {t("addNewBranch")}
+                                        </CommandItem>
+                                    ) : (
+                                        <CommandItem
+                                            onSelect={() => { setOpen(false); setDialogMode("shop"); setShowDialog(true) }}
+                                            className="text-sm gap-2 text-primary font-medium mx-1 rounded-md my-1"
+                                        >
+                                            <div className="h-6 w-6 rounded-md bg-primary/10 flex items-center justify-center">
+                                                <CirclePlus className="h-3.5 w-3.5 text-primary" />
+                                            </div>
+                                            {t("addNewShop")}
+                                        </CommandItem>
+                                    )
                                 )}
                             </CommandGroup>
                         </CommandList>

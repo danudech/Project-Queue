@@ -139,6 +139,7 @@ builder.Services.AddScoped<IManageShop, ManageShop>();
 builder.Services.AddScoped<IAddress, AddressRepository>();
 builder.Services.AddSingleton<DateTimeService>();
 builder.Services.AddScoped<IManageCustomer, ManageCustomer>();
+builder.Services.AddScoped<IOperations, Operations>();
 #endregion
 
 var app = builder.Build();

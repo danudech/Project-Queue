@@ -129,6 +129,9 @@ namespace Queue.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("AssignedStaffId")
+                        .HasColumnType("int");
+
                     b.Property<int>("BranchId")
                         .HasColumnType("int");
 
@@ -173,6 +176,8 @@ namespace Queue.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
+                    b.HasIndex(new[] { "AssignedStaffId" }, "IX_Bookings_AssignedStaffId");
+
                     b.HasIndex(new[] { "BranchId" }, "IX_Bookings_BranchId");
 
                     b.HasIndex(new[] { "Guid" }, "IX_Bookings_Guid")
@@ -210,6 +215,61 @@ namespace Queue.Infrastructure.Migrations
                     b.HasIndex("ServiceId");
 
                     b.ToTable("BookingServices");
+                });
+
+            modelBuilder.Entity("Queue.Domain.Entities.BranchUserRoleMap", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BranchId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.Property<int?>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("GrantedBy")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("RoleCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("UpdatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GrantedBy");
+
+                    b.HasIndex(new[] { "BranchId" }, "IX_BranchUserRoleMaps_BranchId");
+
+                    b.HasIndex(new[] { "BranchId", "UserId", "RoleCode" }, "IX_BranchUserRoleMaps_BranchId_UserId_RoleCode")
+                        .IsUnique();
+
+                    b.HasIndex(new[] { "UserId" }, "IX_BranchUserRoleMaps_UserId");
+
+                    b.ToTable("BranchUserRoleMaps");
                 });
 
             modelBuilder.Entity("Queue.Domain.Entities.Customer", b =>
@@ -742,6 +802,9 @@ namespace Queue.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("AssignedStaffId")
+                        .HasColumnType("int");
+
                     b.Property<int>("BranchId")
                         .HasColumnType("int");
 
@@ -753,12 +816,19 @@ namespace Queue.Infrastructure.Migrations
                     b.Property<int?>("CreatedBy")
                         .HasColumnType("int");
 
+                    b.Property<string>("CustomerName")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
                     b.Property<Guid>("Guid")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier")
                         .HasDefaultValueSql("(newid())");
 
                     b.Property<int>("QueueNumber")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ServiceId")
                         .HasColumnType("int");
 
                     b.Property<int>("StatusId")
@@ -777,10 +847,14 @@ namespace Queue.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex(new[] { "AssignedStaffId" }, "IX_Queues_AssignedStaffId");
+
                     b.HasIndex(new[] { "BranchId" }, "IX_Queues_BranchId");
 
                     b.HasIndex(new[] { "Guid" }, "IX_Queues_Guid")
                         .IsUnique();
+
+                    b.HasIndex(new[] { "ServiceId" }, "IX_Queues_ServiceId");
 
                     b.HasIndex(new[] { "StatusId" }, "IX_Queues_StatusId");
 
@@ -1020,6 +1094,13 @@ namespace Queue.Infrastructure.Migrations
 
                     b.Property<int>("ShopId")
                         .HasColumnType("int");
+
+                    b.Property<string>("StaffSelectionMode")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("OPTIONAL");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -1345,6 +1426,110 @@ namespace Queue.Infrastructure.Migrations
                     b.ToTable("ShopHolidays");
                 });
 
+            modelBuilder.Entity("Queue.Domain.Entities.ShopRole", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.Property<int?>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("IsSystem")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Scope")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("UpdatedBy")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex(new[] { "Code" }, "IX_ShopRoles_Code")
+                        .IsUnique();
+
+                    b.ToTable("ShopRoles");
+                });
+
+            modelBuilder.Entity("Queue.Domain.Entities.ShopRolePermission", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.Property<int?>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsGranted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("PermissionCode")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("RoleCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int?>("ShopId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("UpdatedBy")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex(new[] { "RoleCode" }, "IX_ShopRolePermissions_RoleCode");
+
+                    b.HasIndex(new[] { "ShopId", "RoleCode", "PermissionCode" }, "IX_ShopRolePermissions_ShopId_RoleCode_PermissionCode")
+                        .IsUnique()
+                        .HasFilter("[ShopId] IS NOT NULL");
+
+                    b.ToTable("ShopRolePermissions");
+                });
+
             modelBuilder.Entity("Queue.Domain.Entities.ShopSetting", b =>
                 {
                     b.Property<int>("Id")
@@ -1402,6 +1587,14 @@ namespace Queue.Infrastructure.Migrations
                     b.Property<int>("BranchId")
                         .HasColumnType("int");
 
+                    b.Property<bool>("CanLogin")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("CanServeQueues")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
@@ -1410,12 +1603,84 @@ namespace Queue.Infrastructure.Migrations
                     b.Property<int?>("CreatedBy")
                         .HasColumnType("int");
 
+                    b.Property<string>("Email")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
                         .HasDefaultValue(true);
 
+                    b.Property<bool>("IsAvailable")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
                     b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("ShopId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("UpdatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex(new[] { "BranchId", "UserId" }, "IX_ShopStaffs_BranchId_UserId")
+                        .IsUnique()
+                        .HasFilter("[UserId] IS NOT NULL");
+
+                    b.HasIndex(new[] { "ShopId" }, "IX_ShopStaffs_ShopId");
+
+                    b.ToTable("ShopStaffs");
+                });
+
+            modelBuilder.Entity("Queue.Domain.Entities.ShopUserRoleMap", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.Property<int?>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("GrantedBy")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("RoleCode")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
@@ -1434,14 +1699,16 @@ namespace Queue.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("GrantedBy");
 
-                    b.HasIndex(new[] { "BranchId", "UserId" }, "IX_ShopStaffs_BranchId_UserId")
+                    b.HasIndex(new[] { "ShopId" }, "IX_ShopUserRoleMaps_ShopId");
+
+                    b.HasIndex(new[] { "ShopId", "UserId", "RoleCode" }, "IX_ShopUserRoleMaps_ShopId_UserId_RoleCode")
                         .IsUnique();
 
-                    b.HasIndex(new[] { "ShopId" }, "IX_ShopStaffs_ShopId");
+                    b.HasIndex(new[] { "UserId" }, "IX_ShopUserRoleMaps_UserId");
 
-                    b.ToTable("ShopStaffs");
+                    b.ToTable("ShopUserRoleMaps");
                 });
 
             modelBuilder.Entity("Queue.Domain.Entities.Subdistrict", b =>
@@ -1832,6 +2099,12 @@ namespace Queue.Infrastructure.Migrations
 
             modelBuilder.Entity("Queue.Domain.Entities.Booking", b =>
                 {
+                    b.HasOne("Queue.Domain.Entities.ShopStaff", "AssignedStaff")
+                        .WithMany("AssignedBookings")
+                        .HasForeignKey("AssignedStaffId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("FK_Bookings_AssignedStaff");
+
                     b.HasOne("Queue.Domain.Entities.ShopBranch", "Branch")
                         .WithMany("Bookings")
                         .HasForeignKey("BranchId")
@@ -1861,6 +2134,8 @@ namespace Queue.Infrastructure.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_Bookings_User");
 
+                    b.Navigation("AssignedStaff");
+
                     b.Navigation("Branch");
 
                     b.Navigation("QueueCategory");
@@ -1889,6 +2164,32 @@ namespace Queue.Infrastructure.Migrations
                     b.Navigation("Booking");
 
                     b.Navigation("Service");
+                });
+
+            modelBuilder.Entity("Queue.Domain.Entities.BranchUserRoleMap", b =>
+                {
+                    b.HasOne("Queue.Domain.Entities.ShopBranch", "Branch")
+                        .WithMany("BranchUserRoleMaps")
+                        .HasForeignKey("BranchId")
+                        .IsRequired()
+                        .HasConstraintName("FK_BURM_Branch");
+
+                    b.HasOne("Queue.Domain.Entities.User", "GrantedByNavigation")
+                        .WithMany("BranchUserRoleMapGrantedByNavigations")
+                        .HasForeignKey("GrantedBy")
+                        .HasConstraintName("FK_BURM_GrantedBy");
+
+                    b.HasOne("Queue.Domain.Entities.User", "User")
+                        .WithMany("BranchUserRoleMapUsers")
+                        .HasForeignKey("UserId")
+                        .IsRequired()
+                        .HasConstraintName("FK_BURM_User");
+
+                    b.Navigation("Branch");
+
+                    b.Navigation("GrantedByNavigation");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Queue.Domain.Entities.Customer", b =>
@@ -2051,11 +2352,23 @@ namespace Queue.Infrastructure.Migrations
 
             modelBuilder.Entity("Queue.Domain.Entities.Queue", b =>
                 {
+                    b.HasOne("Queue.Domain.Entities.ShopStaff", "AssignedStaff")
+                        .WithMany("AssignedQueues")
+                        .HasForeignKey("AssignedStaffId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("FK_Queues_AssignedStaff");
+
                     b.HasOne("Queue.Domain.Entities.ShopBranch", "Branch")
                         .WithMany("Queues")
                         .HasForeignKey("BranchId")
                         .IsRequired()
                         .HasConstraintName("FK_Queues_Branch");
+
+                    b.HasOne("Queue.Domain.Entities.Service", "Service")
+                        .WithMany("Queues")
+                        .HasForeignKey("ServiceId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("FK_Queues_Service");
 
                     b.HasOne("Queue.Domain.Entities.MasterStatus", "Status")
                         .WithMany("Queues")
@@ -2063,7 +2376,11 @@ namespace Queue.Infrastructure.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_Queues_Status");
 
+                    b.Navigation("AssignedStaff");
+
                     b.Navigation("Branch");
+
+                    b.Navigation("Service");
 
                     b.Navigation("Status");
                 });
@@ -2276,6 +2593,16 @@ namespace Queue.Infrastructure.Migrations
                     b.Navigation("Shop");
                 });
 
+            modelBuilder.Entity("Queue.Domain.Entities.ShopRolePermission", b =>
+                {
+                    b.HasOne("Queue.Domain.Entities.Shop", "Shop")
+                        .WithMany("ShopRolePermissions")
+                        .HasForeignKey("ShopId")
+                        .HasConstraintName("FK_SRP_Shop");
+
+                    b.Navigation("Shop");
+                });
+
             modelBuilder.Entity("Queue.Domain.Entities.ShopSetting", b =>
                 {
                     b.HasOne("Queue.Domain.Entities.ShopBranch", "Branch")
@@ -2311,10 +2638,35 @@ namespace Queue.Infrastructure.Migrations
                     b.HasOne("Queue.Domain.Entities.User", "User")
                         .WithMany("ShopStaffs")
                         .HasForeignKey("UserId")
-                        .IsRequired()
                         .HasConstraintName("FK_SS_User");
 
                     b.Navigation("Branch");
+
+                    b.Navigation("Shop");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Queue.Domain.Entities.ShopUserRoleMap", b =>
+                {
+                    b.HasOne("Queue.Domain.Entities.User", "GrantedByNavigation")
+                        .WithMany("ShopUserRoleMapGrantedByNavigations")
+                        .HasForeignKey("GrantedBy")
+                        .HasConstraintName("FK_SURM_GrantedBy");
+
+                    b.HasOne("Queue.Domain.Entities.Shop", "Shop")
+                        .WithMany("ShopUserRoleMaps")
+                        .HasForeignKey("ShopId")
+                        .IsRequired()
+                        .HasConstraintName("FK_SURM_Shop");
+
+                    b.HasOne("Queue.Domain.Entities.User", "User")
+                        .WithMany("ShopUserRoleMapUsers")
+                        .HasForeignKey("UserId")
+                        .IsRequired()
+                        .HasConstraintName("FK_SURM_User");
+
+                    b.Navigation("GrantedByNavigation");
 
                     b.Navigation("Shop");
 
@@ -2504,6 +2856,8 @@ namespace Queue.Infrastructure.Migrations
                 {
                     b.Navigation("BookingServices");
 
+                    b.Navigation("Queues");
+
                     b.Navigation("ServiceCategoryMaps");
 
                     b.Navigation("ServiceStaffMaps");
@@ -2532,9 +2886,13 @@ namespace Queue.Infrastructure.Migrations
 
                     b.Navigation("ShopHolidays");
 
+                    b.Navigation("ShopRolePermissions");
+
                     b.Navigation("ShopSettings");
 
                     b.Navigation("ShopStaffs");
+
+                    b.Navigation("ShopUserRoleMaps");
 
                     b.Navigation("Subscriptions");
                 });
@@ -2542,6 +2900,8 @@ namespace Queue.Infrastructure.Migrations
             modelBuilder.Entity("Queue.Domain.Entities.ShopBranch", b =>
                 {
                     b.Navigation("Bookings");
+
+                    b.Navigation("BranchUserRoleMaps");
 
                     b.Navigation("QueueCategories");
 
@@ -2564,6 +2924,10 @@ namespace Queue.Infrastructure.Migrations
 
             modelBuilder.Entity("Queue.Domain.Entities.ShopStaff", b =>
                 {
+                    b.Navigation("AssignedBookings");
+
+                    b.Navigation("AssignedQueues");
+
                     b.Navigation("ServiceStaffMaps");
                 });
 
@@ -2576,6 +2940,10 @@ namespace Queue.Infrastructure.Migrations
                 {
                     b.Navigation("Bookings");
 
+                    b.Navigation("BranchUserRoleMapGrantedByNavigations");
+
+                    b.Navigation("BranchUserRoleMapUsers");
+
                     b.Navigation("Customers");
 
                     b.Navigation("EmailConfirmations");
@@ -2583,6 +2951,10 @@ namespace Queue.Infrastructure.Migrations
                     b.Navigation("Notifications");
 
                     b.Navigation("ShopStaffs");
+
+                    b.Navigation("ShopUserRoleMapGrantedByNavigations");
+
+                    b.Navigation("ShopUserRoleMapUsers");
 
                     b.Navigation("Shops");
 

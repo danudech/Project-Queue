@@ -11,17 +11,32 @@
 
 html {
   scroll-behavior: smooth;
+  font-size: 16px;
 }
 
 body.nosic-homepage {
-  font-family: var(--font-homepage-latin), "Public Sans", Arial, sans-serif;
+  font-family: var(--font-ez-latin), var(--font-ez-thai), Arial, sans-serif;
+  font-size: 1rem;
+  line-height: 1.65;
+  letter-spacing: -0.006em;
   color: #052e24;
   background: #fff;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
 html[lang="th"] body.nosic-homepage {
-  font-family: var(--font-homepage-thai), var(--font-homepage-latin), "Public Sans", Arial, sans-serif;
+  letter-spacing: 0;
+  line-height: 1.7;
   font-feature-settings: "kern";
+}
+
+body.nosic-homepage button,
+body.nosic-homepage input,
+body.nosic-homepage optgroup,
+body.nosic-homepage select,
+body.nosic-homepage textarea {
+  font-family: inherit;
 }
 
 html[lang="th"] .ez-hero-title,

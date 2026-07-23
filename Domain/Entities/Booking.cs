@@ -15,6 +15,8 @@ public partial class Booking
 
     public int QueueSlotId { get; set; }
 
+    public int? AssignedStaffId { get; set; }
+
     public int? QueueCategoryId { get; set; }
 
     public int? QueueNumber { get; set; }
@@ -30,6 +32,8 @@ public partial class Booking
     public DateTime? UpdatedAt { get; set; }
 
     public int? UpdatedBy { get; set; }
+
+    public virtual ShopStaff? AssignedStaff { get; set; }
 
     public virtual ICollection<BookingService> BookingServices { get; set; } = new List<BookingService>();
 

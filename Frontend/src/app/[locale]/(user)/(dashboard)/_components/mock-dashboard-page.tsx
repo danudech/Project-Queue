@@ -14,9 +14,19 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header";
+import { DashboardStatCard } from "@/components/dashboard/dashboard-stat-card";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Switch } from "@/components/ui/switch";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 export type MockStat = {
   label: string;
@@ -119,14 +129,12 @@ export default function MockDashboardPage({
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardContent className="flex flex-col gap-4 p-6 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground">{eyebrow}</p>
-            <h1 className="mt-1 text-2xl font-semibold text-default-900">{title}</h1>
-            <p className="mt-1 max-w-3xl text-sm text-muted-foreground">{description}</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
+      <DashboardPageHeader
+        eyebrow={eyebrow}
+        title={title}
+        description={description}
+        actions={
+          <>
             <Button variant="outline" onClick={refreshMock} disabled={isRefreshing} className="gap-2">
               {isRefreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
               {secondaryAction}
@@ -135,24 +143,20 @@ export default function MockDashboardPage({
               <Plus className="h-4 w-4" />
               {primaryAction}
             </Button>
-          </div>
-        </CardContent>
-      </Card>
+          </>
+        }
+      />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {stats.map((stat) => (
-          <Card key={stat.label}>
-            <CardContent className="flex items-center gap-4 p-5">
-              <div className="flex h-11 w-11 items-center justify-center rounded-md bg-primary/10 text-primary">
-                <Activity className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">{stat.label}</p>
-                <p className="text-2xl font-semibold text-default-900">{stat.value}</p>
-                <p className="text-xs text-muted-foreground">{stat.helper}</p>
-              </div>
-            </CardContent>
-          </Card>
+        {stats.map((stat, index) => (
+          <DashboardStatCard
+            key={stat.label}
+            icon={Activity}
+            label={stat.label}
+            value={stat.value}
+            helper={stat.helper}
+            tone={stat.color ?? (index === 1 ? "info" : index === 2 ? "success" : "primary")}
+          />
         ))}
       </div>
 
@@ -178,34 +182,56 @@ export default function MockDashboardPage({
               </Button>
             </div>
           </CardHeader>
-          <CardContent className="space-y-3">
-            {filteredRows.map((row) => (
-              <div
-                key={row.id}
-                className="grid gap-3 rounded-md border border-default-200 p-4 lg:grid-cols-[1fr_auto_auto] lg:items-center"
-              >
-                <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="font-medium text-default-900">{row.title}</p>
-                    <Badge color={statusColor(row.status) as any}>{row.status}</Badge>
-                  </div>
-                  <p className="mt-1 text-sm text-muted-foreground">{row.subtitle}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">{row.meta}</p>
-                </div>
-                {row.amount && <p className="text-sm font-semibold text-default-900">{row.amount}</p>}
-                {typeof row.enabled === "boolean" ? (
-                  <Switch checked={row.enabled} onCheckedChange={(checked) => toggleRow(row.id, checked)} />
-                ) : (
-                  <CheckCircle2 className="h-5 w-5 text-success" />
-                )}
-              </div>
-            ))}
-
-            {filteredRows.length === 0 && (
-              <div className="flex h-40 items-center justify-center rounded-md border border-dashed text-sm text-muted-foreground">
-                No mock data found.
-              </div>
-            )}
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader className="bg-default-200">
+                <TableRow>
+                  <TableHead>Item</TableHead>
+                  <TableHead>Details</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredRows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    className="hover:bg-default-200 dark:hover:bg-default-300"
+                  >
+                    <TableCell>
+                      <p className="font-medium text-default-900">{row.title}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">{row.meta}</p>
+                    </TableCell>
+                    <TableCell>
+                      <p className="text-sm text-muted-foreground">{row.subtitle}</p>
+                      {row.amount ? (
+                        <p className="mt-1 text-sm font-medium text-default-900">{row.amount}</p>
+                      ) : null}
+                    </TableCell>
+                    <TableCell>
+                      <Badge color={statusColor(row.status) as any}>{row.status}</Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {typeof row.enabled === "boolean" ? (
+                        <Switch
+                          checked={row.enabled}
+                          onCheckedChange={(checked) => toggleRow(row.id, checked)}
+                        />
+                      ) : (
+                        <CheckCircle2 className="ml-auto h-5 w-5 text-success" />
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {filteredRows.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="h-40 text-center text-muted-foreground">
+                      No mock data found.
+                    </TableCell>
+                  </TableRow>
+                ) : null}
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
 

@@ -3,6 +3,7 @@ using Queue.Application.Interfaces;
 using MimeKit;
 using MailKit.Net.Smtp;
 using MailKit.Security;
+using System.Text.Encodings.Web;
 
 namespace Queue.Infrastructure.Persistence.Repositories;
 
@@ -54,6 +55,80 @@ public class EmailService : IEmailService
 
         await SendEmailAsync(toEmail, subject, body);
     }
+
+    public async Task SendStaffConfirmationWithPasswordEmailAsync(string toEmail, string userName, string confirmationLink, string initialPassword, string locale)
+    {
+        bool isThai = locale.Equals("th", StringComparison.OrdinalIgnoreCase);
+        string safeName = HtmlEncoder.Default.Encode(userName);
+        string safeLink = HtmlEncoder.Default.Encode(confirmationLink);
+        string subject = isThai ? "เปิดใช้งานบัญชีพนักงาน EZQueue ของคุณ" : "Activate your EZQueue staff account";
+
+        string body = $@"
+        <div style='background-color:#f9fafb;padding:50px 10px;font-family:-apple-system,BlinkMacSystemFont,""Segoe UI"",Roboto,sans-serif;'>
+            <div style='max-width:560px;margin:0 auto;background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);'>
+                <div style='background-color:#087a5b;padding:30px;text-align:center;'>
+                    <h1 style='color:#ffffff;margin:0;font-size:28px;'>EZQueue</h1>
+                </div>
+                <div style='padding:40px 30px;line-height:1.6;'>
+                    <h2 style='color:#111827;margin-top:0;font-size:22px;'>{(isThai ? $"สวัสดีคุณ {safeName}," : $"Hello {safeName},")}</h2>
+                    <p style='color:#4b5563;font-size:16px;'>{(isThai ? "คุณได้รับการเพิ่มเป็นพนักงานในระบบ EZQueue กรุณายืนยันอีเมลและใช้รหัสผ่านชั่วคราวด้านล่างนี้เพื่อเข้าสู่ระบบ:" : "You have been added as a staff member in EZQueue. Please verify your email and use the initial password below to sign in:")}</p>
+                    
+                    <div style='background-color:#f3f4f6;padding:16px;border-radius:8px;margin:24px 0;text-align:center;'>
+                        <p style='margin:0;color:#6b7280;font-size:14px;'>{(isThai ? "รหัสผ่านเริ่มต้นสำหรับเข้าสู่ระบบ:" : "Initial Password:")}</p>
+                        <strong style='font-size:20px;color:#111827;letter-spacing:1px;'>{HtmlEncoder.Default.Encode(initialPassword)}</strong>
+                    </div>
+
+                    <div style='text-align:center;margin:30px 0;'>
+                        <a href='{safeLink}' style='display:inline-block;background-color:#087a5b;color:#ffffff;padding:14px 32px;font-weight:600;text-decoration:none;border-radius:8px;font-size:16px;'>
+                            {(isThai ? "ยืนยันอีเมลและเข้าใช้งาน" : "Confirm Email & Sign In")}
+                        </a>
+                    </div>
+                    <p style='color:#9ca3af;font-size:12px;word-break:break-all;'>{safeLink}</p>
+                </div>
+            </div>
+        </div>";
+
+        await SendEmailAsync(toEmail, subject, body);
+    }
+
+    public async Task SendStaffInvitationEmailAsync(string toEmail, string userName, string registrationLink, string locale)
+    {
+        bool isThai = locale.Equals("th", StringComparison.OrdinalIgnoreCase);
+        string safeName = HtmlEncoder.Default.Encode(userName);
+        string safeLink = HtmlEncoder.Default.Encode(registrationLink);
+        string subject = isThai
+            ? "คำเชิญเข้าใช้งาน EZQueue สำหรับพนักงาน"
+            : "Your EZQueue staff invitation";
+        string heading = isThai ? $"สวัสดีคุณ {safeName}" : $"Hello {safeName}";
+        string introduction = isThai
+            ? "คุณได้รับคำเชิญให้เข้าใช้งาน EZQueue ในฐานะพนักงาน กรุณาสมัครบัญชีด้วยอีเมลนี้และยอมรับข้อกำหนดด้วยตนเอง"
+            : "You have been invited to use EZQueue as a staff member. Please register with this email address and accept the terms yourself.";
+        string button = isThai ? "สมัครและยืนยันอีเมล" : "Register and verify email";
+        string expiryNote = isThai
+            ? "หลังสมัคร ระบบจะส่งลิงก์ยืนยันอีเมลให้คุณอีกครั้งเพื่อเปิดใช้งานบัญชี"
+            : "After registration, EZQueue will send you a separate email-verification link to activate your account.";
+
+        string body = $@"
+        <div style='background:#f4f7f6;padding:48px 16px;font-family:Arial,sans-serif;color:#17211f'>
+          <div style='max-width:560px;margin:auto;background:#fff;border:1px solid #dfe8e5;border-radius:14px;overflow:hidden'>
+            <div style='padding:24px 30px;background:#087a5b;color:#fff'>
+              <strong style='font-size:22px'>EZQueue</strong>
+            </div>
+            <div style='padding:34px 30px'>
+              <h2 style='margin:0 0 14px;font-size:21px'>{heading}</h2>
+              <p style='margin:0;color:#53635f;line-height:1.7'>{introduction}</p>
+              <div style='margin:30px 0;text-align:center'>
+                <a href='{safeLink}' style='display:inline-block;background:#087a5b;color:#fff;text-decoration:none;padding:13px 24px;border-radius:8px;font-weight:600'>{button}</a>
+              </div>
+              <p style='margin:0;color:#667773;font-size:13px;line-height:1.6'>{expiryNote}</p>
+              <p style='margin:18px 0 0;color:#80908c;font-size:12px;word-break:break-all'>{safeLink}</p>
+            </div>
+          </div>
+        </div>";
+
+        await SendEmailAsync(toEmail, subject, body);
+    }
+
     public async Task SendForgotPasswordEmailAsync(string toEmail, string userName, string resetLink)
     {
         string subject = "รีเซ็ตรหัสผ่านของคุณสำหรับ QueueApp";

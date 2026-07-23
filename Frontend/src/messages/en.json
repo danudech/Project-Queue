@@ -106,6 +106,8 @@
     }
   },
   "EmailConfirmation": {
+    "eyebrow": "Email verification",
+    "image_alt": "Email verification message",
     "contact_us": "Contact Us",
     "check_email_title": "Check your email",
     "check_email_desc_1": "We have sent a verification link to your email address.",
@@ -115,7 +117,9 @@
     "resend_link": "Resend link",
     "sending": "Sending...",
     "resend_in": "Resend in {seconds}s",
-    "resend_available_in": "You can resend email in {seconds} seconds"
+    "resend_available_in": "You can resend email in {seconds} seconds",
+    "resend_success": "Verification email sent again",
+    "resend_error": "We could not resend the verification email. Please try again."
   },
   "MailVerify": {
     "success_title": "Verification Complete!",
@@ -127,11 +131,13 @@
     "error_title": "Verification Failed",
     "error_desc": "The verification link is invalid, expired, or has already been used.",
     "contact_support": "Contact Support",
-    "back_to_home": "Back to Home"
+    "back_to_home": "Back to Home",
+    "success_toast": "Email verified successfully"
   },
   "ResetPassword": {
     "unlock_title": "Less waiting. Better",
     "unlock_performance": "Service.",
+    "eyebrow": "Account security",
     "header": "Reset your password",
     "desc": "Please enter your new password below",
     "new_password": "New password",
@@ -152,6 +158,7 @@
   "ForgotPassword": {
     "unlock_title": "Less waiting. Better",
     "unlock_performance": "Service.",
+    "eyebrow": "Account recovery",
     "forgot_title": "Forgot Your Password?",
     "forgot_subtitle": "Reset Password with EZQueue.",
     "forgot_instructions": "Enter your Email and instructions will be sent to you!",
@@ -161,9 +168,11 @@
     "send_back": "Send me Back",
     "to_signin": "to The Sign In",
     "email_required": "Email is required",
+    "send_error": "We could not send the recovery email. Please try again.",
     "sending": "Sending...",
     "resend_in": "Resend in {seconds}s",
-    "message_sent": "We will send password reset instructions to your email if an account is associated with it."
+    "message_sent": "We will send password reset instructions to your email if an account is associated with it.",
+    "back_to_login": "Back to sign in"
   },
   "AnalyticsDashboard": {
     "widget_title": "Upgrade your EZQueue",
@@ -331,10 +340,12 @@
   "Shop": {
     "back": "Back",
     "noShop": "No Shop",
+    "noShopStaff": "No Shop Data",
     "noBranch": "No Branch",
     "noShopData": "No Shop Data",
     "pleaseAddShop": "Please add a shop to get started",
     "needShopForDashboard": "You need to create a shop or branch first before you can view the dashboard overview.",
+    "needShopForDashboardStaff": "Please contact your administrator to assign you to a branch.",
     "createNewShop": "Create New Shop",
     "addNewBranch": "Add New Branch",
     "shopInfo": "Shop Info",
@@ -478,15 +489,7 @@
       "timeSuffix": "AM/PM"
     },
     "calendar": {
-      "daysShort": [
-        "Sun",
-        "Mon",
-        "Tue",
-        "Wed",
-        "Thu",
-        "Fri",
-        "Sat"
-      ]
+      "daysShort": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
     },
     "statusChangeSuccess": "Changed status to {status} successfully",
     "loadingData": "Loading data...",
@@ -826,6 +829,174 @@
       "loginRequired": "Please sign in before booking",
       "success": "Booking successful!",
       "error": "An error occurred while booking"
+    }
+  },
+  "HolidaySettings": {
+    "eyebrow": "Branch settings",
+    "title": "Holidays",
+    "description": "Manage closed dates and review public holiday data before adding it to this branch.",
+    "overviewTitle": "Branch holiday management",
+    "overviewDescription": "Review and plan dates when this branch is closed",
+    "add": "Add holiday",
+    "syncGovernment": "Sync government holidays",
+    "summary": "Summary",
+    "totalHolidays": "Total holidays",
+    "previousHolidays": "Previous holidays",
+    "nextHoliday": "Next holiday",
+    "noUpcoming": "No upcoming holiday",
+    "stats": {
+      "noPreviousDate": "No previous holiday",
+      "noNextDate": "No date has been scheduled"
+    },
+    "listTitle": "Holiday list",
+    "listDescription": "Dates when this branch is closed",
+    "search": "Search holidays...",
+    "loading": "Loading holidays...",
+    "empty": "No holidays found.",
+    "delete": "Delete",
+    "deleteAria": "Delete {name}",
+    "deleteDialog": {
+      "title": "Delete holiday?",
+      "description": "Are you sure you want to delete “{name}” on {date}? This action cannot be undone.",
+      "confirm": "Delete holiday",
+      "deleting": "Deleting..."
+    },
+    "table": {
+      "selectAll": "Select all holidays on this page",
+      "selectRow": "Select {name}",
+      "number": "No.",
+      "date": "Date",
+      "title": "Holiday title",
+      "status": "Status",
+      "actions": "Actions",
+      "upcoming": "Upcoming",
+      "past": "Past"
+    },
+    "pagination": {
+      "showing": "Showing {from}-{to} of {total} items",
+      "selected": "{selected} of {total} item(s) selected",
+      "page": "Page {page} / {total}",
+      "previous": "Previous page",
+      "next": "Next page"
+    },
+    "cancel": "Cancel",
+    "save": "Save",
+    "addDialog": {
+      "title": "Add holiday",
+      "name": "Holiday name",
+      "namePlaceholder": "e.g. Staff training",
+      "date": "Date"
+    },
+    "syncDialog": {
+      "governmentTitle": "Sync government holidays",
+      "year": "Calendar year",
+      "fetch": "Fetch latest data",
+      "syncing": "Fetching...",
+      "emptyTitle": "Ready to check the latest holidays",
+      "emptyDescription": "Choose a year, then fetch the data. Nothing will be saved until you review and confirm the list.",
+      "loadingSource": "Checking the latest holiday source...",
+      "found": "{count} dates found",
+      "new": "{count} new",
+      "duplicate": "{count} already saved",
+      "alreadyExists": "Already in system",
+      "noData": "No holiday data was returned for this year.",
+      "source": "Data source:",
+      "reviewNotice": "Please review the dates before saving. Special or local holidays may change following an official announcement.",
+      "saving": "Saving...",
+      "saveSelected": "Save selected ({count})"
+    },
+    "messages": {
+      "loadError": "Failed to load holidays",
+      "syncError": "Failed to sync holiday data",
+      "duplicateDate": "This date is already in the system",
+      "addSuccess": "Holiday added successfully",
+      "addError": "Failed to add holiday",
+      "deleteSuccess": "Holiday deleted successfully",
+      "deleteError": "Failed to delete holiday",
+      "importSuccess": "Added {count} holidays",
+      "importPartial": "{count} holidays could not be saved"
+    }
+  },
+  "StaffSettings": {
+    "eyebrow": "Team & access",
+    "title": "Staff",
+    "description": "Manage service capacity and system access independently.",
+    "addStaff": "Add staff",
+    "stats": {
+      "active": "Active staff",
+      "available": "Ready to serve",
+      "access": "System access"
+    },
+    "teamTitle": "Team members",
+    "teamDescription": "A staff member can serve customers without having a login account.",
+    "noLoginAccount": "No login account",
+    "serviceStaff": "Service staff",
+    "systemAccess": "System access",
+    "pendingAccess": "Pending activation",
+    "active": "Active",
+    "inactive": "Inactive",
+    "empty": "No staff yet. Add the first team member to start assigning services.",
+    "dialog": {
+      "addTitle": "Add staff member",
+      "editTitle": "Edit staff member"
+    },
+    "fields": {
+      "name": "Name",
+      "position": "Role / position",
+      "selectPosition": "Select a role",
+      "positionHelp": "This describes the position only. System access is controlled separately below.",
+      "email": "Email",
+      "phone": "Phone",
+      "services": "Services"
+    },
+    "roles": {
+      "staff": "General staff",
+      "serviceStaff": "Service staff",
+      "receptionist": "Reception / queue staff",
+      "branchManager": "Branch manager"
+    },
+    "toggles": {
+      "serve": {
+        "label": "Can provide services",
+        "description": "Include this person in staff assignment and queue capacity.",
+        "noServices": "This branch has no services configured. Please add branch services before enabling this option."
+      },
+      "login": {
+        "label": "Allow system access",
+        "description": "Links to an existing active EZQueue account with the same email."
+      },
+      "available": {
+        "label": "Available now",
+        "description": "Auto assignment only considers available staff.",
+        "noServicesSelected": "Must enable 'Can provide services' and select at least 1 service first."
+      },
+      "active": {
+        "label": "Active",
+        "description": "Inactive staff remain in history but cannot receive new work."
+      }
+    },
+    "cancel": "Cancel",
+    "save": "Save",
+    "validation": {
+      "name": "Please enter the staff name",
+      "role": "Please select a role / position",
+      "email": "Email is required for system access",
+      "emailInvalid": "Invalid email format",
+      "phoneStart": "Phone number must start with 0",
+      "phoneLength": "Phone number must be 10 digits",
+      "phoneDigits": "Please enter numbers only",
+      "noBranchServices": "This branch has no services configured yet",
+      "selectAtLeastOneService": "Please select at least 1 service for this staff member"
+    },
+    "messages": {
+      "loadError": "Unable to load staff",
+      "saveError": "Unable to save staff",
+      "created": "Staff member added",
+      "updated": "Staff details updated"
+      ,"invitationSent": "Registration invitation sent to the staff email"
+      ,"confirmationResent": "Email confirmation link sent again"
+      ,"accountLinked": "The existing EZQueue account has been linked"
+      ,"inviteError": "Staff was saved, but the registration invitation could not be sent"
     }
   },
   "QueueStatus": {

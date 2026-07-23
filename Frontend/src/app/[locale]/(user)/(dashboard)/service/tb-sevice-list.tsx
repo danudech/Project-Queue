@@ -45,15 +45,15 @@ import { CommonTable } from "@/components/partials/react-table/common-table"
 // Logic & Types
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { set, z } from "zod"
+import { z } from "zod"
 import { ServiceCategoryType } from "@/types/shop/catgory"
 import { SetService } from "@/types/shop/service"
+import type { StaffMember } from "@/types/shop/staff"
 import { getColumns } from "./columns"
 import { useShop } from "@/hooks/use-me"
 import { http } from "@/lib/http/client"
 import toast from "react-hot-toast"
 import { storage } from "@/services/localstorage"
-import { is } from "date-fns/locale"
 import { useTranslations } from "next-intl"
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
@@ -65,6 +65,8 @@ const getFormSchema = (t: any) => z.object({
     price: z.coerce.number().min(0, t("validation.priceMin")),
     categoryId: z.coerce.number().min(1, t("validation.categoryRequired")),
     isActive: z.boolean().default(true),
+    staffSelectionMode: z.enum(["AUTO", "OPTIONAL", "REQUIRED"]),
+    staffIds: z.array(z.number()),
 })
 
 type FormValues = {
@@ -74,6 +76,8 @@ type FormValues = {
     price: number;
     categoryId: number;
     isActive: boolean;
+    staffSelectionMode: "AUTO" | "OPTIONAL" | "REQUIRED";
+    staffIds: number[];
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -83,6 +87,7 @@ const ServicePage = () => {
     const tc = useTranslations("Common")
     const [categoryData, setCategoryData] = React.useState<ServiceCategoryType[] | null>(null)
     const [tableData, setTableData] = React.useState<SetService[] | null>(null)
+    const [staffData, setStaffData] = React.useState<StaffMember[]>([])
     const [dialogOpen, setDialogOpen] = React.useState(false)
     const [editTarget, setEditTarget] = React.useState<SetService | null>(null)
     const [btnLoading, setBtnLoading] = React.useState(false)
@@ -102,6 +107,8 @@ const ServicePage = () => {
             price: 0,
             categoryId: 0,
             isActive: true,
+            staffSelectionMode: "OPTIONAL",
+            staffIds: [],
         },
     })
 
@@ -112,7 +119,7 @@ const ServicePage = () => {
             try {
                 setIsLoading(true)
                 const branch: number | null = await storage.get("branch") || shopData?.shopBranches?.[0]?.id || null;
-                const [categories, services] = await Promise.all([
+                const [categories, services, staff] = await Promise.all([
                     http.get<ServiceCategoryType[]>("shopcategory", {
                         params: {
                             shopId: shopData.id,
@@ -125,9 +132,11 @@ const ServicePage = () => {
                             branchId: branch
                         },
                     }),
+                    http.get<StaffMember[]>("staff", { params: { branchId: branch } }),
                 ])
                 setCategoryData(categories)
                 setTableData(services)
+                setStaffData(staff)
             } catch {
                 toast.error(tc("error.loadFailed"))
             } finally {
@@ -151,6 +160,8 @@ const ServicePage = () => {
                 price: row.price,
                 categoryId: row.categoryId,
                 isActive: newStatus,
+                staffSelectionMode: row.staffSelectionMode ?? "OPTIONAL",
+                staffIds: row.staffIds ?? [],
             })
             toast.success(t("toast.statusChangeSuccess", { status: newStatus ? tc("status.active") : tc("status.inactive") }))
         } catch {
@@ -185,6 +196,8 @@ const ServicePage = () => {
                     price: values.price,
                     categoryId: values.categoryId,
                     isActive: values.isActive,
+                    staffSelectionMode: values.staffSelectionMode,
+                    staffIds: values.staffIds,
                 })
                 if (updated) {
                     setTableData((prev) =>
@@ -197,6 +210,8 @@ const ServicePage = () => {
                                     price: values.price,
                                     categoryId: values.categoryId!,
                                     isActive: values.isActive,
+                                    staffSelectionMode: values.staffSelectionMode,
+                                    staffIds: values.staffIds,
                                 }
                                 : r
                         ) ?? null
@@ -212,6 +227,8 @@ const ServicePage = () => {
                     price: values.price,
                     categoryId: values.categoryId,
                     isActive: values.isActive,
+                    staffSelectionMode: values.staffSelectionMode,
+                    staffIds: values.staffIds,
                     branchId: branch,
                 })
                 if (newService) {
@@ -238,6 +255,8 @@ const ServicePage = () => {
             price: 0,
             categoryId: 0,
             isActive: true,
+            staffSelectionMode: "OPTIONAL",
+            staffIds: [],
         })
         setDialogOpen(true)
     }
@@ -251,6 +270,8 @@ const ServicePage = () => {
             price: row.price,
             categoryId: row.categoryId,
             isActive: row.isActive,
+            staffSelectionMode: row.staffSelectionMode ?? "OPTIONAL",
+            staffIds: row.staffIds ?? [],
         })
         setDialogOpen(true)
     }
@@ -412,6 +433,53 @@ const ServicePage = () => {
                                             <Input {...field} value={shopData?.name || ""} disabled />
                                         </FormControl>
                                         <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="staffSelectionMode"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>การเลือกผู้ให้บริการ</FormLabel>
+                                        <Select value={field.value} onValueChange={field.onChange}>
+                                            <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="AUTO">จัดให้อัตโนมัติ</SelectItem>
+                                                <SelectItem value="OPTIONAL">ลูกค้าเลือกได้ หรือไม่ระบุก็ได้</SelectItem>
+                                                <SelectItem value="REQUIRED">ลูกค้าต้องเลือก</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <p className="text-xs text-muted-foreground">กำหนดประสบการณ์จองสำหรับบริการนี้โดยเฉพาะ</p>
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="staffIds"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>พนักงานที่ให้บริการนี้ได้</FormLabel>
+                                        <div className="grid max-h-36 grid-cols-1 gap-2 overflow-y-auto rounded-lg border p-3 sm:grid-cols-2">
+                                            {staffData.filter((staff) => staff.isActive && staff.canServeQueues).map((staff) => (
+                                                <label key={staff.id} className="flex cursor-pointer items-center gap-2 text-sm">
+                                                    <input
+                                                        type="checkbox"
+                                                        className="size-4 accent-primary"
+                                                        checked={field.value.includes(staff.id)}
+                                                        onChange={(event) => field.onChange(event.target.checked
+                                                            ? [...field.value, staff.id]
+                                                            : field.value.filter((id) => id !== staff.id))}
+                                                    />
+                                                    <span>{staff.name}</span>
+                                                </label>
+                                            ))}
+                                            {!staffData.some((staff) => staff.isActive && staff.canServeQueues) && (
+                                                <p className="text-xs text-muted-foreground">เพิ่มพนักงานผู้ให้บริการก่อน แล้วจึงกลับมาเลือกที่นี่</p>
+                                            )}
+                                        </div>
                                     </FormItem>
                                 )}
                             />

@@ -31,12 +31,14 @@ import { useConfig } from '@/hooks/use-config';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useMobileMenuConfig } from '@/hooks/use-mobile-menu';
 import { useMenuHoverConfig } from '@/hooks/use-menu-hover';
+import { useLogout } from '@/hooks/use-logout';
 const MenuItem = ({ href, label, icon, active, id, collapsed }: MenuItemProps) => {
     const [config] = useConfig();
     const [hoverConfig] = useMenuHoverConfig();
     const { hovered } = hoverConfig;
     const isDesktop = useMediaQuery("(min-width: 1280px)");
     const [mobileMenuConfig, setMobileMenuConfig] = useMobileMenuConfig();
+    const { logout, isLoggingOut } = useLogout();
     const { transform, transition, setNodeRef, isDragging, attributes, listeners } = useSortable({
         id: id,
 
@@ -48,6 +50,16 @@ const MenuItem = ({ href, label, icon, active, id, collapsed }: MenuItemProps) =
         opacity: isDragging ? 0.8 : 1,
         zIndex: isDragging ? 1 : 0,
         position: "relative",
+    };
+
+    const handleMenuClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+        setMobileMenuConfig({ ...mobileMenuConfig, isOpen: false });
+
+        if (id !== 'logout') return;
+
+        event.preventDefault();
+        event.stopPropagation();
+        if (!isLoggingOut) void logout();
     };
     if (config.sidebar === 'draggable' && isDesktop) {
         return (
@@ -66,8 +78,9 @@ const MenuItem = ({ href, label, icon, active, id, collapsed }: MenuItemProps) =
             >
 
 
-                <Link href={href} onClick={(e) => {
+                <Link href={href} data-route-action={id === 'logout' ? 'logout' : undefined} onClick={(e) => {
                     e.stopPropagation();
+                    handleMenuClick(e);
                 }}>
                     {!collapsed && (
                         <GripVertical
@@ -107,7 +120,7 @@ const MenuItem = ({ href, label, icon, active, id, collapsed }: MenuItemProps) =
                 asChild
 
             >
-                <Link href={href}>
+                <Link href={href} data-route-action={id === 'logout' ? 'logout' : undefined} onClick={handleMenuClick}>
                     <Icon icon={icon} className={cn('h-6 w-6 mb-1 ')} />
 
                     <p
@@ -124,7 +137,6 @@ const MenuItem = ({ href, label, icon, active, id, collapsed }: MenuItemProps) =
     }
     return (
         <Button
-            onClick={() => setMobileMenuConfig({ ...mobileMenuConfig, isOpen: false })}
             variant={active ? "default" : "ghost"}
             fullWidth
             color={active ? "default" : "secondary"}
@@ -135,7 +147,7 @@ const MenuItem = ({ href, label, icon, active, id, collapsed }: MenuItemProps) =
             asChild
             size={(collapsed && !hovered) ? "icon" : "default"}
         >
-            <Link href={href}>
+            <Link href={href} data-route-action={id === 'logout' ? 'logout' : undefined} onClick={handleMenuClick}>
                 <Icon icon={icon} className={cn('h-5 w-5 ', {
                     'me-2': !collapsed || hovered
                 })} />

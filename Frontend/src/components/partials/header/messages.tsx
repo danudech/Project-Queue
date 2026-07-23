@@ -1,25 +1,18 @@
-import { useTranslations } from "next-intl";
-
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuLabel,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Link } from '@/i18n/routing';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { cn } from "@/lib/utils";
 import { messages, type Message } from "./data";
-import shortImage from "@/public/images/all-img/short-image-2.png";
 import { Icon } from "@/components/ui/icon";
 
 const Messages = () => {
-    const t = useTranslations("Layout");
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>

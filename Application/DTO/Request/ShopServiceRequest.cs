@@ -8,4 +8,6 @@ public sealed class ShopServiceRequest
     public decimal Price { get; set; } = 0M;
     public int CategoryId { get; set; } = 0;
     public bool IsActive { get; set; } = false;
+    public string StaffSelectionMode { get; set; } = "OPTIONAL";
+    public List<int> StaffIds { get; set; } = new();
 }

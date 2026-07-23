@@ -13,6 +13,12 @@ public partial class Queue
 
     public int QueueNumber { get; set; }
 
+    public int? ServiceId { get; set; }
+
+    public int? AssignedStaffId { get; set; }
+
+    public string? CustomerName { get; set; }
+
     public int StatusId { get; set; }
 
     public string Type { get; set; } = null!;
@@ -25,9 +31,13 @@ public partial class Queue
 
     public int? UpdatedBy { get; set; }
 
+    public virtual ShopStaff? AssignedStaff { get; set; }
+
     public virtual ShopBranch Branch { get; set; } = null!;
 
     public virtual ICollection<QueueLog> QueueLogs { get; set; } = new List<QueueLog>();
+
+    public virtual Service? Service { get; set; }
 
     public virtual MasterStatus Status { get; set; } = null!;
 }

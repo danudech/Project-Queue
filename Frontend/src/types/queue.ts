@@ -1,17 +1,22 @@
 export interface QueueDto {
   id: number;
-  queueNumber: string;
-  customerId: number;
-  serviceId: number;
+  guid: string;
+  queueNumber: number;
+  customerName?: string | null;
+  serviceId?: number | null;
+  serviceName?: string | null;
   branchId: number;
+  staffId?: number | null;
+  staffName?: string | null;
   status: string;
-  estimatedTime?: string;
+  type: string;
   createdAt: string;
-  updatedAt?: string;
 }
 
 export interface CreateQueueDto {
-  customerId: number;
   serviceId: number;
   branchId: number;
+  staffId?: number;
+  customerName?: string;
+  type?: string;
 }

@@ -19,6 +19,7 @@ import { ProfileUser } from "@/types/user";
 import { useTranslations } from "next-intl";
 import { storage } from "@/services/localstorage";
 import { useSearchParams } from "next/navigation";
+import { startRouteLoading } from "@/lib/route-loading";
 
 const getSchema = (t: ReturnType<typeof useTranslations>) =>
   z.object({
@@ -94,6 +95,7 @@ const LoginForm = () => {
 
       const returnUrl = searchParams.get("returnUrl");
       if (login.isChangPassword) {
+        startRouteLoading();
         router.push(
           "/auth/resetpassword?returnUrl=" +
           encodeURIComponent(returnUrl || "/dashboard"),
@@ -107,6 +109,7 @@ const LoginForm = () => {
         redirectTo = returnUrl.replace(/^\/(th|en)/, "") || "/dashboard";
       }
 
+      startRouteLoading();
       router.push(redirectTo);
     } catch (err: any) {
       toast.error(err.message || t("toast.error"));
@@ -237,7 +240,7 @@ const LoginForm = () => {
         fullWidth
         disabled={loading}
         size="lg"
-        className="h-12 rounded-md bg-emerald-700 text-base font-semibold shadow-none transition-colors hover:bg-emerald-800 active:bg-emerald-900"
+        className="h-12 rounded-md bg-emerald-700 text-base font-semibold text-white shadow-none transition-colors hover:bg-emerald-800 hover:text-white active:bg-emerald-900"
       >
         {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         {loading ? t("submitting") : t("submit")}

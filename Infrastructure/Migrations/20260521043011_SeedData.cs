@@ -464,10 +464,12 @@ namespace Queue.Infrastructure.Migrations
                 SET IDENTITY_INSERT ShopStaffs ON;
                 IF NOT EXISTS (SELECT 1 FROM ShopStaffs WHERE Id = 1)
                 BEGIN
-                    INSERT INTO ShopStaffs (Id, ShopId, BranchId, UserId, Role, IsActive, CreatedAt, CreatedBy) VALUES
-                    (1, 1, 1, 1, 'Owner', 1, GETDATE(), 1), -- Owner ประจำสาขา 1 (สุขุมวิท)
-                    (2, 1, 1, 3, 'Staff', 1, GETDATE(), 1), -- Staff ประจำสาขา 1
-                    (3, 1, 2, 3, 'Staff', 1, GETDATE(), 1); -- Staff คนเดิม ดูแลสาขา 2 ด้วย
+                    INSERT INTO ShopStaffs
+                        (Id, ShopId, BranchId, UserId, Name, Email, Phone, Role, CanServeQueues, CanLogin, IsAvailable, IsActive, CreatedAt, CreatedBy)
+                    VALUES
+                    (1, 1, 1, 1, N'นาย ธีรพล สุขสมบัติ', 'owner@demo.com', '0811111111', 'OWNER', 1, 0, 1, 1, GETDATE(), 1),
+                    (2, 1, 1, 3, N'นาย สมชาย มีแรง', 'staff@demo.com', '0833333333', 'STAFF', 1, 1, 1, 1, GETDATE(), 1),
+                    (3, 1, 2, 3, N'นาย สมชาย มีแรง', 'staff@demo.com', '0833333333', 'STAFF', 1, 1, 1, 1, GETDATE(), 1);
                 END
                 SET IDENTITY_INSERT ShopStaffs OFF;
 
@@ -564,12 +566,14 @@ namespace Queue.Infrastructure.Migrations
                 SET IDENTITY_INSERT Services ON;
                 IF NOT EXISTS (SELECT 1 FROM Services WHERE Id = 1)
                 BEGIN
-                    INSERT INTO Services (Id, Guid, ShopId, BranchId, Name, Duration, Price, IsActive, CreatedAt, CreatedBy) VALUES
-                    (1, '{guids.Service1}', 1, 1, N'ตรวจร่างกายทั่วไป',     30,    0.00, 1, GETDATE(), 1),
-                    (2, '{guids.Service2}', 1, 1, N'ตรวจเลือด / Lab',       60,  500.00, 1, GETDATE(), 1),
-                    (3, '{guids.Service3}', 1, 1, N'ปรึกษาแพทย์เฉพาะทาง',  45,  800.00, 1, GETDATE(), 1),
-                    (4, '{guids.Service4}', 1, 2, N'ตรวจร่างกายทั่วไป',     30,    0.00, 1, GETDATE(), 1),
-                    (5, NEWID(),            1, 2, N'ตรวจเลือด / Lab',       60,  450.00, 1, GETDATE(), 1);
+                    INSERT INTO Services
+                        (Id, Guid, ShopId, BranchId, Name, Duration, Price, StaffSelectionMode, IsActive, CreatedAt, CreatedBy)
+                    VALUES
+                    (1, '{guids.Service1}', 1, 1, N'ตรวจร่างกายทั่วไป',     30,    0.00, 'OPTIONAL', 1, GETDATE(), 1),
+                    (2, '{guids.Service2}', 1, 1, N'ตรวจเลือด / Lab',       60,  500.00, 'AUTO',     1, GETDATE(), 1),
+                    (3, '{guids.Service3}', 1, 1, N'ปรึกษาแพทย์เฉพาะทาง',  45,  800.00, 'REQUIRED', 1, GETDATE(), 1),
+                    (4, '{guids.Service4}', 1, 2, N'ตรวจร่างกายทั่วไป',     30,    0.00, 'OPTIONAL', 1, GETDATE(), 1),
+                    (5, NEWID(),            1, 2, N'ตรวจเลือด / Lab',       60,  450.00, 'AUTO',     1, GETDATE(), 1);
                 END
                 SET IDENTITY_INSERT Services OFF;
 
@@ -623,11 +627,13 @@ namespace Queue.Infrastructure.Migrations
                 SET IDENTITY_INSERT Bookings ON;
                 IF NOT EXISTS (SELECT 1 FROM Bookings WHERE Id = 1)
                 BEGIN
-                    INSERT INTO Bookings (Id, Guid, UserId, BranchId, QueueSlotId, QueueCategoryId, QueueNumber, Remark, StatusId, CreatedAt, CreatedBy) VALUES
-                    (1, '{guids.Booking1}', 2, 1, 1, 1, 1, N'ขอนัดคุณหมอด้านอายุรกรรม', (SELECT TOP 1 Id FROM MasterStatuses WHERE Type='BOOKING_STATUS' AND Code='CONFIRMED'), GETDATE(), 2),
-                    (2, '{guids.Booking2}', 5, 1, 1, 1, 2, NULL,                        (SELECT TOP 1 Id FROM MasterStatuses WHERE Type='BOOKING_STATUS' AND Code='WAITING'), GETDATE(), 5),
-                    (3, '{guids.Booking3}', 2, 2, 3, 4, 1, N'เร่งด่วน - ปวดท้องรุนแรง', (SELECT TOP 1 Id FROM MasterStatuses WHERE Type='BOOKING_STATUS' AND Code='DONE'), DATEADD(day, -1, GETDATE()), 2),
-                    (4, '{guids.Booking4}', 5, 1, 2, 1, 3, NULL,                        (SELECT TOP 1 Id FROM MasterStatuses WHERE Type='BOOKING_STATUS' AND Code='CANCELLED'), GETDATE(), 5);
+                    INSERT INTO Bookings
+                        (Id, Guid, UserId, BranchId, QueueSlotId, AssignedStaffId, QueueCategoryId, QueueNumber, Remark, StatusId, CreatedAt, CreatedBy)
+                    VALUES
+                    (1, '{guids.Booking1}', 2, 1, 1, 1, 1, 1, N'ขอนัดคุณหมอด้านอายุรกรรม', (SELECT TOP 1 Id FROM MasterStatuses WHERE Type='BOOKING_STATUS' AND Code='CONFIRMED'), GETDATE(), 2),
+                    (2, '{guids.Booking2}', 5, 1, 1, 2, 1, 2, NULL,                        (SELECT TOP 1 Id FROM MasterStatuses WHERE Type='BOOKING_STATUS' AND Code='WAITING'), GETDATE(), 5),
+                    (3, '{guids.Booking3}', 2, 2, 3, 3, 4, 1, N'เร่งด่วน - ปวดท้องรุนแรง', (SELECT TOP 1 Id FROM MasterStatuses WHERE Type='BOOKING_STATUS' AND Code='DONE'), DATEADD(day, -1, GETDATE()), 2),
+                    (4, '{guids.Booking4}', 5, 1, 2, 2, 1, 3, NULL,                        (SELECT TOP 1 Id FROM MasterStatuses WHERE Type='BOOKING_STATUS' AND Code='CANCELLED'), GETDATE(), 5);
                 END
                 SET IDENTITY_INSERT Bookings OFF;
 
@@ -650,11 +656,13 @@ namespace Queue.Infrastructure.Migrations
                 SET IDENTITY_INSERT Queues ON;
                 IF NOT EXISTS (SELECT 1 FROM Queues WHERE Id = 1)
                 BEGIN
-                    INSERT INTO Queues (Id, Guid, BranchId, QueueNumber, StatusId, Type, CreatedAt, CreatedBy) VALUES
-                    (1, NEWID(), 1, 1, (SELECT TOP 1 Id FROM MasterStatuses WHERE Type='QUEUE_STATUS' AND Code='SERVING'),  'WALK_IN', GETDATE(), NULL),
-                    (2, NEWID(), 1, 2, (SELECT TOP 1 Id FROM MasterStatuses WHERE Type='QUEUE_STATUS' AND Code='WAITING'),  'BOOKING', GETDATE(), 2),
-                    (3, NEWID(), 2, 1, (SELECT TOP 1 Id FROM MasterStatuses WHERE Type='QUEUE_STATUS' AND Code='DONE'),     'WALK_IN', DATEADD(hour, -2, GETDATE()), NULL),
-                    (4, NEWID(), 1, 3, (SELECT TOP 1 Id FROM MasterStatuses WHERE Type='QUEUE_STATUS' AND Code='WAITING'),  'BOOKING', GETDATE(), 5);
+                    INSERT INTO Queues
+                        (Id, Guid, BranchId, QueueNumber, ServiceId, AssignedStaffId, CustomerName, StatusId, Type, CreatedAt, CreatedBy)
+                    VALUES
+                    (1, NEWID(), 1, 1, 1, 2, N'ลูกค้า Walk-in', (SELECT TOP 1 Id FROM MasterStatuses WHERE Type='QUEUE_STATUS' AND Code='SERVING'), 'WALK_IN', GETDATE(), NULL),
+                    (2, NEWID(), 1, 2, 1, 1, N'นางสาว วรรณา ใจดี', (SELECT TOP 1 Id FROM MasterStatuses WHERE Type='QUEUE_STATUS' AND Code='WAITING'), 'BOOKING', GETDATE(), 2),
+                    (3, NEWID(), 2, 1, 5, 3, N'ลูกค้า Walk-in', (SELECT TOP 1 Id FROM MasterStatuses WHERE Type='QUEUE_STATUS' AND Code='DONE'), 'WALK_IN', DATEADD(hour, -2, GETDATE()), NULL),
+                    (4, NEWID(), 1, 3, 1, 2, N'นาย ประเสริฐ ดีงาม', (SELECT TOP 1 Id FROM MasterStatuses WHERE Type='QUEUE_STATUS' AND Code='WAITING'), 'BOOKING', GETDATE(), 5);
                 END
                 SET IDENTITY_INSERT Queues OFF;
 
