@@ -32,6 +32,9 @@ public sealed class Operations : IOperations
         await EnsureBranchAccessAsync(userId, branchId, ct);
         var query = _db.ShopStaffs.AsNoTracking()
             .Include(s => s.User)
+                .ThenInclude(u => u.UserAuthentications)
+            .Include(s => s.User)
+                .ThenInclude(u => u.UserImages)
             .Include(s => s.ServiceStaffMaps)
             .Where(s => s.BranchId == branchId);
 
@@ -94,7 +97,7 @@ public sealed class Operations : IOperations
 
             if (linkedUser == null)
             {
-                var customerRole = await _db.Roles.FirstOrDefaultAsync(r => r.Name == "Customer", ct);
+                var staffRole = await _db.Roles.FirstOrDefaultAsync(r => r.Name == "Staff", ct);
                 string initialPassword = "EzQ#" + Guid.NewGuid().ToString("N")[..8];
 
                 linkedUser = new User
@@ -108,12 +111,14 @@ public sealed class Operations : IOperations
                     CreatedAt = DateTime.UtcNow,
                     UserRoleMaps = new List<UserRoleMap>
                     {
-                        new UserRoleMap { RoleId = customerRole?.Id ?? 2 }
+                        new UserRoleMap { RoleId = staffRole?.Id ?? 3 }
                     },
                     UserAuthentications = new List<UserAuthentication>
                     {
                         new UserAuthentication
                         {
+                            Provider = "local",
+                            ProviderId = "User",
                             PasswordHash = Crypto.HashPassword(initialPassword),
                             CreatedAt = DateTime.UtcNow
                         }
@@ -139,7 +144,7 @@ public sealed class Operations : IOperations
 
                 string appUrl = _config["AppSettings:AppUrl"] ?? "http://localhost:3000";
                 string confirmationLink = $"{appUrl.TrimEnd('/')}/th/auth/mail-verify?token={token}";
-                await _emailService.SendStaffConfirmationWithPasswordEmailAsync(email, trimmedName, confirmationLink, initialPassword, "th");
+                await _emailService.SendConfirmationEmailAsync(email, trimmedName, confirmationLink);
             }
             else if (await _db.ShopStaffs.AnyAsync(s => s.Id != staffIdToExamine && s.BranchId == branch.Id && s.UserId == linkedUser.Id, ct))
             {
@@ -450,7 +455,10 @@ public sealed class Operations : IOperations
         Name = string.IsNullOrWhiteSpace(s.Name) ? s.User?.Name ?? string.Empty : s.Name,
         Email = s.Email ?? s.User?.Email, Phone = s.Phone ?? s.User?.Phone, Role = s.Role,
         CanServeQueues = s.CanServeQueues, CanLogin = s.CanLogin, IsAvailable = s.IsAvailable,
-        IsActive = s.IsActive, ServiceIds = s.ServiceStaffMaps.Select(m => m.ServiceId).ToList()
+        IsActive = s.IsActive, ServiceIds = s.ServiceStaffMaps.Select(m => m.ServiceId).ToList(),
+        EmailConfirmed = s.User?.EmailConfirmed,
+        LastLoginAt = s.User?.UserAuthentications?.FirstOrDefault()?.LastLoginAt,
+        ProfilePictureUrl = s.User?.UserImages?.FirstOrDefault(ui => ui.IsPrimary)?.FileUrl
     };
 
     private static BookingResponse ToBookingResponse(Booking b) => new()

@@ -14,6 +14,9 @@ public sealed class StaffResponse
     public bool CanLogin { get; set; }
     public bool IsAvailable { get; set; }
     public bool IsActive { get; set; }
+    public bool? EmailConfirmed { get; set; }
+    public DateTime? LastLoginAt { get; set; }
+    public string? ProfilePictureUrl { get; set; }
     public List<int> ServiceIds { get; set; } = new();
 }
 

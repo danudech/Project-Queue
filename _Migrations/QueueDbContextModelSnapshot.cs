@@ -1649,7 +1649,7 @@ namespace Queue.Infrastructure.Migrations
 
                     b.HasIndex(new[] { "BranchId", "UserId" }, "IX_ShopStaffs_BranchId_UserId")
                         .IsUnique()
-                        .HasFilter("([UserId] IS NOT NULL)");
+                        .HasFilter("[UserId] IS NOT NULL");
 
                     b.HasIndex(new[] { "ShopId" }, "IX_ShopStaffs_ShopId");
 

@@ -11,6 +11,9 @@ export type StaffMember = {
   canLogin: boolean;
   isAvailable: boolean;
   isActive: boolean;
+  emailConfirmed?: boolean | null;
+  lastLoginAt?: string | null;
+  profilePictureUrl?: string | null;
   serviceIds: number[];
 };
 

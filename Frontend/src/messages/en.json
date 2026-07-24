@@ -140,6 +140,7 @@
     "eyebrow": "Account security",
     "header": "Reset your password",
     "desc": "Please enter your new password below",
+    "foreign_keyboard_warning": "⚠️ You are typing with a foreign keyboard layout. Please switch to English.",
     "new_password": "New password",
     "confirm_password": "Confirm password",
     "password_required": "Password is required",
@@ -154,6 +155,14 @@
     "loading": "Resetting...",
     "success": "Password reset successfully",
     "error": "Something went wrong"
+  },
+  "AccountSecurity": {
+    "title": "Security",
+    "description": "Manage your password and security preferences.",
+    "change_password": "Change password",
+    "change_password_desc": "Update your password to keep your account secure.",
+    "submit": "Update password",
+    "success": "Password updated successfully"
   },
   "ForgotPassword": {
     "unlock_title": "Less waiting. Better",
@@ -950,10 +959,10 @@
       "services": "Services"
     },
     "roles": {
-      "staff": "General staff",
-      "serviceStaff": "Service staff",
-      "receptionist": "Reception / queue staff",
-      "branchManager": "Branch manager"
+      "shopOwner": "Shop owner",
+      "shopManager": "Shop manager",
+      "branchManager": "Branch manager",
+      "staff": "Staff"
     },
     "toggles": {
       "serve": {
@@ -987,6 +996,17 @@
       "phoneDigits": "Please enter numbers only",
       "noBranchServices": "This branch has no services configured yet",
       "selectAtLeastOneService": "Please select at least 1 service for this staff member"
+    },
+    "columns": {
+      "name": "Staff Name",
+      "role": "Role",
+      "email": "Email",
+      "phone": "Phone",
+      "emailConfirmed": "Email Confirmed",
+      "lastLogin": "Last Login",
+      "status": "Status",
+      "systemAccess": "System Access",
+      "actions": "Actions"
     },
     "messages": {
       "loadError": "Unable to load staff",

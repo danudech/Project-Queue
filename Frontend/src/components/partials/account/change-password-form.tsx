@@ -12,19 +12,15 @@ import { useTranslations } from "next-intl";
 import { Loader2, Check } from "lucide-react";
 import { toast } from "sonner";
 import { http } from "@/lib/http/client";
-import { useSearchParams } from "next/navigation";
-import { useRouter } from "@/i18n/routing";
-import { startRouteLoading } from "@/lib/route-loading";
 
-type ResetPasswordRequest = {
+type ChangePasswordRequest = {
   password: string;
   confirmPassword: string;
 };
 
-const ResetPasswordForm = () => {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+const ChangePasswordForm = () => {
   const t = useTranslations("ResetPassword");
+  const tSecurity = useTranslations("AccountSecurity");
   const [loading, setLoading] = React.useState(false);
 
   const [showPassword, setShowPassword] = React.useState(false);
@@ -34,8 +30,9 @@ const ResetPasswordForm = () => {
     register,
     handleSubmit,
     watch,
+    reset,
     formState: { errors },
-  } = useForm<ResetPasswordRequest>();
+  } = useForm<ChangePasswordRequest>();
 
   const password = watch("password") || "";
   const hasForeignCharacters = /[^\x00-\x7F]/.test(password);
@@ -56,7 +53,7 @@ const ResetPasswordForm = () => {
     rules.number &&
     rules.special;
 
-  const onSubmit = async (data: ResetPasswordRequest) => {
+  const onSubmit = async (data: ChangePasswordRequest) => {
     if (loading) return;
 
     if (!isValidPassword) {
@@ -73,19 +70,12 @@ const ResetPasswordForm = () => {
       setLoading(true);
       const resetPassword = await http.post("resetpassword", { NewPassword: data.password });
       if (resetPassword) {
-        toast.success(t("success"));
-        const returnUrl = searchParams.get("returnUrl");
-        let redirectTo = "/dashboard";
-
-        if (returnUrl) {
-          redirectTo = returnUrl.replace(/^\/(th|en)/, "") || "/dashboard";
-        }
-
-        startRouteLoading();
-        router.push(redirectTo);
+        toast.success(tSecurity("success"));
+        reset(); // Clear form on success
       }
     } catch (err: any) {
       toast.error(err.message || t("error"));
+    } finally {
       setLoading(false);
     }
   };
@@ -189,17 +179,18 @@ const ResetPasswordForm = () => {
         <RuleItem isMet={rules.special} label={t("password_special")} />
       </div>
 
-      <Button
-        type="submit"
-        disabled={loading || !isValidPassword}
-        size="lg"
-        className="mt-2 h-12 w-full rounded-md bg-emerald-700 text-base font-semibold text-white shadow-none transition-colors hover:bg-emerald-800 hover:text-white active:bg-emerald-900"
-      >
-        {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        {loading ? t("loading") : t("submit")}
-      </Button>
+      <div className="flex justify-end pt-2">
+        <Button
+          type="submit"
+          disabled={loading || !isValidPassword}
+          className="bg-emerald-700 text-white hover:bg-emerald-800"
+        >
+          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {loading ? t("loading") : tSecurity("submit")}
+        </Button>
+      </div>
     </form>
   );
 };
 
-export default ResetPasswordForm;
+export default ChangePasswordForm;

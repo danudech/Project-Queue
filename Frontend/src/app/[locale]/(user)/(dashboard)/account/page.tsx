@@ -15,7 +15,7 @@ export default function AccountIndexPage() {
       ]}
       rows={[
         { id: "acc1", title: "My profile", subtitle: "Personal details and preferences.", meta: "/account/profile", status: "Active", enabled: true },
-        { id: "acc2", title: "Security", subtitle: "Password and session controls.", meta: "Future module", status: "Pending", enabled: false },
+        { id: "acc2", title: "Security", subtitle: "Password and session controls.", meta: "/account/security", status: "Active", enabled: true },
         { id: "acc3", title: "Notification preferences", subtitle: "Account-level notification settings.", meta: "Future module", status: "Active", enabled: true },
       ]}
       panelTitle="Account modules"
