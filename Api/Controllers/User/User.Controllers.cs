@@ -21,6 +21,39 @@ public class UserController : ControllerBase
         _user = user;
         _actionLog = actionLog;
     }
+    [Authorize]
+    [HttpPost("changepassword")]
+    public async Task<ActionResult<ApiResponse<bool>>> ChangePassword([FromBody] Queue.Application.DTO.Request.ChangePasswordRequest req, CancellationToken ct)
+    {
+        try
+        {
+            int userId = int.Parse(User.FindFirst("id")?.Value ?? User.FindFirst("uid")?.Value ?? "0");
+            if (userId == 0) return Unauthorized(ApiResponse<bool>.Fail("Unauthorized"));
+
+            if (string.IsNullOrWhiteSpace(req.OldPassword) || string.IsNullOrWhiteSpace(req.NewPassword))
+                return BadRequest(ApiResponse<bool>.Fail("old password and new password are required"));
+
+            string ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            string ua = Request.Headers.UserAgent.ToString();
+
+            _actionLog.Info("ChangePassword request (UserId={UserId})", userId);
+            
+            bool result = await _user.ChangePassword(userId, req.OldPassword, req.NewPassword, ip, ua, ct);
+            if (!result)
+                return BadRequest(ApiResponse<bool>.Fail("Password change failed"));
+
+            return Ok(ApiResponse<bool>.Ok(true, "Password changed successfully"));
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return BadRequest(ApiResponse<bool>.Fail("Incorrect old password"));
+        }
+        catch (Exception ex)
+        {
+            _actionLog.Error(ex, "ChangePassword failed");
+            return StatusCode(500, ApiResponse<bool>.Fail(ex.Message));
+        }
+    }
 
     [Authorize]
     [HttpPut("profile")]

@@ -255,6 +255,26 @@ public sealed class Users : IUsers
         return true;
     }
 
+    public async Task<bool> ChangePassword(int userId, string oldPassword, string newPassword, string ip, string userAgent, CancellationToken ct)
+    {
+        var user = await _db.Users.Include(a => a.UserAuthentications).FirstOrDefaultAsync(u => u.Id == userId, ct);
+        if (user == null) return false;
+
+        var auth = user.UserAuthentications.FirstOrDefault(a => a.ProviderId == "User");
+        if (auth == null) return false;
+
+        if (!Crypto.VerifyPassword(oldPassword, auth.PasswordHash))
+        {
+            throw new UnauthorizedAccessException("Incorrect old password");
+        }
+
+        auth.PasswordHash = Crypto.HashPassword(newPassword);
+        auth.LastLoginAt = DateTime.UtcNow;
+        await _crud.UpdateAsync(auth, ct);
+
+        return true;
+    }
+
     public async Task<bool> UpdateProfile(int userId, UpdateProfileRequest data, CancellationToken ct)
     {
         var user = await _db.Users

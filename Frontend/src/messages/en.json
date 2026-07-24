@@ -141,6 +141,8 @@
     "header": "Reset your password",
     "desc": "Please enter your new password below",
     "foreign_keyboard_warning": "⚠️ You are typing with a foreign keyboard layout. Please switch to English.",
+    "old_password": "Current password",
+    "old_password_required": "Current password is required",
     "new_password": "New password",
     "confirm_password": "Confirm password",
     "password_required": "Password is required",
@@ -344,6 +346,7 @@
     "masterStatus": "Master Status",
     "auditLog": "Audit Logs",
     "myProfile": "My Profile",
+    "changePassword": "Change Password",
     "logout": "Logout"
   },
   "Shop": {

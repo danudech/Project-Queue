@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { http } from "@/lib/http/client";
 
 type ChangePasswordRequest = {
+  oldPassword: string;
   password: string;
   confirmPassword: string;
 };
@@ -23,6 +24,7 @@ const ChangePasswordForm = () => {
   const tSecurity = useTranslations("AccountSecurity");
   const [loading, setLoading] = React.useState(false);
 
+  const [showOldPassword, setShowOldPassword] = React.useState(false);
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirm, setShowConfirm] = React.useState(false);
 
@@ -68,8 +70,11 @@ const ChangePasswordForm = () => {
 
     try {
       setLoading(true);
-      const resetPassword = await http.post("resetpassword", { NewPassword: data.password });
-      if (resetPassword) {
+      const changepassword = await http.post("changepassword", { 
+        OldPassword: data.oldPassword,
+        NewPassword: data.password 
+      });
+      if (changepassword) {
         toast.success(tSecurity("success"));
         reset(); // Clear form on success
       }
@@ -105,6 +110,36 @@ const ChangePasswordForm = () => {
       onSubmit={handleSubmit(onSubmit)}
       className={cn("space-y-5", loading && "pointer-events-none opacity-70")}
     >
+      <div className="space-y-2">
+        <Label htmlFor="old-password" className="text-sm font-medium text-slate-800">
+          {t("old_password")}
+        </Label>
+        <InputGroup className={getGroupClass(errors.oldPassword)}>
+          <InputGroupText className={iconWrapperClass}>
+            <Icon icon="mdi:lock-outline" fontSize={16} />
+          </InputGroupText>
+          <Input
+            id="old-password"
+            disabled={loading}
+            type={showOldPassword ? "text" : "password"}
+            placeholder={t("old_password")}
+            {...register("oldPassword", {
+              required: t("old_password_required"),
+            })}
+            className={inputBaseClass}
+          />
+          <InputGroupText
+            className="cursor-pointer border-none bg-transparent px-2.5 text-slate-400 transition-colors hover:text-emerald-700"
+            onClick={() => !loading && setShowOldPassword((prev) => !prev)}
+          >
+            <Icon icon={showOldPassword ? "basil:eye-outline" : "basil:eye-closed-solid"} fontSize={16} />
+          </InputGroupText>
+        </InputGroup>
+        {errors.oldPassword && (
+          <p className="mt-1 text-xs text-destructive">{errors.oldPassword.message}</p>
+        )}
+      </div>
+
       <div className="space-y-2">
         <Label htmlFor="new-password" className="text-sm font-medium text-slate-800">
           {t("new_password")}

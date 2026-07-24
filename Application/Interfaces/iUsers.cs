@@ -12,6 +12,7 @@ public interface IUsers
     Task ResentConfirmationEmail(RegisterRequest data, string originUrl, string ip, string userAgent, CancellationToken ct);
     Task<bool?> ConfirmEmail(VerifyAccountRequest data, string ip, string userAgent, CancellationToken ct);
     Task<bool?> ResetPassword(int userId, string newPassword, string ip, string userAgent, CancellationToken ct);
+    Task<bool> ChangePassword(int userId, string oldPassword, string newPassword, string ip, string userAgent, CancellationToken ct);
     Task<bool> UpdateProfile(int userId, UpdateProfileRequest data, CancellationToken ct);
     Task<bool> DeleteUser(int userId, CancellationToken ct);
 }
