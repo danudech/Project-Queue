@@ -3,6 +3,7 @@ import { SetService } from "./service";
 export interface ShopResponse {
   id: number;
   name: string;
+  publicSlug: string;
   type: string;
   address: string;
   phone: string;
@@ -35,6 +36,8 @@ export interface ShopHoliday {
 export interface BranchDto {
   id: number;
   guid: string;
+  publicBookingId: string;
+  isOnlineBookingEnabled: boolean;
   name: string;
   phone: string;
   address?: AddressDto;

@@ -10,6 +10,7 @@ export interface BookingDto {
   customerName: string;
   staffId?: number | null;
   staffName?: string | null;
+  queueId?: number | null;
   status: string;
   remark?: string | null;
 }

@@ -46,7 +46,7 @@ const unavailableDashboardPrefixes = [
   "/setting",
 ];
 
-const unavailableDashboardPaths = new Set(["/notification", "/account"]);
+const unavailableDashboardPaths = new Set(["/account"]);
 
 export function permissionForPath(pathname: string) {
   return accessRuleForPath(pathname)?.permission;

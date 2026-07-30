@@ -4,6 +4,7 @@ public class ShopResponse
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
+    public string PublicSlug { get; set; } = string.Empty;
     public string Type { get; set; } = string.Empty;
     public string Address { get; set; } = string.Empty;
     public string Phone { get; set; } = string.Empty;
@@ -23,6 +24,8 @@ public class BranchDto
 {
     public int Id { get; set; }
     public Guid Guid { get; set; }
+    public Guid PublicBookingId { get; set; }
+    public bool IsOnlineBookingEnabled { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Phone { get; set; } = string.Empty;
     public AddressDto? Address { get; set; }

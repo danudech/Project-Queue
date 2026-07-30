@@ -98,6 +98,10 @@ export default function QueueLivePage() {
     }),
     [rows],
   );
+  const activeRows = useMemo(
+    () => rows.filter((row) => ["WAITING", "SERVING"].includes(row.status)),
+    [rows],
+  );
   const update = async (row: QueueDto, status: string) => {
     if (!canManageQueue) return;
     try {
@@ -189,7 +193,7 @@ export default function QueueLivePage() {
           <CardDescription>{t("boardDescription")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
-          {rows.map((row) => (
+          {activeRows.map((row) => (
             <div
               key={row.id}
               className="flex flex-col gap-4 rounded-xl border p-4 lg:flex-row lg:items-center lg:justify-between"
@@ -248,7 +252,7 @@ export default function QueueLivePage() {
               </div>
             </div>
           ))}
-          {!rows.length && (
+          {!activeRows.length && (
             <div className="rounded-xl border border-dashed py-12 text-center text-sm text-muted-foreground">
               {t("empty")}
             </div>

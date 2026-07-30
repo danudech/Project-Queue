@@ -1,6 +1,7 @@
 export interface QueueDto {
   id: number;
   guid: string;
+  bookingId?: number | null;
   queueNumber: number;
   customerName?: string | null;
   serviceId?: number | null;

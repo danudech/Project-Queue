@@ -11,6 +11,8 @@ public partial class Shop
 
     public string Name { get; set; } = null!;
 
+    public string PublicSlug { get; set; } = $"ezqueue-{Guid.NewGuid():N}";
+
     public int OwnerId { get; set; }
 
     public int? TypeId { get; set; }

@@ -9,7 +9,13 @@ public partial class Booking
 
     public Guid Guid { get; set; }
 
-    public int UserId { get; set; }
+    public int? UserId { get; set; }
+
+    public string? GuestName { get; set; }
+
+    public string? GuestPhone { get; set; }
+
+    public string? GuestEmail { get; set; }
 
     public int BranchId { get; set; }
 
@@ -41,11 +47,13 @@ public partial class Booking
 
     public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
 
+    public virtual Queue? Queue { get; set; }
+
     public virtual QueueCategory? QueueCategory { get; set; }
 
     public virtual QueueSlot QueueSlot { get; set; } = null!;
 
     public virtual MasterStatus Status { get; set; } = null!;
 
-    public virtual User User { get; set; } = null!;
+    public virtual User? User { get; set; }
 }

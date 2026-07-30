@@ -9,6 +9,10 @@ public partial class ShopBranch
 
     public Guid Guid { get; set; }
 
+    public Guid PublicBookingId { get; set; } = Guid.NewGuid();
+
+    public bool IsOnlineBookingEnabled { get; set; } = true;
+
     public int ShopId { get; set; }
 
     public string Name { get; set; } = null!;

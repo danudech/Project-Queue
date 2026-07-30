@@ -155,6 +155,9 @@ public partial class QueueDbContext : DbContext
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Guid).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.GuestName).HasMaxLength(150);
+            entity.Property(e => e.GuestPhone).HasMaxLength(20);
+            entity.Property(e => e.GuestEmail).HasMaxLength(254);
 
             entity.HasOne(d => d.AssignedStaff).WithMany(p => p.AssignedBookings)
                 .HasForeignKey(d => d.AssignedStaffId)
@@ -236,13 +239,16 @@ public partial class QueueDbContext : DbContext
 
             entity.HasIndex(e => e.ShopId, "IX_Customers_ShopId");
 
-            entity.HasIndex(e => new { e.UserId, e.ShopId }, "IX_Customers_UserId_ShopId").IsUnique();
+            entity.HasIndex(e => new { e.UserId, e.ShopId }, "IX_Customers_UserId_ShopId")
+                .IsUnique()
+                .HasFilter("([UserId] IS NOT NULL)");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Guid).HasDefaultValueSql("(newid())");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Name).HasMaxLength(150);
             entity.Property(e => e.Phone).HasMaxLength(20);
+            entity.Property(e => e.Email).HasMaxLength(254);
 
             entity.HasOne(d => d.Shop).WithMany(p => p.Customers)
                 .HasForeignKey(d => d.ShopId)
@@ -420,6 +426,10 @@ public partial class QueueDbContext : DbContext
 
             entity.HasIndex(e => e.BranchId, "IX_Queues_BranchId");
 
+            entity.HasIndex(e => e.BookingId, "IX_Queues_BookingId")
+                .IsUnique()
+                .HasFilter("[BookingId] IS NOT NULL");
+
             entity.HasIndex(e => e.Guid, "IX_Queues_Guid").IsUnique();
 
             entity.HasIndex(e => e.ServiceId, "IX_Queues_ServiceId");
@@ -435,6 +445,11 @@ public partial class QueueDbContext : DbContext
                 .HasForeignKey(d => d.AssignedStaffId)
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("FK_Queues_AssignedStaff");
+
+            entity.HasOne(d => d.Booking).WithOne(p => p.Queue)
+                .HasForeignKey<Domain.Entities.Queue>(d => d.BookingId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("FK_Queues_Booking");
 
             entity.HasOne(d => d.Branch).WithMany(p => p.Queues)
                 .HasForeignKey(d => d.BranchId)
@@ -604,6 +619,7 @@ public partial class QueueDbContext : DbContext
         modelBuilder.Entity<Shop>(entity =>
         {
             entity.HasIndex(e => e.Guid, "IX_Shops_Guid").IsUnique();
+            entity.HasIndex(e => e.PublicSlug, "UX_Shops_PublicSlug").IsUnique();
 
             entity.HasIndex(e => e.OwnerId, "UX_Shops_OwnerId").IsUnique();
 
@@ -613,6 +629,7 @@ public partial class QueueDbContext : DbContext
             entity.Property(e => e.Guid).HasDefaultValueSql("(newid())");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Name).HasMaxLength(150);
+            entity.Property(e => e.PublicSlug).HasMaxLength(180);
 
             entity.HasOne(d => d.Owner).WithMany(p => p.Shops)
                 .HasForeignKey(d => d.OwnerId)
@@ -644,11 +661,15 @@ public partial class QueueDbContext : DbContext
         {
             entity.HasIndex(e => e.Guid, "IX_ShopBranches_Guid").IsUnique();
 
+            entity.HasIndex(e => e.PublicBookingId, "UX_ShopBranches_PublicBookingId").IsUnique();
+
             entity.HasIndex(e => e.ShopId, "IX_ShopBranches_ShopId");
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Guid).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.PublicBookingId).HasDefaultValueSql("(newid())");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.IsOnlineBookingEnabled).HasDefaultValue(true);
             entity.Property(e => e.Name).HasMaxLength(150);
             entity.Property(e => e.Phone).HasMaxLength(20);
 

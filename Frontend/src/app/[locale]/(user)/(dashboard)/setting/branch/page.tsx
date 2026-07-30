@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Card } from "@/components/ui/card";
-import { Building2, Loader2, MapPin, Phone, ChevronDown, Check, Store, X } from "lucide-react";
+import { Building2, Loader2, MapPin, Phone, ChevronDown, Check, Store, X, Copy, Download, ExternalLink, QrCode } from "lucide-react";
 import { Icon } from "@/components/ui/icon";
 import Image from "next/image";
 import { useShop } from "@/hooks/use-me";
@@ -32,6 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { QRCodeCanvas } from "qrcode.react";
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
 
@@ -74,11 +75,14 @@ const defaultValues: BranchValues = {
 
 const SettingShopBranchPage = () => {
   const t = useTranslations("Settings.branch");
+  const locale = useLocale();
   const { data: shopData, isLoading } = useShop();
   const { can } = usePermissions();
   const canEditBranch = can("branch.edit");
 
   const [isOpen, setIsOpen] = useState(false);
+  const [isOnlineBookingEnabled, setIsOnlineBookingEnabled] = useState(true);
+  const [origin, setOrigin] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [selectedBranch, setSelectedBranch] = useState<BranchDto | null>(null);
   const [addressList, setAddressList] = useState<AddressType[] | null>(null);
@@ -103,6 +107,8 @@ const SettingShopBranchPage = () => {
 
   const watchZipcode = form.watch("zipcode") ?? "";
   const watchSubdistrictId = form.watch("subdistrictId");
+
+  useEffect(() => setOrigin(window.location.origin), []);
 
   useEffect(() => {
     if (!shopData || !selectedBranch) return;
@@ -211,6 +217,11 @@ const SettingShopBranchPage = () => {
     if (shopData?.isActive !== undefined) setIsOpen(shopData.isActive);
   }, [shopData?.isActive]);
 
+  useEffect(() => {
+    if (selectedBranch)
+      setIsOnlineBookingEnabled(selectedBranch.isOnlineBookingEnabled);
+  }, [selectedBranch]);
+
   // ── Resolve selected branch from storage or first branch ───────────────────
   useEffect(() => {
     if (!shopData?.shopBranches?.length) return;
@@ -236,6 +247,7 @@ const SettingShopBranchPage = () => {
         const formData = new FormData();
         formData.append("BranchId", selectedBranch.id.toString());
         formData.append("IsActive", String(isOpen));
+        formData.append("IsOnlineBookingEnabled", String(isOnlineBookingEnabled));
         
         if (values.branchName !== selectedBranch.name) {
           formData.append("BranchName", values.branchName);
@@ -258,8 +270,21 @@ const SettingShopBranchPage = () => {
         setIsSaving(false);
       }
     }),
-    [form, selectedBranch, isOpen]
+    [form, selectedBranch, isOpen, isOnlineBookingEnabled, canEditBranch]
   );
+
+  const bookingUrl = selectedBranch && shopData?.publicSlug && origin
+    ? `${origin}/${locale}/book/${encodeURIComponent(shopData.publicSlug)}?branch=${encodeURIComponent(selectedBranch.publicBookingId)}`
+    : "";
+
+  const downloadQr = () => {
+    const canvas = document.getElementById("branch-booking-qr") as HTMLCanvasElement | null;
+    if (!canvas || !selectedBranch) return;
+    const link = document.createElement("a");
+    link.download = `ezqueue-${selectedBranch.name}-booking.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  };
 
   // ── Loading state ───────────────────────────────────────────────────────────
   if (isLoading) {
@@ -359,6 +384,7 @@ const SettingShopBranchPage = () => {
 
       {/* ══ Section 2: Branch Info Form ══════════════════════════════════════════ */}
       {selectedBranch ? (
+        <>
         <Card className="overflow-hidden rounded-xl">
           {/* Card Header */}
           <div className="flex items-center justify-between border-b border-default-200 px-6 py-4">
@@ -641,6 +667,32 @@ const SettingShopBranchPage = () => {
             </form>
           </Form>
         </Card>
+        <Card className="overflow-hidden rounded-xl">
+          <div className="grid gap-6 p-6 lg:grid-cols-[1fr_auto] lg:items-center">
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <span className="grid size-10 place-items-center rounded-lg bg-primary/10 text-primary"><QrCode className="size-5" /></span>
+                <div><h3 className="font-semibold text-default-900">{t("bookingLinkTitle")}</h3><p className="mt-1 text-sm text-muted-foreground">{t("bookingLinkDescription")}</p></div>
+              </div>
+              <label className="flex items-center justify-between gap-4 rounded-lg border border-default-200 p-4">
+                <div><p className="text-sm font-medium">{t("onlineBooking")}</p><p className="mt-0.5 text-xs text-muted-foreground">{t("onlineBookingDescription")}</p></div>
+                <button type="button" disabled={!canEditBranch} onClick={() => setIsOnlineBookingEnabled((value) => !value)} className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${isOnlineBookingEnabled ? "bg-primary" : "bg-default-300"}`}><span className={`absolute top-1 size-4 rounded-full bg-white transition-transform ${isOnlineBookingEnabled ? "translate-x-6" : "translate-x-1"}`} /></button>
+              </label>
+              <div className="flex rounded-lg border border-default-200 bg-default-50 p-1">
+                <input aria-label={t("bookingUrl")} value={bookingUrl} readOnly className="min-w-0 flex-1 bg-transparent px-3 text-sm text-default-600 outline-none" />
+                <button type="button" onClick={() => navigator.clipboard.writeText(bookingUrl)} disabled={!bookingUrl} className="grid size-9 place-items-center rounded-md hover:bg-background" aria-label={t("copyLink")}><Copy className="size-4" /></button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button type="button" onClick={downloadQr} disabled={!bookingUrl} className="inline-flex h-9 items-center gap-2 rounded-md border px-3 text-sm hover:bg-default-50"><Download className="size-4" />{t("downloadQr")}</button>
+                <a href={bookingUrl || "#"} target="_blank" rel="noreferrer" className={`inline-flex h-9 items-center gap-2 rounded-md border px-3 text-sm hover:bg-default-50 ${!bookingUrl ? "pointer-events-none opacity-50" : ""}`}><ExternalLink className="size-4" />{t("openBookingPage")}</a>
+              </div>
+            </div>
+            <div className={`rounded-xl border bg-white p-3 transition-opacity ${isOnlineBookingEnabled ? "" : "opacity-40 grayscale"}`}>
+              {bookingUrl && <QRCodeCanvas id="branch-booking-qr" value={bookingUrl} size={180} level="M" marginSize={2} />}
+            </div>
+          </div>
+        </Card>
+        </>
       ) : (
         <Card className="flex h-32 items-center justify-center rounded-xl">
           <div className="flex flex-col items-center gap-1.5 text-center">

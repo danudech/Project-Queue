@@ -13,8 +13,8 @@ public interface IOperations
     Task<StaffResponse> DeleteStaffPhotoAsync(int userId, int staffId, CancellationToken ct);
     Task<string> SendStaffInviteAsync(int userId, StaffInviteRequest request, string appUrl, CancellationToken ct);
     Task<bool> DeleteStaffAsync(int userId, int staffId, CancellationToken ct);
-    Task<List<AvailableSlotResponse>> GetSlotsAsync(int branchId, DateTime? date, CancellationToken ct);
-    Task<BookingResponse> CreateBookingAsync(int userId, CreateBookingRequest request, CancellationToken ct);
+    Task<List<AvailableSlotResponse>> GetSlotsAsync(int branchId, DateTime? date, int? serviceId, CancellationToken ct);
+    Task<BookingResponse> CreateBookingAsync(int? userId, CreateBookingRequest request, CancellationToken ct);
     Task<List<BookingResponse>> GetBookingsAsync(int userId, int branchId, CancellationToken ct);
     Task<BookingResponse> UpdateBookingAsync(int userId, int bookingId, UpdateOperationStatusRequest request, CancellationToken ct);
     Task<QueueResponse> CreateQueueAsync(int userId, CreateQueueRequest request, CancellationToken ct);

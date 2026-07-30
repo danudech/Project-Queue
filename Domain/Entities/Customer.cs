@@ -11,11 +11,13 @@ public partial class Customer
 
     public int ShopId { get; set; }
 
-    public int UserId { get; set; }
+    public int? UserId { get; set; }
 
     public string Name { get; set; } = null!;
 
     public string Phone { get; set; } = null!;
+
+    public string? Email { get; set; }
 
     public bool IsActive { get; set; }
 

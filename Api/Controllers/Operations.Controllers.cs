@@ -69,8 +69,8 @@ public sealed class OperationsController : ControllerBase
         Execute(() => _operations.DeleteStaffAsync(UserId, staffId, ct));
 
     [HttpGet("slots")]
-    public Task<ActionResult<ApiResponse<List<AvailableSlotResponse>>>> GetSlots([FromQuery] int branchId, [FromQuery] DateTime? date, CancellationToken ct) =>
-        Execute(() => _operations.GetSlotsAsync(branchId, date, ct));
+    public Task<ActionResult<ApiResponse<List<AvailableSlotResponse>>>> GetSlots([FromQuery] int branchId, [FromQuery] DateTime? date, [FromQuery] int? serviceId, CancellationToken ct) =>
+        Execute(() => _operations.GetSlotsAsync(branchId, date, serviceId, ct));
 
     [HttpGet("bookings")]
     public Task<ActionResult<ApiResponse<List<BookingResponse>>>> GetBookings([FromQuery] int branchId = 0, CancellationToken ct = default) =>

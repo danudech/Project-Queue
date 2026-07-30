@@ -23,6 +23,8 @@ const SettingShopPage = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [shopTypes, setShopTypes] = useState<ShopType[]>([]);
+  const [selectedShopType, setSelectedShopType] = useState("");
+  const [isLoadingShopTypes, setIsLoadingShopTypes] = useState(true);
   const locale = useLocale();
 
   const getLogoUrl = (url: string | null | undefined) => {
@@ -48,10 +50,16 @@ const SettingShopPage = () => {
   }, [shopData?.isActive]);
 
   useEffect(() => {
+    setIsLoadingShopTypes(true);
     http.get<ShopType[]>("shoptype")
       .then((res) => { if (res) setShopTypes(res) })
-      .catch(console.error);
+      .catch(console.error)
+      .finally(() => setIsLoadingShopTypes(false));
   }, []);
+
+  useEffect(() => {
+    setSelectedShopType(shopData?.type ? String(shopData.type) : "");
+  }, [shopData?.type]);
 
   const handleSave = async () => {
     if (!canEditShop) return;
@@ -73,8 +81,7 @@ const SettingShopPage = () => {
       const nameEl = document.getElementById("shop-name") as HTMLInputElement;
       if (nameEl) formData.append("Name", nameEl.value);
       
-      const typeEl = document.getElementById("shop-type") as HTMLSelectElement;
-      if (typeEl && typeEl.value) formData.append("TypeId", typeEl.value);
+      if (selectedShopType) formData.append("TypeId", selectedShopType);
 
       // TODO: Connect with actual update API when ready
       await http.put("updateshop", formData);
@@ -184,8 +191,16 @@ const SettingShopPage = () => {
             </div>
             <div className="space-y-1.5">
               <label className="text-xs text-default-500">{t("businessType")}</label>
-              <select id="shop-type" defaultValue={shopData.type} className="h-9 w-full rounded-md border border-default-200 bg-default-50 px-3 text-sm text-default-900 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-default-800">
-                <option value="">{t("selectBusinessType")}</option>
+              <select
+                id="shop-type"
+                value={selectedShopType}
+                onChange={(event) => setSelectedShopType(event.target.value)}
+                disabled={isLoadingShopTypes || !canEditShop}
+                className="h-9 w-full rounded-md border border-default-200 bg-default-50 px-3 text-sm text-default-900 focus:outline-none focus:ring-2 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-60 dark:bg-default-800"
+              >
+                <option value="">
+                  {isLoadingShopTypes ? t("loadingBusinessTypes") : t("selectBusinessType")}
+                </option>
                 {shopTypes.map((type) => (
                   <option key={type.id} value={type.id.toString()}>
                     {locale === "th" ? type.nameTh : type.nameEn}

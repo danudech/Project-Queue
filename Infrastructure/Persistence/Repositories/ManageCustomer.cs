@@ -67,6 +67,7 @@ public sealed class ManageCustomer : IManageCustomer
                 ShopId = c.ShopId,
                 Name = c.Name,
                 Phone = c.Phone,
+                Email = c.Email,
                 IsActive = c.IsActive,
                 Tags = c.CustomerTagMaps.Select(t => new CustomerTag
                 {
@@ -102,9 +103,10 @@ public sealed class ManageCustomer : IManageCustomer
             {
                 Guid = Guid.NewGuid(),
                 ShopId = request.ShopId,
-                UserId = userId,
+                UserId = null,
                 Name = request.Name,
                 Phone = request.Phone,
+                Email = request.Email?.Trim(),
                 IsActive = true,
                 CreatedAt = _dateTime.LocalNow(),
                 CreatedBy = userId
@@ -147,6 +149,7 @@ public sealed class ManageCustomer : IManageCustomer
                 ShopId = newCustomer.ShopId,
                 Name = newCustomer.Name,
                 Phone = newCustomer.Phone,
+                Email = newCustomer.Email,
                 IsActive = newCustomer.IsActive,
                 Tags = request.Tags?.Select(t => new CustomerTag
                 {
@@ -190,6 +193,7 @@ public sealed class ManageCustomer : IManageCustomer
 
             existingCustomer.Name = request.Name;
             existingCustomer.Phone = request.Phone;
+            existingCustomer.Email = request.Email?.Trim();
             existingCustomer.IsActive = request.IsActive;
             existingCustomer.UpdatedAt = _dateTime.LocalNow();
             existingCustomer.UpdatedBy = userId;
@@ -250,6 +254,7 @@ public sealed class ManageCustomer : IManageCustomer
                 ShopId = existingCustomer.ShopId,
                 Name = existingCustomer.Name,
                 Phone = existingCustomer.Phone,
+                Email = existingCustomer.Email,
                 IsActive = existingCustomer.IsActive,
                 Tags = request.Tags?.Select(t => new CustomerTag
                 {

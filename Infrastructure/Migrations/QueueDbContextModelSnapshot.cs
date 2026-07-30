@@ -143,6 +143,18 @@ namespace Queue.Infrastructure.Migrations
                     b.Property<int?>("CreatedBy")
                         .HasColumnType("int");
 
+                    b.Property<string>("GuestEmail")
+                        .HasMaxLength(254)
+                        .HasColumnType("nvarchar(254)");
+
+                    b.Property<string>("GuestName")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("GuestPhone")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
                     b.Property<Guid>("Guid")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier")
@@ -169,7 +181,7 @@ namespace Queue.Infrastructure.Migrations
                     b.Property<int?>("UpdatedBy")
                         .HasColumnType("int");
 
-                    b.Property<int>("UserId")
+                    b.Property<int?>("UserId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -288,6 +300,10 @@ namespace Queue.Infrastructure.Migrations
                     b.Property<int?>("CreatedBy")
                         .HasColumnType("int");
 
+                    b.Property<string>("Email")
+                        .HasMaxLength(254)
+                        .HasColumnType("nvarchar(254)");
+
                     b.Property<Guid>("Guid")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier")
@@ -317,7 +333,7 @@ namespace Queue.Infrastructure.Migrations
                     b.Property<int?>("UpdatedBy")
                         .HasColumnType("int");
 
-                    b.Property<int>("UserId")
+                    b.Property<int?>("UserId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -328,7 +344,8 @@ namespace Queue.Infrastructure.Migrations
                     b.HasIndex(new[] { "ShopId" }, "IX_Customers_ShopId");
 
                     b.HasIndex(new[] { "UserId", "ShopId" }, "IX_Customers_UserId_ShopId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("([UserId] IS NOT NULL)");
 
                     b.ToTable("Customers");
                 });
@@ -805,6 +822,9 @@ namespace Queue.Infrastructure.Migrations
                     b.Property<int?>("AssignedStaffId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("BookingId")
+                        .HasColumnType("int");
+
                     b.Property<int>("BranchId")
                         .HasColumnType("int");
 
@@ -848,6 +868,10 @@ namespace Queue.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex(new[] { "AssignedStaffId" }, "IX_Queues_AssignedStaffId");
+
+                    b.HasIndex(new[] { "BookingId" }, "IX_Queues_BookingId")
+                        .IsUnique()
+                        .HasFilter("[BookingId] IS NOT NULL");
 
                     b.HasIndex(new[] { "BranchId" }, "IX_Queues_BranchId");
 
@@ -1247,6 +1271,11 @@ namespace Queue.Infrastructure.Migrations
                     b.Property<int>("OwnerId")
                         .HasColumnType("int");
 
+                    b.Property<string>("PublicSlug")
+                        .IsRequired()
+                        .HasMaxLength(180)
+                        .HasColumnType("nvarchar(180)");
+
                     b.Property<int>("StatusId")
                         .HasColumnType("int");
 
@@ -1269,6 +1298,9 @@ namespace Queue.Infrastructure.Migrations
                     b.HasIndex(new[] { "TypeId" }, "IX_Shops_TypeId");
 
                     b.HasIndex(new[] { "OwnerId" }, "UX_Shops_OwnerId")
+                        .IsUnique();
+
+                    b.HasIndex(new[] { "PublicSlug" }, "UX_Shops_PublicSlug")
                         .IsUnique();
 
                     b.ToTable("Shops");
@@ -1303,6 +1335,11 @@ namespace Queue.Infrastructure.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(true);
 
+                    b.Property<bool>("IsOnlineBookingEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(150)
@@ -1312,6 +1349,11 @@ namespace Queue.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
+
+                    b.Property<Guid>("PublicBookingId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("(newid())");
 
                     b.Property<int>("ShopId")
                         .HasColumnType("int");
@@ -1330,6 +1372,9 @@ namespace Queue.Infrastructure.Migrations
                         .IsUnique();
 
                     b.HasIndex(new[] { "ShopId" }, "IX_ShopBranches_ShopId");
+
+                    b.HasIndex(new[] { "PublicBookingId" }, "UX_ShopBranches_PublicBookingId")
+                        .IsUnique();
 
                     b.ToTable("ShopBranches");
                 });
@@ -2145,7 +2190,6 @@ namespace Queue.Infrastructure.Migrations
                     b.HasOne("Queue.Domain.Entities.User", "User")
                         .WithMany("Bookings")
                         .HasForeignKey("UserId")
-                        .IsRequired()
                         .HasConstraintName("FK_Bookings_User");
 
                     b.Navigation("AssignedStaff");
@@ -2217,7 +2261,6 @@ namespace Queue.Infrastructure.Migrations
                     b.HasOne("Queue.Domain.Entities.User", "User")
                         .WithMany("Customers")
                         .HasForeignKey("UserId")
-                        .IsRequired()
                         .HasConstraintName("FK_Customers_User");
 
                     b.Navigation("Shop");
@@ -2372,6 +2415,12 @@ namespace Queue.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("FK_Queues_AssignedStaff");
 
+                    b.HasOne("Queue.Domain.Entities.Booking", "Booking")
+                        .WithOne("Queue")
+                        .HasForeignKey("Queue.Domain.Entities.Queue", "BookingId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("FK_Queues_Booking");
+
                     b.HasOne("Queue.Domain.Entities.ShopBranch", "Branch")
                         .WithMany("Queues")
                         .HasForeignKey("BranchId")
@@ -2391,6 +2440,8 @@ namespace Queue.Infrastructure.Migrations
                         .HasConstraintName("FK_Queues_Status");
 
                     b.Navigation("AssignedStaff");
+
+                    b.Navigation("Booking");
 
                     b.Navigation("Branch");
 
@@ -2793,6 +2844,8 @@ namespace Queue.Infrastructure.Migrations
                     b.Navigation("BookingServices");
 
                     b.Navigation("Payments");
+
+                    b.Navigation("Queue");
                 });
 
             modelBuilder.Entity("Queue.Domain.Entities.Customer", b =>

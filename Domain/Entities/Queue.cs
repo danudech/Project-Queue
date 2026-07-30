@@ -11,6 +11,8 @@ public partial class Queue
 
     public int BranchId { get; set; }
 
+    public int? BookingId { get; set; }
+
     public int QueueNumber { get; set; }
 
     public int? ServiceId { get; set; }
@@ -32,6 +34,8 @@ public partial class Queue
     public int? UpdatedBy { get; set; }
 
     public virtual ShopStaff? AssignedStaff { get; set; }
+
+    public virtual Booking? Booking { get; set; }
 
     public virtual ShopBranch Branch { get; set; } = null!;
 

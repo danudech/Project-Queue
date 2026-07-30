@@ -53,7 +53,7 @@ const DashCodeFooter = () => {
                         /> */}
                     </div>
                 </Link>
-                <Link href="notifications">
+                <Link href="/notification">
                     <div>
                         <span
                             className="relative cursor-pointer rounded-full text-[20px] flex flex-col items-center justify-center mb-1"

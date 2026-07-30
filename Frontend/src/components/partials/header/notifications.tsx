@@ -1,85 +1,113 @@
+"use client";
+
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Bell } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Link } from '@/i18n/routing';
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { notifications, type Notification } from "./data";
-import { Icon } from "@/components/ui/icon";
+import { Link, useRouter } from "@/i18n/routing";
+import { http } from "@/lib/http/client";
+import { startRouteLoading } from "@/lib/route-loading";
+import type { NotificationDto } from "@/types/notification";
 
 const Notifications = () => {
-    return (
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <button type="button" className="relative  hidden focus:ring-none focus:outline-none md:h-8 md:w-8 md:bg-secondary   text-secondary-foreground    rounded-full  md:flex flex-col items-center justify-center">
-                    <Icon icon="heroicons-outline:bell" className="animate-tada h-5 w-5" />
-                    <Badge className=" w-4 h-4 p-0 text-[8px] rounded-full  font-semibold  items-center justify-center absolute left-[calc(100%-12px)] bottom-[calc(100%-10px)]" color="destructive">
-                        2
-                    </Badge>
-                </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-                align="end"
-                className=" z-[999] mx-4 lg:w-[320px] p-0"
+  const t = useTranslations("Layout.notifications");
+  const locale = useLocale();
+  const router = useRouter();
+  const [notifications, setNotifications] = useState<NotificationDto[]>([]);
+
+  const load = useCallback(() => {
+    void http.get<NotificationDto[]>("notifications", { params: { limit: 20 } })
+      .then((items) => setNotifications(Array.isArray(items) ? items : []))
+      .catch(() => undefined);
+  }, []);
+
+  useEffect(() => {
+    load();
+    const timer = window.setInterval(load, 15000);
+    return () => window.clearInterval(timer);
+  }, [load]);
+
+  const unreadCount = useMemo(
+    () => notifications.filter((item) => !item.isRead).length,
+    [notifications],
+  );
+
+  const markRead = async (notificationId: number) => {
+    setNotifications((items) => items.map((item) =>
+      item.id === notificationId ? { ...item, isRead: true } : item));
+    try {
+      await http.patch(`/api/notifications/${notificationId}/read`, {});
+    } catch {
+      load();
+    }
+  };
+
+  const openNotification = (item: NotificationDto) => {
+    void markRead(item.id);
+    startRouteLoading();
+    router.push(item.type.startsWith("BOOKING") ? "/booking/list" : "/notification");
+  };
+
+  const markAllRead = async () => {
+    setNotifications((items) => items.map((item) => ({ ...item, isRead: true })));
+    try {
+      await http.patch("notifications", {});
+    } catch {
+      load();
+    }
+  };
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button type="button" aria-label={t("title")} className="relative flex size-9 items-center justify-center rounded-full bg-secondary text-secondary-foreground outline-none transition-colors hover:bg-secondary/80">
+          <Bell className="size-5" />
+          {unreadCount > 0 && (
+            <Badge className="absolute -right-1 -top-1 grid size-4 min-w-4 place-items-center rounded-full p-0 text-[9px] font-semibold" color="destructive">
+              {unreadCount > 9 ? "9+" : unreadCount}
+            </Badge>
+          )}
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="z-[999] mx-3 w-[min(340px,calc(100vw-24px))] p-0">
+        <DropdownMenuLabel className="p-0">
+          <div className="flex items-center justify-between border-b px-4 py-3">
+            <div>
+              <p className="text-sm font-medium">{t("title")}</p>
+              <p className="mt-0.5 text-xs font-normal text-muted-foreground">{t("youHave")} {unreadCount} {t("unread")}</p>
+            </div>
+            {unreadCount > 0 && <button type="button" onClick={markAllRead} className="text-xs font-normal text-primary hover:underline">{t("markAllAsRead")}</button>}
+          </div>
+        </DropdownMenuLabel>
+        <ScrollArea className="h-[min(360px,60vh)]">
+          {notifications.map((item) => (
+            <DropdownMenuItem
+              key={item.id}
+              onSelect={() => openNotification(item)}
+              className={`cursor-pointer gap-3 rounded-none border-b px-4 py-3 last:border-0 ${item.isRead ? "" : "bg-primary/5"}`}
             >
-                <DropdownMenuLabel
-
-
-                >
-                    <div className="flex justify-between px-4 py-3 border-b border-default-100 ">
-                        <div className="text-sm text-default-800  font-medium ">
-                            Notifications
-                        </div>
-                        <div className="text-default-800  text-xs md:text-right">
-                            <Link href="/notifications" className="underline">
-                                View all
-                            </Link>
-                        </div>
-                    </div>
-                </DropdownMenuLabel>
-                <div className="h-[300px] xl:h-[350px]">
-                    <ScrollArea className="h-full">
-                        {notifications.map((item: Notification, index: number) => (
-                            <DropdownMenuItem
-                                key={`inbox-${index}`}
-                                className="flex gap-9 py-2 px-4 cursor-pointer group "
-                            >
-                                <div className="flex items-start gap-2 flex-1">
-                                    <div className="flex-none">
-                                        <Avatar className="h-8 w-8 ">
-                                            <AvatarImage src={item.avatar} />
-                                            <AvatarFallback> {item.title.charAt(0)}</AvatarFallback>
-                                        </Avatar>
-                                    </div>
-                                    <div className="flex-1 flex flex-col gap-0.5">
-                                        <div className="text-sm   text-default-600  dark:group-hover:text-default-800  font-normal   truncate">
-                                            {item.title}
-                                        </div>
-                                        <div className="text-xs text-default-600  dark:group-hover:text-default-700 font-light line-clamp-1  ">
-                                            {item.desc}
-                                        </div>
-                                        <div className=" text-default-400 dark:group-hover:text-default-500  text-xs"> {item.date}</div>
-                                    </div>
-                                </div>
-                                {item.unreadmessage && (
-                                    <div className="flex-0">
-                                        <span className="h-[10px] w-[10px] bg-destructive border border-destructive-foreground dark:border-default-400 rounded-full inline-block" />
-                                    </div>
-                                )}
-
-                            </DropdownMenuItem>
-                        ))}
-                    </ScrollArea>
-                </div>
-
-            </DropdownMenuContent>
-        </DropdownMenu>
-    );
+              <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary/10 text-primary"><Bell className="size-4" /></span>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2"><p className="truncate text-sm font-medium">{item.title}</p>{!item.isRead && <span className="size-2 shrink-0 rounded-full bg-primary" />}</div>
+                <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{item.message}</p>
+                <p className="mt-1 text-[11px] text-muted-foreground">{new Date(item.createdAt).toLocaleString(locale)}</p>
+              </div>
+            </DropdownMenuItem>
+          ))}
+          {!notifications.length && <div className="grid min-h-36 place-items-center px-4 text-sm text-muted-foreground">{t("empty")}</div>}
+        </ScrollArea>
+        <div className="border-t px-4 py-3 text-center"><Link href="/notification" className="text-xs font-medium text-primary hover:underline">{t("viewAll")}</Link></div>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 };
 
 export default Notifications;

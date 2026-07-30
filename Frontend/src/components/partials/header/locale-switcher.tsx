@@ -1,10 +1,7 @@
 'use client';
 
 import { useLocale } from 'next-intl';
-import { useParams } from 'next/navigation';
-import { locales } from '@/config';
-import { usePathname, useRouter } from '@/i18n/routing';
-
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useTransition } from 'react';
 import {
     Select,
@@ -16,22 +13,32 @@ import {
 import Image from 'next/image';
 import { startRouteLoading } from '@/lib/route-loading';
 
-export default function LocalSwitcher() {
+export default function LocalSwitcher({ compact = false }: { compact?: boolean }) {
     const [isPending, startTransition] = useTransition();
     const router = useRouter();
     const pathname = usePathname();
-    const params = useParams();
+    const searchParams = useSearchParams();
     const localActive = useLocale();
 
     const onSelectChange = (nextLocale: string) => {
         startTransition(() => {
+            const segments = pathname.split('/');
+            if (segments[1] === 'th' || segments[1] === 'en') {
+                segments[1] = nextLocale;
+            }
+            const queryString = searchParams.toString();
             startRouteLoading();
-            router.replace(pathname, { locale: nextLocale });
+            router.replace(`${segments.join('/')}${queryString ? `?${queryString}` : ''}`);
         });
     };
     return (
-        <Select onValueChange={onSelectChange} defaultValue={localActive}>
-            <SelectTrigger className='w-[94px] border-none read-only:bg-transparent'>
+        <Select onValueChange={onSelectChange} value={localActive} disabled={isPending}>
+            <SelectTrigger
+                aria-label="Language"
+                className={compact
+                    ? 'w-[62px] border-none px-2 read-only:bg-transparent [&>span>div>span]:hidden'
+                    : 'w-[94px] border-none read-only:bg-transparent'}
+            >
                 <SelectValue placeholder="Select a language" />
             </SelectTrigger>
             <SelectContent >

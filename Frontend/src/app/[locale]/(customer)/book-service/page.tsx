@@ -46,7 +46,7 @@ export default function BookingPage() {
     setLoading(true);
     Promise.all([
       http.get<StaffMember[]>("staff", { params: { branchId, serviceId, eligible: true } }),
-      http.get<AvailableSlotDto[]>("slots", { params: { branchId, date } }),
+      http.get<AvailableSlotDto[]>("slots", { params: { branchId, date, serviceId } }),
     ]).then(([staffData, slotData]) => { setStaff(staffData); setSlots(slotData); setStaffId(0); setSlotId(0); })
       .catch(() => toast.error(t("loadError"))).finally(() => setLoading(false));
   }, [branchId, serviceId, date, t]);

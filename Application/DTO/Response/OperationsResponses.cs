@@ -35,6 +35,7 @@ public sealed class BookingResponse
     public string CustomerName { get; set; } = string.Empty;
     public int? StaffId { get; set; }
     public string? StaffName { get; set; }
+    public int? QueueId { get; set; }
     public string Status { get; set; } = string.Empty;
     public string? Remark { get; set; }
 }
@@ -44,6 +45,7 @@ public sealed class QueueResponse
     public int Id { get; set; }
     public Guid Guid { get; set; }
     public int BranchId { get; set; }
+    public int? BookingId { get; set; }
     public int QueueNumber { get; set; }
     public int? ServiceId { get; set; }
     public string? ServiceName { get; set; }

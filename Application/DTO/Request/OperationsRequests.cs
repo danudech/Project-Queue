@@ -37,6 +37,20 @@ public sealed class CreateBookingRequest
     public int QueueSlotId { get; set; }
     public int? StaffId { get; set; }
     public string? Remark { get; set; }
+    public string? GuestName { get; set; }
+    public string? GuestPhone { get; set; }
+    public string? GuestEmail { get; set; }
+}
+
+public sealed class CreatePublicBookingRequest
+{
+    public int ServiceId { get; set; }
+    public int QueueSlotId { get; set; }
+    public int? StaffId { get; set; }
+    public string GuestName { get; set; } = string.Empty;
+    public string GuestPhone { get; set; } = string.Empty;
+    public string? GuestEmail { get; set; }
+    public string? Remark { get; set; }
 }
 
 public sealed class CreateQueueRequest

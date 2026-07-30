@@ -2,8 +2,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using Microsoft.AspNetCore.RateLimiting;
 using Serilog;
 using Serilog.Filters;
+using System.Threading.RateLimiting;
 using System.Text;
 using Queue.Infrastructure.Persistence;
 using Queue.Api.Middlewares.Logging;
@@ -19,6 +21,28 @@ DotNetEnv.Env.Load();
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("public-booking-read", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 90,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
+    options.AddPolicy("public-booking-write", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 8,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
+});
 
 #region  JWT
 string jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? throw new InvalidOperationException("Jwt:Issuer is missing in configuration.");
@@ -143,6 +167,8 @@ builder.Services.AddScoped<AccountShopGuard>();
 builder.Services.AddScoped<PermissionScopeService>();
 builder.Services.AddScoped<IManageCustomer, ManageCustomer>();
 builder.Services.AddScoped<IOperations, Operations>();
+builder.Services.AddScoped<IPublicBooking, PublicBooking>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IRoleManagement, RoleManagement>();
 #endregion
 
@@ -157,6 +183,7 @@ app.UseCors("Cors");
 app.UseStaticFiles();
 
 app.UseMiddleware<LoggingMiddleware>();
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 

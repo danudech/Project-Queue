@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Queue.Application.DTO.Request;
@@ -163,7 +164,9 @@ public sealed class ManageShop : IManageShop
             // 1. สร้าง Shop หลัก
             Shop newShop = new Shop
             {
+                Guid = Guid.NewGuid(),
                 Name = request.ShopName,
+                PublicSlug = CreatePublicSlug(request.ShopName),
                 OwnerId = userId,
                 TypeId = int.Parse(request.ShopType),
                 StatusId = 3, // กำหนดสถานะเริ่มต้น
@@ -192,6 +195,9 @@ public sealed class ManageShop : IManageShop
             ShopBranch newBranch = new ShopBranch
             {
                 Guid = Guid.NewGuid(),
+                PublicBookingId = Guid.NewGuid(),
+                IsOnlineBookingEnabled = true,
+                IsActive = true,
                 ShopId = newShop.Id,
                 Name = request.Branch?.BranchName ?? "Main Branch",
                 Phone = request.Branch?.BranchPhone ?? string.Empty,
@@ -210,6 +216,7 @@ public sealed class ManageShop : IManageShop
                     DayOfWeek = h.DayOfWeek,
                     OpenTime = TimeOnly.Parse(h.OpenTime),
                     CloseTime = TimeOnly.Parse(h.CloseTime),
+                    IsActive = h.IsOpen,
                     CreatedBy = userId,
                     CreatedAt = _dateTime.LocalNow()
                 }).ToList();
@@ -261,6 +268,9 @@ public sealed class ManageShop : IManageShop
             ShopBranch newBranch = new ShopBranch
             {
                 Guid = Guid.NewGuid(),
+                PublicBookingId = Guid.NewGuid(),
+                IsOnlineBookingEnabled = true,
+                IsActive = true,
                 ShopId = shop.Id,
                 Name = request.Branch?.BranchName ?? "New Branch",
                 Phone = request.Branch?.BranchPhone ?? string.Empty,
@@ -274,6 +284,7 @@ public sealed class ManageShop : IManageShop
                 DayOfWeek = h.DayOfWeek,
                 OpenTime = TimeOnly.Parse(h.OpenTime),
                 CloseTime = TimeOnly.Parse(h.CloseTime),
+                IsActive = h.IsOpen,
                 CreatedAt = _dateTime.LocalNow()
             }).ToList();
 
@@ -916,6 +927,12 @@ public sealed class ManageShop : IManageShop
                 branchUpdated = true;
             }
 
+            if (request.IsOnlineBookingEnabled.HasValue)
+            {
+                branch.IsOnlineBookingEnabled = request.IsOnlineBookingEnabled.Value;
+                branchUpdated = true;
+            }
+
             if (!string.IsNullOrEmpty(request.BranchName))
             {
                 branch.Name = request.BranchName;
@@ -1170,6 +1187,7 @@ public sealed class ManageShop : IManageShop
     {
         Id = shop.Id,
         Name = shop.Name ?? string.Empty,
+        PublicSlug = shop.PublicSlug,
         Type = shop.TypeId.ToString() ?? string.Empty,
         OwnerId = shop.OwnerId,
         Status = shop.StatusId,
@@ -1184,6 +1202,9 @@ public sealed class ManageShop : IManageShop
         ShopBranches = shop.ShopBranches?.Where(b => b.IsActive && (branchId == 0 || b.Id == branchId)).Select(b => new BranchDto
         {
             Id = b.Id,
+            Guid = b.Guid,
+            PublicBookingId = b.PublicBookingId,
+            IsOnlineBookingEnabled = b.IsOnlineBookingEnabled,
             Name = b.Name ?? string.Empty,
             Phone = b.Phone ?? string.Empty,
             Address = MapAddress(b.Address),
@@ -1210,6 +1231,15 @@ public sealed class ManageShop : IManageShop
             IsActive = s.IsActive
         }).ToList() ?? new()
     };
+
+    private static string CreatePublicSlug(string shopName)
+    {
+        string baseSlug = Regex.Replace(shopName.Trim().ToLowerInvariant(), @"[^a-z0-9]+", "-").Trim('-');
+        if (string.IsNullOrWhiteSpace(baseSlug))
+            baseSlug = "ezqueue";
+        baseSlug = baseSlug[..Math.Min(baseSlug.Length, 160)];
+        return $"{baseSlug}-{Guid.NewGuid():N}"[..(baseSlug.Length + 9)];
+    }
 
     private static AddressDto? MapAddress(Address? address)
     {
