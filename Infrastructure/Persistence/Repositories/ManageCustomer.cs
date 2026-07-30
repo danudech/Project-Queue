@@ -16,9 +16,16 @@ public sealed class ManageCustomer : IManageCustomer
     private readonly ICrudService _crud;
     private readonly IConfiguration _config;
     private readonly DateTimeService _dateTime;
+    private readonly PermissionScopeService _permissions;
 
 
-    public ManageCustomer(IActionLog actionLog, QueueDbContext db, ICrudService crud, IConfiguration config, DateTimeService dateTime)
+    public ManageCustomer(
+        IActionLog actionLog,
+        QueueDbContext db,
+        ICrudService crud,
+        IConfiguration config,
+        DateTimeService dateTime,
+        PermissionScopeService permissions)
 
     {
         _actionLog = actionLog;
@@ -26,6 +33,7 @@ public sealed class ManageCustomer : IManageCustomer
         _config = config;
         _dateTime = dateTime;
         _crud = crud;
+        _permissions = permissions;
 
     }
 
@@ -35,12 +43,16 @@ public sealed class ManageCustomer : IManageCustomer
         {
             _actionLog.Info("Fetching customer data (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, userAgent);
 
+            List<int> shopIds = await _permissions.GetPermittedShopIdsAsync(
+                userId,
+                "customer.view",
+                ct);
             List<Customer> customers = await _db.Customers
                 .AsNoTracking()
                 .Include(c => c.CustomerTagMaps)
                     .ThenInclude(ctm => ctm.Tag)
                 .Include(c => c.CustomerNotes)
-                .Where(c => c.UserId == userId)
+                .Where(c => shopIds.Contains(c.ShopId))
                 .ToListAsync(ct);
 
             if (customers == null || !customers.Any())
@@ -75,7 +87,7 @@ public sealed class ManageCustomer : IManageCustomer
         catch (Exception ex)
         {
             _actionLog.Error(ex, "Error fetching customer data (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, userAgent);
-            return new List<CustomerResponse>();
+            throw;
         }
     }
 
@@ -84,6 +96,7 @@ public sealed class ManageCustomer : IManageCustomer
         try
         {
             _actionLog.Info("Creating new customer (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, userAgent);
+            await _permissions.EnsureShopAsync(userId, request.ShopId, "customer.manage", ct);
 
             Customer newCustomer = new Customer
             {
@@ -166,13 +179,14 @@ public sealed class ManageCustomer : IManageCustomer
 
             Customer? existingCustomer = await _db.Customers
                 .Include(c => c.CustomerTagMaps)
-                .FirstOrDefaultAsync(c => c.Id == request.Id && c.UserId == userId, ct);
+                .FirstOrDefaultAsync(c => c.Id == request.Id, ct);
 
             if (existingCustomer == null)
             {
                 _actionLog.Warning("Customer not found for update (UserId={UserId}, CustomerId={CustomerId}, IP={IP}, UserAgent={UserAgent})", userId, request.Id ?? 0, ip, userAgent);
-                throw new Exception("Customer not found");
+                throw new KeyNotFoundException("Customer not found");
             }
+            await _permissions.EnsureShopAsync(userId, existingCustomer.ShopId, "customer.manage", ct);
 
             existingCustomer.Name = request.Name;
             existingCustomer.Phone = request.Phone;
@@ -271,8 +285,9 @@ public sealed class ManageCustomer : IManageCustomer
             if (existingCustomer == null)
             {
                 _actionLog.Warning("Customer not found for deletion (UserId={UserId}, CustomerId={CustomerId}, IP={IP}, UserAgent={UserAgent})", userId, customerId, ip, userAgent);
-                throw new Exception("Customer not found");
+                throw new KeyNotFoundException("Customer not found");
             }
+            await _permissions.EnsureShopAsync(userId, existingCustomer.ShopId, "customer.manage", ct);
 
             List<CustomerTagMap> tagMaps = await _db.CustomerTagMaps.Where(tm => tm.CustomerId == customerId).ToListAsync(ct);
             _db.CustomerTagMaps.RemoveRange(tagMaps);
@@ -280,6 +295,7 @@ public sealed class ManageCustomer : IManageCustomer
             List<CustomerNote> notes = await _db.CustomerNotes.Where(n => n.CustomerId == customerId).ToListAsync(ct);
             _db.CustomerNotes.RemoveRange(notes);
             _db.Customers.Remove(existingCustomer);
+            await _db.SaveChangesAsync(ct);
         }
         catch (Exception ex)
         {
@@ -322,4 +338,5 @@ public sealed class ManageCustomer : IManageCustomer
             return new List<CustomerTag>();
         }
     }
+
 }

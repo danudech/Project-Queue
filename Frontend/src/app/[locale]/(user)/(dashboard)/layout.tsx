@@ -8,10 +8,12 @@ import LayoutContentProvider from "@/providers/content.provider";
 import LayoutProvider from "@/providers/layout.provider";
 import SiteBreadcrumb from "@/components/site-breadcrumb";
 import { StoreSyncProvider } from "@/components/providers/store-sync-provider";
+import DashboardAccessGate from "@/components/permissions/dashboard-access-gate";
 
 export const metadata: Metadata = {
+    metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3103"),
     title: "EZQueue User Dashboard",
-    description: "EZQueue is a popular dashboard template.",
+    description: "Manage queues, bookings, staff, and branch operations with EZQueue.",
 };
 
 export default function DashboardLayout({ children }: any) {
@@ -25,7 +27,7 @@ export default function DashboardLayout({ children }: any) {
                     <LayoutContentProvider>
                         <div>
                             <SiteBreadcrumb />
-                            {children}
+                            <DashboardAccessGate>{children}</DashboardAccessGate>
                         </div>
                     </LayoutContentProvider>
                     <DashCodeFooter />

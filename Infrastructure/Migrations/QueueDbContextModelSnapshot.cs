@@ -1266,9 +1266,10 @@ namespace Queue.Infrastructure.Migrations
                     b.HasIndex(new[] { "Guid" }, "IX_Shops_Guid")
                         .IsUnique();
 
-                    b.HasIndex(new[] { "OwnerId" }, "IX_Shops_OwnerId");
-
                     b.HasIndex(new[] { "TypeId" }, "IX_Shops_TypeId");
+
+                    b.HasIndex(new[] { "OwnerId" }, "UX_Shops_OwnerId")
+                        .IsUnique();
 
                     b.ToTable("Shops");
                 });
@@ -1626,6 +1627,10 @@ namespace Queue.Infrastructure.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
+                    b.Property<string>("ProfilePictureUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<string>("Role")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -1633,6 +1638,10 @@ namespace Queue.Infrastructure.Migrations
 
                     b.Property<int>("ShopId")
                         .HasColumnType("int");
+
+                    b.Property<string>("SystemRoleCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -1857,6 +1866,9 @@ namespace Queue.Infrastructure.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasDefaultValueSql("(newid())");
 
+                    b.Property<int?>("HomeShopId")
+                        .HasColumnType("int");
+
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
@@ -1885,6 +1897,8 @@ namespace Queue.Infrastructure.Migrations
 
                     b.HasIndex(new[] { "Guid" }, "IX_Users_Guid")
                         .IsUnique();
+
+                    b.HasIndex(new[] { "HomeShopId" }, "IX_Users_HomeShopId");
 
                     b.HasIndex(new[] { "StatusId" }, "IX_Users_StatusId");
 
@@ -2697,11 +2711,19 @@ namespace Queue.Infrastructure.Migrations
 
             modelBuilder.Entity("Queue.Domain.Entities.User", b =>
                 {
+                    b.HasOne("Queue.Domain.Entities.Shop", "HomeShop")
+                        .WithMany()
+                        .HasForeignKey("HomeShopId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_Users_HomeShop");
+
                     b.HasOne("Queue.Domain.Entities.MasterStatus", "Status")
                         .WithMany("Users")
                         .HasForeignKey("StatusId")
                         .IsRequired()
                         .HasConstraintName("FK_Users_Status");
+
+                    b.Navigation("HomeShop");
 
                     b.Navigation("Status");
                 });

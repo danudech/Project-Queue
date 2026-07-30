@@ -5,6 +5,7 @@ export async function generateMetadata() {
   const title = t("metadataTitle");
   const description = t("metadataDescription");
   return {
+    metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3103"),
     title,
     description,
     openGraph: { title, description },

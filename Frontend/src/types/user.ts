@@ -10,6 +10,7 @@ export type ProfileUser = {
   email: string;
   status: string;
   role: string;
+  permissions: string[];
   profilePictureUrl: string;
   isChangPassword: boolean;
 };

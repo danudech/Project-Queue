@@ -29,8 +29,12 @@ export type Group = {
   id: string;
 };
 
-export function getMenuList(pathname: string, t: any): Group[] {
-  return [
+export function getMenuList(
+  pathname: string,
+  t: any,
+  permissions: readonly string[] = [],
+): Group[] {
+  const groups: Group[] = [
     // ─────────────────────────────────────────
     // Overview
     // ─────────────────────────────────────────
@@ -322,55 +326,46 @@ export function getMenuList(pathname: string, t: any): Group[] {
       ],
     },
   ];
+
+  return groups
+    .map((group) => ({
+      ...group,
+      menus: group.menus
+        .map((menu) => {
+          const submenus = menu.submenus.filter((submenu) => {
+            const rule = accessRuleForPath(submenu.href);
+            return Boolean(rule && hasPermission(permissions, rule.permission));
+          });
+          const directRule = accessRuleForPath(menu.href);
+          const isAccountAction =
+            menu.id === "logout" || menu.id === "profile";
+          if (
+            submenus.length === 0
+            && !isAccountAction
+            && (!directRule
+              || !hasPermission(permissions, directRule.permission))
+          ) {
+            return null;
+          }
+          return {
+            ...menu,
+            href: submenus[0]?.href ?? menu.href,
+            submenus,
+          };
+        })
+        .filter((menu): menu is Menu => menu !== null),
+    }))
+    .filter((group) => group.menus.length > 0);
 }
 
-export function getHorizontalMenuList(pathname: string, t: any): Group[] {
-  return [
-    {
-      groupLabel: "",
-      id: "main",
-      menus: [
-        {
-          id: "dashboard",
-          href: "/dashboard",
-          label: t("dashboard"),
-          active: pathname === "/dashboard" || pathname.startsWith("/analytics"),
-          icon: "heroicons-outline:squares-2x2",
-          submenus: [],
-        },
-        {
-          id: "operations-top",
-          href: "/queue/live",
-          label: t("operations"),
-          active: pathname.startsWith("/queue") || pathname.startsWith("/booking"),
-          icon: "heroicons-outline:queue-list",
-          submenus: [],
-        },
-        {
-          id: "business-top",
-          href: "/service/list",
-          label: t("business"),
-          active: pathname.startsWith("/service") || pathname.startsWith("/customer"),
-          icon: "heroicons-outline:briefcase",
-          submenus: [],
-        },
-        {
-          id: "finance-top",
-          href: "/payment/list",
-          label: t("finance"),
-          active: pathname.startsWith("/payment") || pathname.startsWith("/subscription") || pathname.startsWith("/invoice"),
-          icon: "heroicons-outline:credit-card",
-          submenus: [],
-        },
-        {
-          id: "admin-top",
-          href: "/setting/shop",
-          label: t("administration"),
-          active: pathname.startsWith("/setting") || pathname.startsWith("/system"),
-          icon: "heroicons-outline:cog-6-tooth",
-          submenus: [],
-        },
-      ],
-    },
-  ];
+export function getHorizontalMenuList(
+  pathname: string,
+  t: any,
+  permissions: readonly string[] = [],
+): Group[] {
+  return getMenuList(pathname, t, permissions).map((group) => ({
+    ...group,
+    menus: group.menus.map((menu) => ({ ...menu, submenus: [] })),
+  }));
 }
+import { accessRuleForPath, hasPermission } from "@/lib/permissions";

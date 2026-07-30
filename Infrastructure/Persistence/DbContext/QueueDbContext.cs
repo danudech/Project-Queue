@@ -605,7 +605,7 @@ public partial class QueueDbContext : DbContext
         {
             entity.HasIndex(e => e.Guid, "IX_Shops_Guid").IsUnique();
 
-            entity.HasIndex(e => e.OwnerId, "IX_Shops_OwnerId");
+            entity.HasIndex(e => e.OwnerId, "UX_Shops_OwnerId").IsUnique();
 
             entity.HasIndex(e => e.TypeId, "IX_Shops_TypeId");
 
@@ -627,6 +627,17 @@ public partial class QueueDbContext : DbContext
             entity.HasOne(d => d.Type).WithMany(p => p.ShopTypes)
                 .HasForeignKey(d => d.TypeId)
                 .HasConstraintName("FK_Shops_Type");
+        });
+
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.HasIndex(e => e.HomeShopId, "IX_Users_HomeShopId");
+
+            entity.HasOne(d => d.HomeShop)
+                .WithMany()
+                .HasForeignKey(d => d.HomeShopId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_Users_HomeShop");
         });
 
         modelBuilder.Entity<ShopBranch>(entity =>
@@ -744,7 +755,9 @@ public partial class QueueDbContext : DbContext
             entity.Property(e => e.IsAvailable).HasDefaultValue(true);
             entity.Property(e => e.Name).HasMaxLength(150);
             entity.Property(e => e.Phone).HasMaxLength(20);
+            entity.Property(e => e.ProfilePictureUrl).HasMaxLength(500);
             entity.Property(e => e.Role).HasMaxLength(50);
+            entity.Property(e => e.SystemRoleCode).HasMaxLength(50);
 
             entity.HasOne(d => d.Branch).WithMany(p => p.ShopStaffs)
                 .HasForeignKey(d => d.BranchId)

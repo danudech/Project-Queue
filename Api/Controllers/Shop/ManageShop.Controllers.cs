@@ -11,11 +11,12 @@ using Queue.Application.DTO.Response;
 using Queue.Application.Interfaces;
 using Queue.Domain.Entities;
 using Queue.Infrastructure.Service;
+using Queue.Api.Authorization;
 namespace Queue.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/shop")]
-public class ManageShopController : ControllerBase
+public class ManageShopController : QueueControllerBase
 {
     private readonly IManageShop _shop;
     private readonly IActionLog _actionLog;
@@ -31,6 +32,7 @@ public class ManageShopController : ControllerBase
     }
 
     [Authorize]
+    [RequirePermission("shop.view|branch.view")]
     [HttpGet("get-shop")]
     public async Task<ActionResult<ApiResponse<ShopResponse?>>> GetShop([FromQuery] int BranchId, CancellationToken ct)
     {
@@ -51,7 +53,7 @@ public class ManageShopController : ControllerBase
         catch (Exception ex)
         {
             _actionLog.Error(ex, "Get shop failed (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, ua);
-            return StatusCode(500, ApiResponse<ShopResponse>.Fail(ex.Message));
+            return Failure<ShopResponse?>(ex);
         }
     }
 
@@ -76,11 +78,12 @@ public class ManageShopController : ControllerBase
         catch (Exception ex)
         {
             _actionLog.Error(ex, "Get shop type failed (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, ua);
-            return StatusCode(500, ApiResponse<List<MasterStatus>>.Fail(ex.Message));
+            return Failure<List<MasterStatus>>(ex);
         }
     }
 
     [Authorize]
+    [RequirePermission("shop.edit")]
     [HttpPut("update-shop")]
     public async Task<ActionResult<ApiResponse<ShopResponse?>>> UpdateShop([FromForm] UpdateShopRequest request, CancellationToken ct)
     {
@@ -106,11 +109,12 @@ public class ManageShopController : ControllerBase
         catch (Exception ex)
         {
             _actionLog.Error(ex, "Update shop failed (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, ua);
-            return StatusCode(500, ApiResponse<ShopResponse?>.Fail(ex.Message));
+            return Failure<ShopResponse?>(ex);
         }
     }
 
     [Authorize]
+    [RequirePermission("branch.edit")]
     [HttpPut("update-branch")]
     public async Task<ActionResult<ApiResponse<ShopResponse?>>> UpdateBranch([FromForm] UpdateBranchRequest request, CancellationToken ct)
     {
@@ -136,19 +140,22 @@ public class ManageShopController : ControllerBase
         catch (Exception ex)
         {
             _actionLog.Error(ex, "Update branch failed (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, ua);
-            return StatusCode(500, ApiResponse<ShopResponse?>.Fail(ex.Message));
+            return Failure<ShopResponse?>(ex);
         }
     }
 
     [Authorize]
+    [RequirePermission("setting.view")]
     [HttpGet("business-hours")]
     public async Task<ActionResult<ApiResponse<List<BusinessHourResponse>>>> GetBusinessHours([FromQuery] int branchId, CancellationToken ct)
     {
-        var result = await _shop.GetBusinessHours(branchId, ct);
+        int userId = int.Parse(User.FindFirst("uid")?.Value ?? "0");
+        var result = await _shop.GetBusinessHours(userId, branchId, ct);
         return Ok(ApiResponse<List<BusinessHourResponse>>.Ok(result));
     }
 
     [Authorize]
+    [RequirePermission("setting.edit")]
     [HttpPut("business-hours")]
     public async Task<ActionResult<ApiResponse<List<BusinessHourResponse>>>> UpdateBusinessHours([FromBody] UpdateBusinessHoursRequest request, CancellationToken ct)
     {
@@ -163,19 +170,22 @@ public class ManageShopController : ControllerBase
         catch (Exception ex)
         {
             _actionLog.Error(ex, "Update business hours failed (UserId={UserId})", userId);
-            return StatusCode(500, ApiResponse<List<BusinessHourResponse>>.Fail(ex.Message));
+            return Failure<List<BusinessHourResponse>>(ex);
         }
     }
 
     [Authorize]
+    [RequirePermission("setting.view")]
     [HttpGet("holidays")]
     public async Task<ActionResult<ApiResponse<List<HolidayResponse>>>> GetHolidays([FromQuery] int branchId, CancellationToken ct)
     {
-        var result = await _shop.GetHolidays(branchId, ct);
+        int userId = int.Parse(User.FindFirst("uid")?.Value ?? "0");
+        var result = await _shop.GetHolidays(userId, branchId, ct);
         return Ok(ApiResponse<List<HolidayResponse>>.Ok(result));
     }
 
     [Authorize]
+    [RequirePermission("setting.edit")]
     [HttpPost("holidays")]
     public async Task<ActionResult<ApiResponse<HolidayResponse?>>> AddHoliday([FromBody] AddHolidayRequest request, CancellationToken ct)
     {
@@ -191,11 +201,12 @@ public class ManageShopController : ControllerBase
         catch (Exception ex)
         {
             _actionLog.Error(ex, "Add holiday failed (UserId={UserId})", userId);
-            return StatusCode(500, ApiResponse<HolidayResponse?>.Fail(ex.Message));
+            return Failure<HolidayResponse?>(ex);
         }
     }
 
     [Authorize]
+    [RequirePermission("setting.edit")]
     [HttpDelete("holidays")]
     public async Task<ActionResult<ApiResponse<bool>>> DeleteHoliday([FromQuery] int holidayId, CancellationToken ct)
     {
@@ -211,26 +222,29 @@ public class ManageShopController : ControllerBase
         catch (Exception ex)
         {
             _actionLog.Error(ex, "Delete holiday failed (UserId={UserId})", userId);
-            return StatusCode(500, ApiResponse<bool>.Fail(ex.Message));
+            return Failure<bool>(ex);
         }
     }
 
     [Authorize]
+    [RequirePermission("setting.view")]
     [HttpGet("queue-rules")]
     public async Task<ActionResult<ApiResponse<QueueRulesResponse>>> GetQueueRules([FromQuery] int branchId, CancellationToken ct)
     {
         try
         {
-            var result = await _shop.GetQueueRules(branchId, ct);
+            int userId = int.Parse(User.FindFirst("uid")?.Value ?? "0");
+            var result = await _shop.GetQueueRules(userId, branchId, ct);
             return Ok(ApiResponse<QueueRulesResponse>.Ok(result));
         }
         catch (Exception ex)
         {
-            return StatusCode(500, ApiResponse<QueueRulesResponse>.Fail(ex.Message));
+            return Failure<QueueRulesResponse>(ex);
         }
     }
 
     [Authorize]
+    [RequirePermission("setting.edit")]
     [HttpPut("queue-rules")]
     public async Task<ActionResult<ApiResponse<QueueRulesResponse>>> UpdateQueueRules([FromBody] UpdateQueueRulesRequest request, CancellationToken ct)
     {
@@ -245,7 +259,7 @@ public class ManageShopController : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode(500, ApiResponse<QueueRulesResponse>.Fail(ex.Message));
+            return Failure<QueueRulesResponse>(ex);
         }
     }
 }

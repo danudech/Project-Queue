@@ -51,7 +51,7 @@ public class UserController : ControllerBase
         catch (Exception ex)
         {
             _actionLog.Error(ex, "ChangePassword failed");
-            return StatusCode(500, ApiResponse<bool>.Fail(ex.Message));
+            return StatusCode(500, ApiResponse<bool>.Fail("An unexpected error occurred."));
         }
     }
 
@@ -75,7 +75,7 @@ public class UserController : ControllerBase
         catch (Exception ex)
         {
             _actionLog.Error(ex, "UpdateProfile failed");
-            return StatusCode(500, ApiResponse<bool>.Fail(ex.Message));
+            return StatusCode(500, ApiResponse<bool>.Fail("An unexpected error occurred."));
         }
     }
 
@@ -85,6 +85,18 @@ public class UserController : ControllerBase
     {
         try
         {
+            int authenticatedUserId = int.TryParse(
+                User.FindFirst("uid")?.Value ?? User.FindFirst("id")?.Value,
+                out int parsedUserId)
+                ? parsedUserId
+                : 0;
+            if (authenticatedUserId == 0)
+                return Unauthorized(ApiResponse<bool>.Fail("Unauthorized"));
+            if (authenticatedUserId != userId)
+                return StatusCode(
+                    StatusCodes.Status403Forbidden,
+                    ApiResponse<bool>.Fail("You can only delete your own account."));
+
             _actionLog.Info("DeleteUser request (UserId={UserId})", userId);
             
             bool result = await _user.DeleteUser(userId, ct);
@@ -96,7 +108,7 @@ public class UserController : ControllerBase
         catch (Exception ex)
         {
             _actionLog.Error(ex, "DeleteUser failed (UserId={UserId})", userId);
-            return StatusCode(500, ApiResponse<bool>.Fail(ex.Message));
+            return StatusCode(500, ApiResponse<bool>.Fail("An unexpected error occurred."));
         }
     }
 }

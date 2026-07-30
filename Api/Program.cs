@@ -138,8 +138,12 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IManageShop, ManageShop>();
 builder.Services.AddScoped<IAddress, AddressRepository>();
 builder.Services.AddSingleton<DateTimeService>();
+builder.Services.AddScoped<RoleClaimsService>();
+builder.Services.AddScoped<AccountShopGuard>();
+builder.Services.AddScoped<PermissionScopeService>();
 builder.Services.AddScoped<IManageCustomer, ManageCustomer>();
 builder.Services.AddScoped<IOperations, Operations>();
+builder.Services.AddScoped<IRoleManagement, RoleManagement>();
 #endregion
 
 var app = builder.Build();

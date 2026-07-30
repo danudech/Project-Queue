@@ -43,9 +43,10 @@ import { z } from "zod"
 import { ServiceCategoryType } from "@/types/shop/catgory"
 import { getColumns } from "./columns"
 import { useShop } from "@/hooks/use-me"
+import { usePermissions } from "@/hooks/use-permissions"
 import { http } from "@/lib/http/client"
 import toast from "react-hot-toast"
-import { storage } from "@/services/localstorage"
+import { resolveActiveBranchId } from "@/lib/active-branch"
 import { useTranslations } from "next-intl"
 
 const getFormSchema = (t: any) => z.object({
@@ -71,6 +72,10 @@ const ServiceCategoryPage = () => {
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 
     const { data: shopData, isLoading } = useShop();
+    const { can } = usePermissions();
+    const canCreateService = can("service.create");
+    const canEditService = can("service.edit");
+    const canDeleteService = can("service.delete");
 
     const form = useForm<FormValues>({
         resolver: zodResolver(getFormSchema(t)) as any,
@@ -80,15 +85,15 @@ const ServiceCategoryPage = () => {
     React.useEffect(() => {
         const fetchData = async () => {
             try {
-                const branch: number | null = await storage.get("branch") || shopData?.shopBranches?.[0]?.id || null;
                 if (shopData) {
+                    const branch = await resolveActiveBranchId(shopData.shopBranches);
                     const shopcategory = await http.get<ServiceCategoryType[]>("shopcategory", {
                         params: {
                             shopId: shopData.id,
                             branchId: branch
                         },
                     });
-                    setTableData(shopcategory);
+                    setTableData(Array.isArray(shopcategory) ? shopcategory : []);
                 }
             } catch (error) {
                 toast.error(tc("error.loadFailed"));
@@ -148,7 +153,7 @@ const ServiceCategoryPage = () => {
         if (!shopData) return;
 
         try {
-            const branch: number | null = await storage.get("branch") || shopData?.shopBranches?.[0]?.id || null;
+            const branch = await resolveActiveBranchId(shopData.shopBranches);
             if (editTarget) {
                 const update = await http.put<ServiceCategoryType>("shopcategory", {
                     id: editTarget.id,
@@ -221,6 +226,8 @@ const ServiceCategoryPage = () => {
             openEdit,
             deleteRow,
             toggleStatus,
+            canEdit: canEditService,
+            canDelete: canDeleteService,
         },
     })
 
@@ -232,8 +239,8 @@ const ServiceCategoryPage = () => {
                 searchPlaceholder={t("toolbar.search")}
                 searchValue={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
                 onSearchChange={(val) => table.getColumn("name")?.setFilterValue(val)}
-                onAddClick={openAdd}
-                addButtonText={t("toolbar.add")}
+                onAddClick={canCreateService ? openAdd : undefined}
+                addButtonText={canCreateService ? t("toolbar.add") : undefined}
             />
 
             {/* 2. Standard Table */}

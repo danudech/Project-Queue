@@ -7,6 +7,7 @@ import { Building2, Loader2, MapPin, Phone, ChevronDown, Check, Store, X } from 
 import { Icon } from "@/components/ui/icon";
 import Image from "next/image";
 import { useShop } from "@/hooks/use-me";
+import { usePermissions } from "@/hooks/use-permissions";
 import { AddressDto, BranchDto } from "@/types/shop/shop-responsd";
 import { storage } from "@/services/localstorage";
 import z from "zod";
@@ -74,6 +75,8 @@ const defaultValues: BranchValues = {
 const SettingShopBranchPage = () => {
   const t = useTranslations("Settings.branch");
   const { data: shopData, isLoading } = useShop();
+  const { can } = usePermissions();
+  const canEditBranch = can("branch.edit");
 
   const [isOpen, setIsOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -225,6 +228,7 @@ const SettingShopBranchPage = () => {
   // ── Submit handler ──────────────────────────────────────────────────────────
   const handleSave = useCallback(
     form.handleSubmit(async (values) => {
+      if (!canEditBranch) return;
       setIsSaving(true);
       try {
         if (!selectedBranch) return;
@@ -608,7 +612,7 @@ const SettingShopBranchPage = () => {
                   <X className="h-3.5 w-3.5" />{t("reset")}</button>
                 <button
                   type="submit"
-                  disabled={isSaving}
+                  disabled={isSaving || !canEditBranch}
                   className={[
                     "inline-flex h-9 items-center gap-2 rounded-md px-4 text-sm font-medium text-white transition-all disabled:cursor-not-allowed disabled:opacity-60",
                     saveSuccess

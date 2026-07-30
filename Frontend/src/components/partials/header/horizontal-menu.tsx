@@ -23,6 +23,7 @@ import {
   MenubarTrigger,
 } from "@/components/ui/menubar"
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { usePermissions } from "@/hooks/use-permissions";
 
 export default function HorizontalMenu() {
 
@@ -31,7 +32,8 @@ export default function HorizontalMenu() {
   const t = useTranslations("Menu");
   const pathname = usePathname();
 
-  const menuList = getHorizontalMenuList(pathname, t)
+  const { permissions } = usePermissions();
+  const menuList = getHorizontalMenuList(pathname, t, permissions)
 
   const [openDropdown, setOpenDropdown] = React.useState<boolean>(false);
 
@@ -123,4 +125,3 @@ export default function HorizontalMenu() {
     </div>
   );
 }
-

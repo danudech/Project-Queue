@@ -52,11 +52,13 @@ import { useTranslations } from 'next-intl';
 import { useParams } from 'next/navigation'
 import { getLangDir } from 'rtl-detect';
 import { CSS } from "@dnd-kit/utilities";
+import { usePermissions } from '@/hooks/use-permissions';
 
 export function MenuDragAble() {
     const t = useTranslations("Menu")
     const pathname = usePathname();
-    const menuList = getMenuList(pathname, t);
+    const { permissions } = usePermissions();
+    const menuList = getMenuList(pathname, t, permissions);
     const [config, setConfig] = useConfig()
     const collapsed = config.collapsed
 
@@ -65,6 +67,9 @@ export function MenuDragAble() {
     // for dnd 
     // reorder rows after drag & drop
     const [data, setData] = React.useState(menuList);
+    React.useEffect(() => {
+        setData(getMenuList(pathname, t, permissions));
+    }, [pathname, permissions, t]);
 
     const dataIds = React.useMemo<UniqueIdentifier[]>(
         () => data.flatMap(group => group.menus.map(menu => menu.id)), [data]

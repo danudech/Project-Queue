@@ -50,7 +50,12 @@ const RegForm = () => {
       setLoading(true);
 
       const login = await http.post<UserRegisterResponse>("userregister", data);
-      const message = login.code === "success" ? t("toast.success") : login.code === "idle" ? t("toast.idle") : t("toast.failed");
+      const message =
+        login.code === "success"
+          ? t("toast.success")
+          : login.code === "idle"
+            ? t("toast.idle")
+            : t("toast.failed");
       toast.success(login.message || message);
       await storage.set("registration", JSON.stringify(data));
       startRouteLoading();
@@ -61,23 +66,30 @@ const RegForm = () => {
     }
   };
 
-  const getGroupClass = (error: any) => cn(
-    "merged flex h-12 items-center rounded-md border bg-white transition-colors duration-200",
-    "focus-within:border-emerald-600 focus-within:ring-2 focus-within:ring-emerald-100",
-    error ? "border-destructive" : "border-slate-200"
-  );
+  const getGroupClass = (error: any) =>
+    cn(
+      "merged flex h-12 items-center rounded-md border bg-white transition-colors duration-200",
+      "focus-within:border-emerald-600 focus-within:ring-2 focus-within:ring-emerald-100",
+      error ? "border-destructive" : "border-slate-200",
+    );
 
-  const iconWrapperClass = "flex items-center justify-center border-none bg-transparent px-3 text-slate-400";
-  const inputBaseClass = "h-11 w-full border-none bg-transparent pl-1 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0";
+  const iconWrapperClass =
+    "flex items-center justify-center border-none bg-transparent px-3 text-slate-400";
+  const inputBaseClass =
+    "h-11 w-full border-none bg-transparent pl-1 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0";
 
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className={cn("space-y-4 transition-opacity", loading && "pointer-events-none opacity-70")}
+      className={cn(
+        "space-y-4 transition-opacity",
+        loading && "pointer-events-none opacity-70",
+      )}
     >
-
       <div className="space-y-2">
-        <Label htmlFor="name" className="text-sm font-medium text-slate-800">{t("name")}</Label>
+        <Label htmlFor="name" className="text-sm font-medium text-slate-800">
+          {t("name")}
+        </Label>
         <InputGroup className={getGroupClass(errors.name)}>
           <InputGroupText className={iconWrapperClass}>
             <Icon icon="mdi:user" fontSize={16} />
@@ -91,11 +103,15 @@ const RegForm = () => {
             className={inputBaseClass}
           />
         </InputGroup>
-        {errors.name && <p className="text-xs text-destructive mt-1">{errors.name.message}</p>}
+        {errors.name && (
+          <p className="text-xs text-destructive mt-1">{errors.name.message}</p>
+        )}
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="email" className="text-sm font-medium text-slate-800">{t("email")}</Label>
+        <Label htmlFor="email" className="text-sm font-medium text-slate-800">
+          {t("email")}
+        </Label>
         <InputGroup className={getGroupClass(errors.email)}>
           <InputGroupText className={iconWrapperClass}>
             <Icon icon="ic:outline-email" fontSize={16} />
@@ -117,11 +133,17 @@ const RegForm = () => {
             className={inputBaseClass}
           />
         </InputGroup>
-        {errors.email && <p className="text-xs text-destructive mt-1">{errors.email.message}</p>}
+        {errors.email && (
+          <p className="text-xs text-destructive mt-1">
+            {errors.email.message}
+          </p>
+        )}
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="phone" className="text-sm font-medium text-slate-800">{t("phone")}</Label>
+        <Label htmlFor="phone" className="text-sm font-medium text-slate-800">
+          {t("phone")}
+        </Label>
         <InputGroup className={getGroupClass(errors.phone)}>
           <InputGroupText className={iconWrapperClass}>
             <Icon icon="tdesign:call" fontSize={16} />
@@ -140,12 +162,16 @@ const RegForm = () => {
                 if (value.length !== 10) return t("validation.phoneLength");
                 if (!/^\d+$/.test(value)) return t("validation.phoneDigits");
                 return true;
-              }
+              },
             })}
             className={inputBaseClass}
           />
         </InputGroup>
-        {errors.phone && <p className="text-xs text-destructive mt-1">{errors.phone.message}</p>}
+        {errors.phone && (
+          <p className="text-xs text-destructive mt-1">
+            {errors.phone.message}
+          </p>
+        )}
       </div>
 
       <div className="pt-2">
@@ -163,21 +189,36 @@ const RegForm = () => {
                 className={cn(errors.acceptTerms && "border-destructive")}
               />
               <div className="flex flex-wrap items-center gap-x-1 text-sm font-normal leading-5 text-slate-600">
-                <Label htmlFor="acceptTerms" className="cursor-pointer font-normal text-slate-600">
+                <Label
+                  htmlFor="acceptTerms"
+                  className="cursor-pointer font-normal text-slate-600"
+                >
                   {t("termsPrefix")}
                 </Label>
-                <Link href="/terms" locale={locale} className="font-medium text-emerald-700 hover:underline">
+                <Link
+                  href="/terms"
+                  locale={locale}
+                  className="font-medium text-emerald-700 hover:underline"
+                >
                   {t("terms")}
                 </Link>
                 <span>{t("termsAnd")}</span>
-                <Link href="/privacy" locale={locale} className="font-medium text-emerald-700 hover:underline">
+                <Link
+                  href="/privacy"
+                  locale={locale}
+                  className="font-medium text-emerald-700 hover:underline"
+                >
                   {t("privacy")}
                 </Link>
               </div>
             </div>
           )}
         />
-        {errors.acceptTerms && <p className="text-xs text-destructive mt-1">{errors.acceptTerms.message}</p>}
+        {errors.acceptTerms && (
+          <p className="text-xs text-destructive mt-1">
+            {errors.acceptTerms.message}
+          </p>
+        )}
       </div>
       <Button
         type="submit"
@@ -186,9 +227,7 @@ const RegForm = () => {
         size="lg"
         className="mt-2 h-12 w-full rounded-md bg-emerald-700 text-base font-semibold text-white shadow-none transition-colors hover:bg-emerald-800 hover:text-white active:bg-emerald-900"
       >
-        {loading && (
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-        )}
+        {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         {loading ? t("submitting") : t("submit")}
       </Button>
     </form>

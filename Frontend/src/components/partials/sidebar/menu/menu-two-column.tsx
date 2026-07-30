@@ -26,13 +26,15 @@ import TeamSwitcher from '../common/team-switcher'
 import IconNav from './icon-nav';
 import SidebarNav from './sideabr-nav';
 import { useTranslations } from 'next-intl';
+import { usePermissions } from '@/hooks/use-permissions';
 
 
 export function MenuTwoColumn() {
     // translate
     const t = useTranslations("Menu")
     const pathname = usePathname();
-    const menuList = getMenuList(pathname, t);
+    const { permissions } = usePermissions();
+    const menuList = getMenuList(pathname, t, permissions);
 
     return (
         <>

@@ -19,7 +19,11 @@ public partial class ShopStaff
 
     public string? Phone { get; set; }
 
+    public string? ProfilePictureUrl { get; set; }
+
     public string Role { get; set; } = null!;
+
+    public string? SystemRoleCode { get; set; }
 
     public bool CanServeQueues { get; set; }
 

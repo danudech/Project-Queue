@@ -7,6 +7,7 @@ import { Icon } from "@/components/ui/icon";
 import Image from "next/image";
 import { Link } from "@/i18n/routing";
 import { useShop } from "@/hooks/use-me";
+import { usePermissions } from "@/hooks/use-permissions";
 import { useTranslations, useLocale } from "next-intl";
 import { http } from "@/lib/http/client";
 import { env } from "@/config/env";
@@ -15,6 +16,8 @@ import { ShopType } from "@/types/shop/shoptype";
 const SettingShopPage = () => {
   const t = useTranslations("Settings.shop");
   const { data: shopData, isLoading } = useShop();
+  const { can } = usePermissions();
+  const canEditShop = can("shop.edit");
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -51,6 +54,7 @@ const SettingShopPage = () => {
   }, []);
 
   const handleSave = async () => {
+    if (!canEditShop) return;
     setIsSaving(true);
     try {
       const formData = new FormData();
@@ -235,7 +239,7 @@ const SettingShopPage = () => {
           <button
             type="button"
             onClick={handleSave}
-            disabled={isSaving}
+            disabled={isSaving || !canEditShop}
             className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-60"
           >
             {isSaving ? (

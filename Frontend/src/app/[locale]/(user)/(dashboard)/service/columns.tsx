@@ -62,8 +62,11 @@ export const getColumns = (t: any, tc: any): ColumnDef<SetService>[] => [
       return (
         <Badge
           color={active ? "success" : "destructive"}
-          className="capitalize cursor-pointer hover:opacity-80"
-          onClick={() => meta?.toggleStatus(row.original)}
+          className={cn(
+            "capitalize",
+            meta?.canEdit && "cursor-pointer hover:opacity-80",
+          )}
+          onClick={() => meta?.canEdit && meta?.toggleStatus(row.original)}
         >
           {active ? tc("status.active") : tc("status.inactive")}
         </Badge>
@@ -109,7 +112,7 @@ export const getColumns = (t: any, tc: any): ColumnDef<SetService>[] => [
       return (
         <div className="flex items-center gap-2">
           {/* Toggle Status */}
-          <TooltipProvider>
+          {meta?.canEdit ? <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -130,10 +133,10 @@ export const getColumns = (t: any, tc: any): ColumnDef<SetService>[] => [
                 <p>{isActive ? tc("tooltip.deactivate") : tc("tooltip.activate")}</p>
               </TooltipContent>
             </Tooltip>
-          </TooltipProvider>
+          </TooltipProvider> : null}
 
           {/* Edit */}
-          <TooltipProvider>
+          {meta?.canEdit ? <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -147,10 +150,10 @@ export const getColumns = (t: any, tc: any): ColumnDef<SetService>[] => [
               </TooltipTrigger>
               <TooltipContent side="top"><p>{tc("tooltip.edit")}</p></TooltipContent>
             </Tooltip>
-          </TooltipProvider>
+          </TooltipProvider> : null}
 
           {/* Delete */}
-          <TooltipProvider>
+          {meta?.canDelete ? <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -170,7 +173,7 @@ export const getColumns = (t: any, tc: any): ColumnDef<SetService>[] => [
                 <p>{tc("tooltip.delete")}</p>
               </TooltipContent>
             </Tooltip>
-          </TooltipProvider>
+          </TooltipProvider> : null}
         </div>
       )
     },

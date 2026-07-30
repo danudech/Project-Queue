@@ -4,6 +4,7 @@ using Queue.Api.Models.Response;
 using Queue.Application.DTO.Request;
 using Queue.Application.DTO.Response;
 using Queue.Application.Interfaces;
+using Queue.Api.Authorization;
 
 namespace Queue.Api.Controllers;
 
@@ -17,6 +18,7 @@ public sealed class OperationsController : ControllerBase
     public OperationsController(IOperations operations) => _operations = operations;
 
     [HttpGet("staff")]
+    [RequirePermission("staff.view")]
     public Task<ActionResult<ApiResponse<List<StaffResponse>>>> GetStaff([FromQuery] int branchId, [FromQuery] int? serviceId, CancellationToken ct) =>
         Execute(() => _operations.GetStaffAsync(UserId, branchId, serviceId, ct));
 
@@ -29,14 +31,31 @@ public sealed class OperationsController : ControllerBase
         Execute(() => _operations.GetCatalogAsync(branchId, ct));
 
     [HttpPost("staff")]
+    [RequirePermission("staff.edit")]
     public Task<ActionResult<ApiResponse<StaffResponse>>> AddStaff([FromBody] StaffUpsertRequest request, CancellationToken ct) =>
         Execute(() => _operations.SaveStaffAsync(UserId, request, ct));
 
     [HttpPut("staff")]
+    [RequirePermission("staff.edit")]
     public Task<ActionResult<ApiResponse<StaffResponse>>> UpdateStaff([FromBody] StaffUpsertRequest request, CancellationToken ct) =>
         Execute(() => _operations.SaveStaffAsync(UserId, request, ct));
 
+    [HttpPost("staff/{staffId:int}/photo")]
+    [RequirePermission("staff.edit")]
+    [Consumes("multipart/form-data")]
+    public Task<ActionResult<ApiResponse<StaffResponse>>> SaveStaffPhoto(
+        int staffId,
+        [FromForm] StaffPhotoRequest request,
+        CancellationToken ct) =>
+        Execute(() => _operations.SaveStaffPhotoAsync(UserId, staffId, request, ct));
+
+    [HttpDelete("staff/{staffId:int}/photo")]
+    [RequirePermission("staff.edit")]
+    public Task<ActionResult<ApiResponse<StaffResponse>>> DeleteStaffPhoto(int staffId, CancellationToken ct) =>
+        Execute(() => _operations.DeleteStaffPhotoAsync(UserId, staffId, ct));
+
     [HttpPost("staff/invite")]
+    [RequirePermission("staff.invite")]
     public Task<ActionResult<ApiResponse<string>>> InviteStaff([FromBody] StaffInviteRequest request, CancellationToken ct)
     {
         string appUrl = Request.Headers.Origin.FirstOrDefault()
@@ -45,6 +64,7 @@ public sealed class OperationsController : ControllerBase
     }
 
     [HttpDelete("staff/{staffId:int}")]
+    [RequirePermission("staff.remove")]
     public Task<ActionResult<ApiResponse<bool>>> DeleteStaff(int staffId, CancellationToken ct) =>
         Execute(() => _operations.DeleteStaffAsync(UserId, staffId, ct));
 
@@ -61,26 +81,32 @@ public sealed class OperationsController : ControllerBase
         Execute(() => _operations.CreateBookingAsync(UserId, request, ct));
 
     [HttpPatch("bookings/{bookingId:int}")]
+    [RequirePermission("booking.manage")]
     public Task<ActionResult<ApiResponse<BookingResponse>>> UpdateBooking(int bookingId, [FromBody] UpdateOperationStatusRequest request, CancellationToken ct) =>
         Execute(() => _operations.UpdateBookingAsync(UserId, bookingId, request, ct));
 
     [HttpPatch("bookings")]
+    [RequirePermission("booking.manage")]
     public Task<ActionResult<ApiResponse<BookingResponse>>> UpdateBookingQuery([FromQuery] int bookingId, [FromBody] UpdateOperationStatusRequest request, CancellationToken ct) =>
         Execute(() => _operations.UpdateBookingAsync(UserId, bookingId, request, ct));
 
     [HttpGet("queues")]
+    [RequirePermission("queue.view")]
     public Task<ActionResult<ApiResponse<List<QueueResponse>>>> GetQueues([FromQuery] int branchId, CancellationToken ct) =>
         Execute(() => _operations.GetQueuesAsync(UserId, branchId, ct));
 
     [HttpPost("queues")]
+    [RequirePermission("queue.manage")]
     public Task<ActionResult<ApiResponse<QueueResponse>>> CreateQueue([FromBody] CreateQueueRequest request, CancellationToken ct) =>
         Execute(() => _operations.CreateQueueAsync(UserId, request, ct));
 
     [HttpPatch("queues/{queueId:int}")]
+    [RequirePermission("queue.manage")]
     public Task<ActionResult<ApiResponse<QueueResponse>>> UpdateQueue(int queueId, [FromBody] UpdateOperationStatusRequest request, CancellationToken ct) =>
         Execute(() => _operations.UpdateQueueAsync(UserId, queueId, request, ct));
 
     [HttpPatch("queues")]
+    [RequirePermission("queue.manage")]
     public Task<ActionResult<ApiResponse<QueueResponse>>> UpdateQueueQuery([FromQuery] int queueId, [FromBody] UpdateOperationStatusRequest request, CancellationToken ct) =>
         Execute(() => _operations.UpdateQueueAsync(UserId, queueId, request, ct));
 

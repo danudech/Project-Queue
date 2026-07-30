@@ -46,8 +46,11 @@ export const getColumns = (t: any, tc: any): ColumnDef<CustomerType>[] => [
       return (
         <Badge
           color={active ? "success" : "destructive"}
-          className="capitalize cursor-pointer hover:opacity-80"
-          onClick={() => meta?.toggleStatus(row.original)}
+          className={cn(
+            "capitalize",
+            meta?.canManage && "cursor-pointer hover:opacity-80",
+          )}
+          onClick={() => meta?.canManage && meta?.toggleStatus(row.original)}
         >
           {active ? tc("status.active") : tc("status.inactive")}
         </Badge>
@@ -88,7 +91,7 @@ export const getColumns = (t: any, tc: any): ColumnDef<CustomerType>[] => [
       return (
         <div className="flex items-center gap-2">
           {/* Toggle Status */}
-          <TooltipProvider>
+          {meta?.canManage ? <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -109,10 +112,10 @@ export const getColumns = (t: any, tc: any): ColumnDef<CustomerType>[] => [
                 <p>{isActive ? tc("tooltip.deactivate") : tc("tooltip.activate")}</p>
               </TooltipContent>
             </Tooltip>
-          </TooltipProvider>
+          </TooltipProvider> : null}
 
           {/* Edit */}
-          <TooltipProvider>
+          {meta?.canManage ? <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -126,10 +129,10 @@ export const getColumns = (t: any, tc: any): ColumnDef<CustomerType>[] => [
               </TooltipTrigger>
               <TooltipContent side="top"><p>{tc("tooltip.edit")}</p></TooltipContent>
             </Tooltip>
-          </TooltipProvider>
+          </TooltipProvider> : null}
 
           {/* Delete */}
-          <TooltipProvider>
+          {meta?.canManage ? <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -149,7 +152,7 @@ export const getColumns = (t: any, tc: any): ColumnDef<CustomerType>[] => [
                 <p>{tc("tooltip.delete")}</p>
               </TooltipContent>
             </Tooltip>
-          </TooltipProvider>
+          </TooltipProvider> : null}
         </div>
       )
     },

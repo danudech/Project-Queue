@@ -36,8 +36,8 @@ const SiteBreadcrumb = ({ children }: { children?: ReactNode }) => {
 
                         {
                             locations.map((link, index) => {
-                                let href = `/${locations.slice(0, index + 1).join('/')}`
-                                let itemLink = link
+                                const href = `/${locations.slice(0, index + 1).join('/')}`
+                                const itemLink = link
                                 const isLast = index === locations.length - 1;
                                 return (
                                     <React.Fragment key={index}>

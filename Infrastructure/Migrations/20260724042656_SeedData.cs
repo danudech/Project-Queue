@@ -258,11 +258,9 @@ namespace Queue.Infrastructure.Migrations
                     -- --- ShopOwner: ทุกอย่าง ---
                     (NULL, 'ShopOwner', 'shop.view',            1, GETDATE()),
                     (NULL, 'ShopOwner', 'shop.edit',            1, GETDATE()),
-                    (NULL, 'ShopOwner', 'shop.delete',          1, GETDATE()),
                     (NULL, 'ShopOwner', 'branch.view',          1, GETDATE()),
                     (NULL, 'ShopOwner', 'branch.create',        1, GETDATE()),
                     (NULL, 'ShopOwner', 'branch.edit',          1, GETDATE()),
-                    (NULL, 'ShopOwner', 'branch.delete',        1, GETDATE()),
                     (NULL, 'ShopOwner', 'staff.view',           1, GETDATE()),
                     (NULL, 'ShopOwner', 'staff.invite',         1, GETDATE()),
                     (NULL, 'ShopOwner', 'staff.edit',           1, GETDATE()),
@@ -272,15 +270,14 @@ namespace Queue.Infrastructure.Migrations
                     (NULL, 'ShopOwner', 'service.create',       1, GETDATE()),
                     (NULL, 'ShopOwner', 'service.edit',         1, GETDATE()),
                     (NULL, 'ShopOwner', 'service.delete',       1, GETDATE()),
+                    (NULL, 'ShopOwner', 'customer.view',        1, GETDATE()),
+                    (NULL, 'ShopOwner', 'customer.manage',      1, GETDATE()),
                     (NULL, 'ShopOwner', 'booking.view',         1, GETDATE()),
                     (NULL, 'ShopOwner', 'booking.manage',       1, GETDATE()),
                     (NULL, 'ShopOwner', 'queue.view',           1, GETDATE()),
                     (NULL, 'ShopOwner', 'queue.manage',         1, GETDATE()),
-                    (NULL, 'ShopOwner', 'report.view',          1, GETDATE()),
                     (NULL, 'ShopOwner', 'setting.view',         1, GETDATE()),
                     (NULL, 'ShopOwner', 'setting.edit',         1, GETDATE()),
-                    (NULL, 'ShopOwner', 'subscription.view',    1, GETDATE()),
-                    (NULL, 'ShopOwner', 'subscription.manage',  1, GETDATE()),
 
                     -- --- ShopManager: จัดการร้านได้ แต่ไม่ลบ shop/subscription ---
                     (NULL, 'ShopManager', 'shop.view',          1, GETDATE()),
@@ -297,11 +294,12 @@ namespace Queue.Infrastructure.Migrations
                     (NULL, 'ShopManager', 'service.create',     1, GETDATE()),
                     (NULL, 'ShopManager', 'service.edit',       1, GETDATE()),
                     (NULL, 'ShopManager', 'service.delete',     1, GETDATE()),
+                    (NULL, 'ShopManager', 'customer.view',      1, GETDATE()),
+                    (NULL, 'ShopManager', 'customer.manage',    1, GETDATE()),
                     (NULL, 'ShopManager', 'booking.view',       1, GETDATE()),
                     (NULL, 'ShopManager', 'booking.manage',     1, GETDATE()),
                     (NULL, 'ShopManager', 'queue.view',         1, GETDATE()),
                     (NULL, 'ShopManager', 'queue.manage',       1, GETDATE()),
-                    (NULL, 'ShopManager', 'report.view',        1, GETDATE()),
                     (NULL, 'ShopManager', 'setting.view',       1, GETDATE()),
                     (NULL, 'ShopManager', 'setting.edit',       1, GETDATE()),
 
@@ -314,16 +312,18 @@ namespace Queue.Infrastructure.Migrations
                     (NULL, 'BranchManager', 'staff.remove',     1, GETDATE()),
                     (NULL, 'BranchManager', 'service.view',     1, GETDATE()),
                     (NULL, 'BranchManager', 'service.edit',     1, GETDATE()),
+                    (NULL, 'BranchManager', 'customer.view',    1, GETDATE()),
+                    (NULL, 'BranchManager', 'customer.manage',  1, GETDATE()),
                     (NULL, 'BranchManager', 'booking.view',     1, GETDATE()),
                     (NULL, 'BranchManager', 'booking.manage',   1, GETDATE()),
                     (NULL, 'BranchManager', 'queue.view',       1, GETDATE()),
                     (NULL, 'BranchManager', 'queue.manage',     1, GETDATE()),
-                    (NULL, 'BranchManager', 'report.view',      1, GETDATE()),
                     (NULL, 'BranchManager', 'setting.view',     1, GETDATE()),
 
                     -- --- Staff: ดู/จัดการ queue และ booking เท่านั้น ---
                     (NULL, 'Staff', 'branch.view',              1, GETDATE()),
                     (NULL, 'Staff', 'service.view',             1, GETDATE()),
+                    (NULL, 'Staff', 'customer.view',            1, GETDATE()),
                     (NULL, 'Staff', 'booking.view',             1, GETDATE()),
                     (NULL, 'Staff', 'queue.view',               1, GETDATE()),
                     (NULL, 'Staff', 'queue.manage',             1, GETDATE());
@@ -801,7 +801,32 @@ namespace Queue.Infrastructure.Migrations
                 EXEC sp_MSforeachtable 'ALTER TABLE ? WITH CHECK CHECK CONSTRAINT ALL';
             ";
 
-            migrationBuilder.Sql(sqlMock);
+            bool includeDemoData = string.Equals(
+                Environment.GetEnvironmentVariable("EZQUEUE_SEED_DEMO_DATA"),
+                "true",
+                StringComparison.OrdinalIgnoreCase);
+            if (includeDemoData)
+            {
+                migrationBuilder.Sql(sqlMock);
+            }
+            else
+            {
+                const string demoMarker = "-- ADDRESSES";
+                const string constraintsMarker =
+                    "EXEC sp_MSforeachtable 'ALTER TABLE ? WITH CHECK CHECK CONSTRAINT ALL';";
+                int demoStart = sqlMock.IndexOf(demoMarker, StringComparison.Ordinal);
+                int constraintsStart = sqlMock.LastIndexOf(
+                    constraintsMarker,
+                    StringComparison.Ordinal);
+                if (demoStart < 0 || constraintsStart < 0)
+                    throw new InvalidOperationException(
+                        "Unable to separate production seed data from demo data.");
+                string productionSeed =
+                    sqlMock[..demoStart]
+                    + Environment.NewLine
+                    + sqlMock[constraintsStart..];
+                migrationBuilder.Sql(productionSeed);
+            }
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

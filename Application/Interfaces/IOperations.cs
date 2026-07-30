@@ -9,6 +9,8 @@ public interface IOperations
     Task<List<StaffResponse>> GetEligibleStaffAsync(int branchId, int serviceId, CancellationToken ct);
     Task<List<ShopServiceResponse>> GetCatalogAsync(int branchId, CancellationToken ct);
     Task<StaffResponse> SaveStaffAsync(int userId, StaffUpsertRequest request, CancellationToken ct);
+    Task<StaffResponse> SaveStaffPhotoAsync(int userId, int staffId, StaffPhotoRequest request, CancellationToken ct);
+    Task<StaffResponse> DeleteStaffPhotoAsync(int userId, int staffId, CancellationToken ct);
     Task<string> SendStaffInviteAsync(int userId, StaffInviteRequest request, string appUrl, CancellationToken ct);
     Task<bool> DeleteStaffAsync(int userId, int staffId, CancellationToken ct);
     Task<List<AvailableSlotResponse>> GetSlotsAsync(int branchId, DateTime? date, CancellationToken ct);

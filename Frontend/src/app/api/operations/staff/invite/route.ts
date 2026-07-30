@@ -27,6 +27,11 @@ export async function POST(req: NextRequest) {
     const data = await serverHttp(req, env.apiBaseUrl).post<string>(
       "staffinvite",
       body,
+      {
+        headers: {
+          Origin: req.headers.get("origin") ?? new URL(req.url).origin,
+        },
+      },
     );
     return NextResponse.json({ status: true, message: "ok", data });
   } catch (error) {

@@ -55,7 +55,7 @@ public class AuthorizeController : ControllerBase
         catch (Exception ex)
         {
             _actionLog.Error(ex, "Login failed (EmailOrPhone={EmailOrPhone})", req?.EmailOrPhone ?? "unknown");
-            return StatusCode(500, ApiResponse<LoginResponse>.Fail(ex.Message));
+            return StatusCode(500, ApiResponse<LoginResponse>.Fail("An unexpected error occurred."));
         }
     }
 
@@ -97,7 +97,7 @@ public class AuthorizeController : ControllerBase
         catch (Exception ex)
         {
             _actionLog.Error(ex, "Forgot password failed (Email={Email})", req?.Email ?? "unknown");
-            return StatusCode(500, ApiResponse<bool>.Fail(ex.Message));
+            return StatusCode(500, ApiResponse<bool>.Fail("An unexpected error occurred."));
         }
     }
 
@@ -123,7 +123,7 @@ public class AuthorizeController : ControllerBase
         catch (Exception ex)
         {
             _actionLog.Error(ex, "Me failed (by={User})", User?.Identity?.Name ?? "anonymous");
-            return StatusCode(500, ApiResponse<UserResponse>.Fail(ex.Message));
+            return StatusCode(500, ApiResponse<UserResponse>.Fail("An unexpected error occurred."));
         }
     }
 
@@ -145,7 +145,7 @@ public class AuthorizeController : ControllerBase
         catch (Exception ex)
         {
             _actionLog.Error(ex, "Line refresh token failed");
-            return StatusCode(500, ApiResponse<TokenResponse>.Fail(ex.Message));
+            return StatusCode(500, ApiResponse<TokenResponse>.Fail("An unexpected error occurred."));
         }
     }
 

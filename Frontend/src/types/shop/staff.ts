@@ -7,6 +7,7 @@ export type StaffMember = {
   email?: string | null;
   phone?: string | null;
   role: string;
+  systemRoleCode?: string | null;
   canServeQueues: boolean;
   canLogin: boolean;
   isAvailable: boolean;
@@ -14,7 +15,10 @@ export type StaffMember = {
   emailConfirmed?: boolean | null;
   lastLoginAt?: string | null;
   profilePictureUrl?: string | null;
+  hasCustomProfilePicture?: boolean;
   serviceIds: number[];
 };
 
-export type SaveStaffMember = Omit<StaffMember, "id" | "userId"> & { id?: number };
+export type SaveStaffMember = Omit<StaffMember, "id" | "userId"> & {
+  id?: number;
+};

@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Queue.Api.Authorization;
 using Queue.Api.Common;
 using Queue.Api.Models.Response;
 using Queue.Application.DTO.Request;
@@ -30,6 +31,7 @@ public class CustomerController : ControllerBase
     }
 
     [Authorize]
+    [RequirePermission("customer.view")]
     [HttpGet("get-customer")]
     public async Task<ActionResult<ApiResponse<List<CustomerResponse>?>>> GetCustomers(CancellationToken ct)
     {
@@ -50,11 +52,12 @@ public class CustomerController : ControllerBase
         catch (Exception ex)
         {
             _actionLog.Error(ex, "Get customers failed (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, ua);
-            return StatusCode(500, ApiResponse<List<CustomerResponse>>.Fail(ex.Message));
+            return Failure<List<CustomerResponse>?>(ex);
         }
     }
 
     [Authorize]
+    [RequirePermission("customer.manage")]
     [HttpPost("add-customer")]
     public async Task<ActionResult<ApiResponse<CustomerResponse>>> AddCustomer([FromBody] CustomerRequest request, CancellationToken ct)
     {
@@ -74,11 +77,12 @@ public class CustomerController : ControllerBase
         catch (Exception ex)
         {
             _actionLog.Error(ex, "Add customer failed (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, ua);
-            return StatusCode(500, ApiResponse<CustomerResponse>.Fail(ex.Message));
+            return Failure<CustomerResponse>(ex);
         }
     }
 
     [Authorize]
+    [RequirePermission("customer.manage")]
     [HttpPut("update-customer")]
     public async Task<ActionResult<ApiResponse<CustomerResponse>>> UpdateCustomer([FromBody] CustomerRequest request, CancellationToken ct)
     {
@@ -97,11 +101,12 @@ public class CustomerController : ControllerBase
         catch (Exception ex)
         {
             _actionLog.Error(ex, "Update customer failed (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, ua);
-            return StatusCode(500, ApiResponse<CustomerResponse>.Fail(ex.Message));
+            return Failure<CustomerResponse>(ex);
         }
     }
 
     [Authorize]
+    [RequirePermission("customer.manage")]
     [HttpDelete("delete-customer")]
     public async Task<ActionResult<ApiResponse<string>>> DeleteCustomer([FromQuery] int customerId, CancellationToken ct)
     {
@@ -120,7 +125,20 @@ public class CustomerController : ControllerBase
         catch (Exception ex)
         {
             _actionLog.Error(ex, "Delete customer failed (UserId={UserId}, CustomerId={CustomerId}, IP={IP}, UserAgent={UserAgent})", userId, customerId, ip, ua);
-            return StatusCode(500, ApiResponse<string>.Fail(ex.Message));
+            return Failure<string>(ex);
         }
     }
+
+    private ActionResult<ApiResponse<T>> Failure<T>(Exception ex) =>
+        ex switch
+        {
+            UnauthorizedAccessException => StatusCode(
+                StatusCodes.Status403Forbidden,
+                ApiResponse<T>.Fail(ex.Message)),
+            KeyNotFoundException => NotFound(ApiResponse<T>.Fail(ex.Message)),
+            InvalidOperationException => BadRequest(ApiResponse<T>.Fail(ex.Message)),
+            _ => StatusCode(
+                StatusCodes.Status500InternalServerError,
+                ApiResponse<T>.Fail("An unexpected error occurred.")),
+        };
 }

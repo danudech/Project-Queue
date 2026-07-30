@@ -48,7 +48,7 @@ public class AddressController : ControllerBase
         catch (Exception ex)
         {
             _actionLog.Error(ex, "GetAddressByZipcode failed (by={User})", User?.Identity?.Name ?? "anonymous");
-            return StatusCode(500, ApiResponse<List<AddressResponse>>.Fail(ex.Message));
+            return StatusCode(500, ApiResponse<List<AddressResponse>>.Fail("An unexpected error occurred."));
         }
     }
 

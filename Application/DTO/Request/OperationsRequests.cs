@@ -1,5 +1,7 @@
 namespace Queue.Application.DTO.Request;
 
+using Microsoft.AspNetCore.Http;
+
 public sealed class StaffUpsertRequest
 {
     public int? Id { get; set; }
@@ -9,6 +11,7 @@ public sealed class StaffUpsertRequest
     public string? Email { get; set; }
     public string? Phone { get; set; }
     public string Role { get; set; } = "STAFF";
+    public string? SystemRoleCode { get; set; }
     public bool CanServeQueues { get; set; } = true;
     public bool CanLogin { get; set; }
     public bool IsAvailable { get; set; } = true;
@@ -20,6 +23,11 @@ public sealed class StaffInviteRequest
 {
     public int StaffId { get; set; }
     public string Locale { get; set; } = "en";
+}
+
+public sealed class StaffPhotoRequest
+{
+    public IFormFile? ProfilePicture { get; set; }
 }
 
 public sealed class CreateBookingRequest

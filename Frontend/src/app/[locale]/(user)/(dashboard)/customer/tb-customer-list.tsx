@@ -62,6 +62,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { getColumns } from "./columns"
 import { useShop } from "@/hooks/use-me"
+import { usePermissions } from "@/hooks/use-permissions"
 import { http } from "@/lib/http/client"
 import { cn } from "@/lib/utils"
 import toast from "react-hot-toast"
@@ -158,6 +159,8 @@ const CustomerPage = () => {
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
     const { data: shopData } = useShop() as { data: ShopResponse | null }
+    const { can } = usePermissions()
+    const canManageCustomers = can("customer.manage")
 
     const form = useForm<FormValues>({
         resolver: zodResolver(getFormSchema(t)) as any,
@@ -335,7 +338,7 @@ const CustomerPage = () => {
         getFilteredRowModel: getFilteredRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
         getSortedRowModel: getSortedRowModel(),
-        meta: { openEdit, deleteRow, toggleStatus },
+        meta: { openEdit, deleteRow, toggleStatus, canManage: canManageCustomers },
     })
 
     // ── Render ─────────────────────────────────────────────────────────────
@@ -347,8 +350,8 @@ const CustomerPage = () => {
                 searchPlaceholder={t("toolbar.search")}
                 searchValue={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
                 onSearchChange={(val) => table.getColumn("name")?.setFilterValue(val)}
-                onAddClick={openAdd}
-                addButtonText={t("toolbar.add")}
+                onAddClick={canManageCustomers ? openAdd : undefined}
+                addButtonText={canManageCustomers ? t("toolbar.add") : undefined}
             />
 
             {/* 2. Table */}

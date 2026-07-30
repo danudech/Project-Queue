@@ -20,8 +20,18 @@ public sealed class ManageShop : IManageShop
     private readonly IConfiguration _config;
     private readonly DateTimeService _dateTime;
     private readonly IHostEnvironment _env;
+    private readonly AccountShopGuard _accountShopGuard;
+    private readonly PermissionScopeService _permissions;
 
-    public ManageShop(IActionLog actionLog, QueueDbContext db, ICrudService crud, IConfiguration config, DateTimeService dateTime, IHostEnvironment env)
+    public ManageShop(
+        IActionLog actionLog,
+        QueueDbContext db,
+        ICrudService crud,
+        IConfiguration config,
+        DateTimeService dateTime,
+        IHostEnvironment env,
+        AccountShopGuard accountShopGuard,
+        PermissionScopeService permissions)
     {
         _actionLog = actionLog;
         _db = db;
@@ -29,6 +39,8 @@ public sealed class ManageShop : IManageShop
         _dateTime = dateTime;
         _crud = crud;
         _env = env;
+        _accountShopGuard = accountShopGuard;
+        _permissions = permissions;
     }
 
     public async Task<ShopResponse?> GetShopById(int userId, int BranchId, string ip, string userAgent, CancellationToken ct)
@@ -36,22 +48,55 @@ public sealed class ManageShop : IManageShop
         try
         {
             _actionLog.Info("Fetching shop data (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, userAgent);
+            int? homeShopId = await _db.Users.AsNoTracking()
+                .Where(user => user.Id == userId)
+                .Select(user => user.HomeShopId)
+                .SingleOrDefaultAsync(ct);
+            if (!homeShopId.HasValue) return null;
+            if (BranchId > 0)
+                await _permissions.EnsureBranchAsync(userId, BranchId, "branch.view", ct);
+            else
+            {
+                bool canViewShop = await _permissions.HasShopAsync(
+                    userId,
+                    homeShopId.Value,
+                    "shop.view",
+                    ct);
+                if (!canViewShop)
+                {
+                    int[] branchIds = await _db.ShopBranches.AsNoTracking()
+                        .Where(branch => branch.ShopId == homeShopId.Value && branch.IsActive)
+                        .Select(branch => branch.Id)
+                        .ToArrayAsync(ct);
+                    foreach (int branchId in branchIds)
+                    {
+                        if (await _permissions.HasBranchAsync(userId, branchId, "branch.view", ct))
+                        {
+                            BranchId = branchId;
+                            break;
+                        }
+                    }
+                    if (BranchId == 0)
+                        throw new UnauthorizedAccessException(
+                            "You do not have permission to view this shop.");
+                }
+            }
 
             Shop? shop = await _db.Shops
                 .AsNoTracking()
                 .Include(s => s.ShopSettings)
                 .Include(s => s.Status)
                 .Include(s => s.Services)
-                .Include(s => s.ShopBranches.Where(b => b.Shop.OwnerId == userId || b.ShopStaffs.Any(ss => ss.UserId == userId && ss.IsActive && ss.CanLogin)))
+                .Include(s => s.ShopBranches.Where(b => b.IsActive && (b.Shop.OwnerId == userId || b.ShopStaffs.Any(ss => ss.UserId == userId && ss.IsActive && ss.CanLogin))))
                     .ThenInclude(b => b.Address)
                         .ThenInclude(a => a.Subdistrict)
                             .ThenInclude(sd => sd.District)
                                 .ThenInclude(d => d.Province)
-                .Include(s => s.ShopBranches.Where(b => b.Shop.OwnerId == userId || b.ShopStaffs.Any(ss => ss.UserId == userId && ss.IsActive && ss.CanLogin)))
+                .Include(s => s.ShopBranches.Where(b => b.IsActive && (b.Shop.OwnerId == userId || b.ShopStaffs.Any(ss => ss.UserId == userId && ss.IsActive && ss.CanLogin))))
                     .ThenInclude(b => b.ShopBusinessHours)
-                .Include(s => s.ShopBranches.Where(b => b.Shop.OwnerId == userId || b.ShopStaffs.Any(ss => ss.UserId == userId && ss.IsActive && ss.CanLogin)))
+                .Include(s => s.ShopBranches.Where(b => b.IsActive && (b.Shop.OwnerId == userId || b.ShopStaffs.Any(ss => ss.UserId == userId && ss.IsActive && ss.CanLogin))))
                     .ThenInclude(b => b.ShopHolidays)
-                .FirstOrDefaultAsync(s => s.OwnerId == userId || s.ShopStaffs.Any(ss => ss.UserId == userId && ss.IsActive && ss.CanLogin), ct);
+                .FirstOrDefaultAsync(s => s.Id == homeShopId.Value && s.IsActive, ct);
 
             if (shop == null)
             {
@@ -64,7 +109,7 @@ public sealed class ManageShop : IManageShop
         catch (Exception ex)
         {
             _actionLog.Error(ex, "Error fetching shop data (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, userAgent);
-            return null;
+            throw;
         }
     }
 
@@ -105,20 +150,13 @@ public sealed class ManageShop : IManageShop
         }
     }
 
-    private async Task EnsureAdminRoleAsync(int userId, CancellationToken ct)
-    {
-        bool isAdmin = await _db.UserRoleMaps
-            .AnyAsync(ur => ur.UserId == userId && (ur.Role.Name == "Admin" || ur.RoleId == 1), ct);
-        if (!isAdmin)
-        {
-            throw new UnauthorizedAccessException("Only Admin users can create or edit shop/branch information.");
-        }
-    }
-
     public async Task<ShopResponse?> CreateShop(int userId, CreateShopRequest request, string ip, string userAgent, CancellationToken ct)
     {
         _actionLog.Info("Creating new shop (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, userAgent);
-        await EnsureAdminRoleAsync(userId, ct);
+        if (await _db.Shops.AnyAsync(shop => shop.OwnerId == userId, ct))
+            throw new InvalidOperationException(
+                "This account already owns a shop. Use a different account to create another shop.");
+        await _accountShopGuard.EnsureCanJoinAsync(userId, 0, ct);
         await using var transaction = await _db.Database.BeginTransactionAsync(ct);
         try
         {
@@ -134,6 +172,7 @@ public sealed class ManageShop : IManageShop
                 CreatedAt = _dateTime.LocalNow()
             };
             await _crud.InsertAsync(newShop, ct);
+            await _accountShopGuard.BindAsync(userId, newShop.Id, ct);
 
             // 2. สร้าง Address สำหรับสาขาแรก
             Address newAddress = new Address
@@ -184,22 +223,27 @@ public sealed class ManageShop : IManageShop
         {
             _actionLog.Error(ex, "Error creating shop (UserId={UserId})", userId);
             await transaction.RollbackAsync(ct);
-            return null;
+            throw;
         }
     }
 
     public async Task<ShopResponse?> CreateBranch(int userId, CreateShopRequest request, string ip, string userAgent, CancellationToken ct)
     {
         _actionLog.Info("Creating new branch (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, userAgent);
-        await EnsureAdminRoleAsync(userId, ct);
         await using var transaction = await _db.Database.BeginTransactionAsync(ct);
         try
         {
-            Shop? shop = await _db.Shops.FirstOrDefaultAsync(s => s.OwnerId == userId, ct);
+            if (!request.ShopId.HasValue || request.ShopId.Value <= 0)
+                throw new InvalidOperationException("ShopId is required when creating a branch.");
+            await _accountShopGuard.EnsureCanJoinAsync(userId, request.ShopId.Value, ct);
+            await _permissions.EnsureShopAsync(userId, request.ShopId.Value, "branch.create", ct);
+            Shop? shop = await _db.Shops.FirstOrDefaultAsync(
+                item => item.Id == request.ShopId.Value && item.IsActive,
+                ct);
             if (shop == null)
             {
                 _actionLog.Warning("Shop not found for branch creation (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, userAgent);
-                return null;
+                throw new KeyNotFoundException("Shop not found.");
             }
 
             Address newAddress = new Address
@@ -243,15 +287,20 @@ public sealed class ManageShop : IManageShop
         {
             _actionLog.Error(ex, "Error creating branch (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, userAgent);
             await transaction.RollbackAsync(ct);
-            return null;
+            throw;
         }
     }
 
-    public async Task<List<ShopCategoryResponse>?> GetShopCategoryById(int shopId, int? branchId, string ip, string userAgent, CancellationToken ct)
+    public async Task<List<ShopCategoryResponse>?> GetShopCategoryById(int userId, int shopId, int? branchId, string ip, string userAgent, CancellationToken ct)
     {
         try
         {
             _actionLog.Info("Fetching shop categories (ShopId={ShopId}, BranchId={BranchId}, IP={IP}, UserAgent={UserAgent})", shopId, branchId ?? 0, ip, userAgent);
+
+            if (branchId.HasValue)
+                await _permissions.EnsureBranchAsync(userId, branchId.Value, "service.view", ct);
+            else
+                await _permissions.EnsureShopAsync(userId, shopId, "service.view", ct);
 
             List<ServiceCategory>? categories = await _db.ServiceCategories
                 .Where(c => c.ShopId == shopId && (branchId == null || c.BranchId == branchId))
@@ -272,7 +321,7 @@ public sealed class ManageShop : IManageShop
         catch (Exception ex)
         {
             _actionLog.Error(ex, "Error fetching shop categories (ShopId={ShopId}, BranchId={BranchId}, IP={IP}, UserAgent={UserAgent})", shopId, branchId ?? 0, ip, userAgent);
-            return null;
+            throw;
         }
     }
 
@@ -280,14 +329,18 @@ public sealed class ManageShop : IManageShop
     {
         try
         {
-            Shop? shop = await _db.Shops.FirstOrDefaultAsync(s => s.OwnerId == userId, ct);
-            if (shop == null) return null!;
+            int branchId = request.BranchId ?? 0;
+            var branch = await _db.ShopBranches.Include(item => item.Shop)
+                .FirstOrDefaultAsync(item => item.Id == branchId, ct);
+            if (branch == null) throw new KeyNotFoundException("Branch not found.");
+            await _permissions.EnsureBranchAsync(userId, branchId, "service.create", ct);
+            Shop shop = branch.Shop;
 
             ServiceCategory newCategory = new ServiceCategory
             {
                 Name = request.Name,
                 ShopId = shop.Id,
-                BranchId = request.BranchId ?? 0,
+                BranchId = branchId,
                 IsActive = request.IsActive,
                 CreatedBy = userId,
                 CreatedAt = _dateTime.LocalNow()
@@ -308,25 +361,25 @@ public sealed class ManageShop : IManageShop
         catch (Exception ex)
         {
             _actionLog.Error(ex, "Error adding category");
-            return null!;
+            throw;
         }
     }
 
     public async Task<ShopCategoryResponse> UpdateShopCategory(int userId, ShopCategoryRequest request, string ip, string userAgent, CancellationToken ct)
     {
-        await EnsureAdminRoleAsync(userId, ct);
         _actionLog.Info("Updating shop category (UserId={UserId}, CategoryId={CategoryId}, IP={IP}, UserAgent={UserAgent})", userId, request.Id ?? 0, ip, userAgent);
         try
         {
             ServiceCategory? category = await _db.ServiceCategories
                 .Include(c => c.Shop)
-                .FirstOrDefaultAsync(c => c.Id == request.Id && c.Shop.OwnerId == userId, ct);
+                .FirstOrDefaultAsync(c => c.Id == request.Id, ct);
 
             if (category == null)
             {
                 _actionLog.Warning("Category not found for update (UserId={UserId}, CategoryId={CategoryId}, IP={IP}, UserAgent={UserAgent})", userId, request.Id ?? 0, ip, userAgent);
-                return null!;
+                throw new KeyNotFoundException("Category not found.");
             }
+            await _permissions.EnsureBranchAsync(userId, category.BranchId, "service.edit", ct);
 
             if (category.Name != request.Name) category.Name = request.Name;
             if (category.IsActive != request.IsActive) category.IsActive = request.IsActive;
@@ -348,25 +401,25 @@ public sealed class ManageShop : IManageShop
         catch (Exception ex)
         {
             _actionLog.Error(ex, "Error updating shop category (UserId={UserId}, CategoryId={CategoryId}, IP={IP}, UserAgent={UserAgent})", userId, request.Id ?? 0, ip, userAgent);
-            return null!;
+            throw;
         }
     }
 
     public async Task<bool> DeleteShopCategory(int userId, int categoryId, string ip, string userAgent, CancellationToken ct)
     {
-        await EnsureAdminRoleAsync(userId, ct);
         _actionLog.Info("Deleting shop category (UserId={UserId}, CategoryId={CategoryId}, IP={IP}, UserAgent={UserAgent})", userId, categoryId, ip, userAgent);
         try
         {
             ServiceCategory? category = await _db.ServiceCategories
                 .Include(c => c.Shop)
-                .FirstOrDefaultAsync(c => c.Id == categoryId && c.Shop.OwnerId == userId, ct);
+                .FirstOrDefaultAsync(c => c.Id == categoryId, ct);
 
             if (category == null)
             {
                 _actionLog.Warning("Category not found for deletion (UserId={UserId}, CategoryId={CategoryId}, IP={IP}, UserAgent={UserAgent})", userId, categoryId, ip, userAgent);
                 return false;
             }
+            await _permissions.EnsureBranchAsync(userId, category.BranchId, "service.delete", ct);
 
             await _crud.DeleteAsync(category, ct);
             return true;
@@ -374,7 +427,7 @@ public sealed class ManageShop : IManageShop
         catch (Exception ex)
         {
             _actionLog.Error(ex, "Error deleting shop category (UserId={UserId}, CategoryId={CategoryId}, IP={IP}, UserAgent={UserAgent})", userId, categoryId, ip, userAgent);
-            return false;
+            throw;
         }
     }
 
@@ -385,12 +438,18 @@ public sealed class ManageShop : IManageShop
             _actionLog.Info("Fetching shop services (UserId={UserId}, ShopId={ShopId}, BranchId={BranchId}, IP={IP}, UserAgent={UserAgent})", userId, shopId, branchId ?? 0, ip, userAgent);
 
             List<Domain.Entities.Service>? services = await _db.Services
-                .Where(s => s.Shop.OwnerId == userId && s.ShopId == shopId && s.BranchId == branchId)
+                .Where(s => s.ShopId == shopId && s.BranchId == branchId)
                 .Include(s => s.Shop)
                 .Include(s => s.ServiceCategoryMaps)
                     .ThenInclude(m => m.Category)
+                .Include(s => s.ServiceStaffMaps)
                 .AsNoTracking()
                 .ToListAsync(ct);
+
+            if (branchId.HasValue)
+                await _permissions.EnsureBranchAsync(userId, branchId.Value, "service.view", ct);
+            else
+                await _permissions.EnsureShopAsync(userId, shopId, "service.view", ct);
 
             return services?.Select(s => new ShopServiceResponse
             {
@@ -402,51 +461,78 @@ public sealed class ManageShop : IManageShop
                 Price = s.Price,
                 CategoryId = s.ServiceCategoryMaps.FirstOrDefault()?.CategoryId ?? 0,
                 IsActive = s.IsActive,
+                StaffSelectionMode = s.StaffSelectionMode,
+                StaffIds = s.ServiceStaffMaps.Select(m => m.StaffId).ToList(),
                 CreatedAt = s.CreatedAt
             }).ToList();
         }
         catch (Exception ex)
         {
             _actionLog.Error(ex, "Error fetching shop services (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, userAgent);
-            return null;
+            throw;
         }
     }
 
     public async Task<ShopServiceResponse> AddShopService(int userId, ShopServiceRequest request, string ip, string userAgent, CancellationToken ct)
     {
-        await EnsureAdminRoleAsync(userId, ct);
         _actionLog.Info("Adding shop service (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, userAgent);
         try
         {
-            Shop? shop = await _db.Shops.FirstOrDefaultAsync(s => s.OwnerId == userId, ct);
+            int branchId = request.BranchId ?? 0;
+            var branch = await _db.ShopBranches.Include(item => item.Shop)
+                .FirstOrDefaultAsync(item => item.Id == branchId && item.ShopId == request.ShopId, ct);
+            Shop? shop = branch?.Shop;
             if (shop == null)
             {
                 _actionLog.Warning("Shop not found for adding service (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, userAgent);
-                return null!;
+                throw new KeyNotFoundException("Shop or branch not found.");
             }
+            await _permissions.EnsureBranchAsync(userId, branchId, "service.create", ct);
+
+            if (!await _db.ShopBranches.AnyAsync(b => b.Id == branchId && b.ShopId == shop.Id, ct))
+                throw new InvalidOperationException("The selected branch does not belong to this shop.");
+            if (!await _db.ServiceCategories.AnyAsync(c => c.Id == request.CategoryId && c.ShopId == shop.Id && c.IsActive, ct))
+                throw new InvalidOperationException("Please select an active service category.");
+
+            string staffSelectionMode = NormalizeStaffSelectionMode(request.StaffSelectionMode);
+            List<int> staffIds = await ValidateServiceStaffIdsAsync(
+                shop.Id,
+                branchId,
+                request.StaffIds,
+                request.IsActive,
+                ct);
 
             Domain.Entities.Service newService = new Domain.Entities.Service
             {
                 Name = request.Name,
                 ShopId = shop.Id,
-                BranchId = request.BranchId ?? 0,
+                BranchId = branchId,
                 Duration = request.Duration,
                 Price = request.Price,
+                StaffSelectionMode = staffSelectionMode,
                 IsActive = request.IsActive,
                 CreatedAt = _dateTime.LocalNow(),
                 CreatedBy = userId
             };
 
-            await _crud.InsertAsync(newService, ct);
-
-            ServiceCategoryMap _categoryMap = new ServiceCategoryMap
+            newService.ServiceCategoryMaps.Add(new ServiceCategoryMap
             {
-                ServiceId = newService.Id,
                 CategoryId = request.CategoryId,
                 CreatedAt = _dateTime.LocalNow(),
                 CreatedBy = userId
-            };
-            await _crud.InsertAsync(_categoryMap, ct);
+            });
+            foreach (int staffId in staffIds)
+            {
+                newService.ServiceStaffMaps.Add(new ServiceStaffMap
+                {
+                    StaffId = staffId,
+                    CreatedAt = _dateTime.LocalNow(),
+                    CreatedBy = userId
+                });
+            }
+
+            _db.Services.Add(newService);
+            await _db.SaveChangesAsync(ct);
 
             return new ShopServiceResponse
             {
@@ -459,48 +545,91 @@ public sealed class ManageShop : IManageShop
                 Price = newService.Price,
                 CategoryId = request.CategoryId,
                 IsActive = newService.IsActive,
+                StaffSelectionMode = newService.StaffSelectionMode,
+                StaffIds = staffIds,
                 CreatedAt = newService.CreatedAt
             };
+        }
+        catch (InvalidOperationException)
+        {
+            throw;
         }
         catch (Exception ex)
         {
             _actionLog.Error(ex, "Error adding shop service (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, userAgent);
-            return null!;
+            throw;
         }
     }
 
     public async Task<ShopServiceResponse> UpdateShopService(int userId, ShopServiceRequest request, string ip, string userAgent, CancellationToken ct)
     {
-        await EnsureAdminRoleAsync(userId, ct);
         _actionLog.Info("Updating shop service (UserId={UserId}, ServiceId={ServiceId}, IP={IP}, UserAgent={UserAgent})", userId, request.Id ?? 0, ip, userAgent);
         try
         {
             Domain.Entities.Service? service = await _db.Services
                 .Include(s => s.Shop)
                 .Include(s => s.ServiceCategoryMaps)
-                .FirstOrDefaultAsync(s => s.Id == request.Id && s.Shop.OwnerId == userId, ct);
+                .Include(s => s.ServiceStaffMaps)
+                .FirstOrDefaultAsync(s => s.Id == request.Id, ct);
 
             if (service == null)
             {
                 _actionLog.Warning("Service not found for update (UserId={UserId}, ServiceId={ServiceId}, IP={IP}, UserAgent={UserAgent})", userId, request.Id ?? 0, ip, userAgent);
-                return null!;
+                throw new KeyNotFoundException("Service not found.");
             }
+            await _permissions.EnsureBranchAsync(userId, service.BranchId, "service.edit", ct);
+
+            if (!await _db.ServiceCategories.AnyAsync(c => c.Id == request.CategoryId && c.ShopId == service.ShopId && c.IsActive, ct))
+                throw new InvalidOperationException("Please select an active service category.");
+
+            string staffSelectionMode = NormalizeStaffSelectionMode(request.StaffSelectionMode);
+            List<int> staffIds = await ValidateServiceStaffIdsAsync(
+                service.ShopId,
+                service.BranchId,
+                request.StaffIds,
+                request.IsActive,
+                ct);
 
             if (service.Name != request.Name) service.Name = request.Name;
             if (service.Duration != request.Duration) service.Duration = request.Duration;
             if (service.Price != request.Price) service.Price = request.Price;
+            if (service.StaffSelectionMode != staffSelectionMode) service.StaffSelectionMode = staffSelectionMode;
             if (service.IsActive != request.IsActive) service.IsActive = request.IsActive;
             service.UpdatedAt = _dateTime.LocalNow();
             service.UpdatedBy = userId;
-
-            await _crud.UpdateAsync(service, ct);
 
             ServiceCategoryMap? categoryMap = service.ServiceCategoryMaps.FirstOrDefault();
             if (categoryMap != null && categoryMap.CategoryId != request.CategoryId)
             {
                 categoryMap.CategoryId = request.CategoryId;
-                await _crud.UpdateAsync(categoryMap, ct);
             }
+            else if (categoryMap == null)
+            {
+                categoryMap = new ServiceCategoryMap
+                {
+                    ServiceId = service.Id,
+                    CategoryId = request.CategoryId,
+                    CreatedAt = _dateTime.LocalNow(),
+                    CreatedBy = userId
+                };
+                _db.ServiceCategoryMaps.Add(categoryMap);
+            }
+
+            HashSet<int> requestedStaffIds = staffIds.ToHashSet();
+            _db.ServiceStaffMaps.RemoveRange(
+                service.ServiceStaffMaps.Where(m => !requestedStaffIds.Contains(m.StaffId)));
+            HashSet<int> existingStaffIds = service.ServiceStaffMaps.Select(m => m.StaffId).ToHashSet();
+            await _db.ServiceStaffMaps.AddRangeAsync(
+                staffIds.Where(id => !existingStaffIds.Contains(id)).Select(id => new ServiceStaffMap
+                {
+                    ServiceId = service.Id,
+                    StaffId = id,
+                    CreatedAt = _dateTime.LocalNow(),
+                    CreatedBy = userId
+                }),
+                ct);
+
+            await _db.SaveChangesAsync(ct);
 
             return new ShopServiceResponse
             {
@@ -513,31 +642,78 @@ public sealed class ManageShop : IManageShop
                 Price = service.Price,
                 CategoryId = categoryMap?.CategoryId ?? 0,
                 IsActive = service.IsActive,
+                StaffSelectionMode = service.StaffSelectionMode,
+                StaffIds = staffIds,
                 CreatedAt = service.CreatedAt
             };
+        }
+        catch (InvalidOperationException)
+        {
+            throw;
         }
         catch (Exception ex)
         {
             _actionLog.Error(ex, "Error updating shop service (UserId={UserId}, ServiceId={ServiceId}, IP={IP}, UserAgent={UserAgent})", userId, request.Id ?? 0, ip, userAgent);
-            return null!;
+            throw;
         }
+    }
+
+    private static string NormalizeStaffSelectionMode(string? mode)
+    {
+        string normalized = string.IsNullOrWhiteSpace(mode)
+            ? "OPTIONAL"
+            : mode.Trim().ToUpperInvariant();
+
+        if (normalized is not ("AUTO" or "OPTIONAL" or "REQUIRED"))
+            throw new InvalidOperationException("Invalid staff selection mode.");
+
+        return normalized;
+    }
+
+    private async Task<List<int>> ValidateServiceStaffIdsAsync(
+        int shopId,
+        int branchId,
+        IEnumerable<int>? requestedStaffIds,
+        bool isActive,
+        CancellationToken ct)
+    {
+        List<int> staffIds = (requestedStaffIds ?? [])
+            .Where(id => id > 0)
+            .Distinct()
+            .ToList();
+
+        List<int> validStaffIds = await _db.ShopStaffs
+            .Where(s => staffIds.Contains(s.Id)
+                && s.ShopId == shopId
+                && s.BranchId == branchId
+                && s.IsActive
+                && s.CanServeQueues)
+            .Select(s => s.Id)
+            .ToListAsync(ct);
+
+        if (validStaffIds.Count != staffIds.Count)
+            throw new InvalidOperationException("One or more selected staff members cannot provide this service.");
+        if (isActive && validStaffIds.Count == 0)
+            throw new InvalidOperationException("An active service must have at least one staff member who can provide it.");
+
+        return validStaffIds;
     }
 
     public async Task<bool> DeleteShopService(int userId, int serviceId, string ip, string userAgent, CancellationToken ct)
     {
-        await EnsureAdminRoleAsync(userId, ct);
         _actionLog.Info("Deleting shop service (UserId={UserId}, ServiceId={ServiceId}, IP={IP}, UserAgent={UserAgent})", userId, serviceId, ip, userAgent);
         try
         {
             Domain.Entities.Service? service = await _db.Services
                 .Include(s => s.Shop)
-                .FirstOrDefaultAsync(s => s.Id == serviceId && s.Shop.OwnerId == userId, ct);
+                .FirstOrDefaultAsync(s => s.Id == serviceId, ct);
 
             if (service == null)
             {
                 _actionLog.Warning("Service not found for deletion (UserId={UserId}, ServiceId={ServiceId}, IP={IP}, UserAgent={UserAgent})", userId, serviceId, ip, userAgent);
                 return false;
             }
+            await _permissions.EnsureBranchAsync(userId, service.BranchId, "service.delete", ct);
 
             ServiceCategoryMap? categoryMap = await _db.ServiceCategoryMaps.FirstOrDefaultAsync(m => m.ServiceId == serviceId, ct);
 
@@ -549,17 +725,28 @@ public sealed class ManageShop : IManageShop
         catch (Exception ex)
         {
             _actionLog.Error(ex, "Error deleting shop service (UserId={UserId}, ServiceId={ServiceId}, IP={IP}, UserAgent={UserAgent})", userId, serviceId, ip, userAgent);
-            return false;
+            throw;
         }
     }
 
     public async Task<ShopResponse?> UpdateShop(int userId, UpdateShopRequest request, string ip, string userAgent, CancellationToken ct)
     {
-        await EnsureAdminRoleAsync(userId, ct);
-
         _actionLog.Info("Updating shop (UserId={UserId}, IP={IP})", userId, ip);
         try
         {
+            int targetShopId = request.BranchId.HasValue && request.BranchId.Value > 0
+                ? await _db.ShopBranches
+                    .Where(branch => branch.Id == request.BranchId.Value)
+                    .Select(branch => branch.ShopId)
+                    .FirstOrDefaultAsync(ct)
+                : await _db.Users
+                    .Where(user => user.Id == userId)
+                    .Select(user => user.HomeShopId ?? 0)
+                    .FirstOrDefaultAsync(ct);
+            if (targetShopId == 0)
+                throw new UnauthorizedAccessException("You cannot edit this shop.");
+            await _permissions.EnsureShopAsync(userId, targetShopId, "shop.edit", ct);
+
             var shop = await _db.Shops
                 .Include(s => s.ShopSettings)
                 .Include(s => s.Status)
@@ -569,7 +756,7 @@ public sealed class ManageShop : IManageShop
                         .ThenInclude(a => a.Subdistrict)
                             .ThenInclude(sd => sd.District)
                                 .ThenInclude(d => d.Province)
-                .FirstOrDefaultAsync(s => s.OwnerId == userId, ct);
+                .FirstOrDefaultAsync(s => s.Id == targetShopId, ct);
 
             if (shop == null) return null;
 
@@ -691,17 +878,20 @@ public sealed class ManageShop : IManageShop
         catch (Exception ex)
         {
             _actionLog.Error(ex, "Error updating shop (UserId={UserId})", userId);
-            return null;
+            throw;
         }
     }
 
     public async Task<ShopResponse?> UpdateBranch(int userId, UpdateBranchRequest request, string ip, string userAgent, CancellationToken ct)
     {
-        await EnsureAdminRoleAsync(userId, ct);
-
         _actionLog.Info("Updating branch (UserId={UserId}, BranchId={BranchId}, IP={IP})", userId, request.BranchId, ip);
         try
         {
+            await _permissions.EnsureBranchAsync(userId, request.BranchId, "branch.edit", ct);
+            int targetShopId = await _db.ShopBranches
+                .Where(branch => branch.Id == request.BranchId)
+                .Select(branch => branch.ShopId)
+                .FirstAsync(ct);
             var shop = await _db.Shops
                 .Include(s => s.ShopSettings)
                 .Include(s => s.Status)
@@ -711,7 +901,7 @@ public sealed class ManageShop : IManageShop
                         .ThenInclude(a => a.Subdistrict)
                             .ThenInclude(sd => sd.District)
                                 .ThenInclude(d => d.Province)
-                .FirstOrDefaultAsync(s => s.OwnerId == userId, ct);
+                .FirstOrDefaultAsync(s => s.Id == targetShopId, ct);
 
             if (shop == null) return null;
 
@@ -764,12 +954,13 @@ public sealed class ManageShop : IManageShop
         catch (Exception ex)
         {
             _actionLog.Error(ex, "Error updating branch (UserId={UserId})", userId);
-            return null;
+            throw;
         }
     }
 
-    public async Task<List<BusinessHourResponse>> GetBusinessHours(int branchId, CancellationToken ct)
+    public async Task<List<BusinessHourResponse>> GetBusinessHours(int userId, int branchId, CancellationToken ct)
     {
+        await _permissions.EnsureBranchAsync(userId, branchId, "setting.view", ct);
         var hours = await _db.ShopBusinessHours
             .Where(h => h.BranchId == branchId)
             .OrderBy(h => h.DayOfWeek)
@@ -786,13 +977,13 @@ public sealed class ManageShop : IManageShop
 
     public async Task<List<BusinessHourResponse>> UpdateBusinessHours(int userId, UpdateBusinessHoursRequest request, string ip, string userAgent, CancellationToken ct)
     {
-        await EnsureAdminRoleAsync(userId, ct);
+        await _permissions.EnsureBranchAsync(userId, request.BranchId, "setting.edit", ct);
         var branch = await _db.ShopBranches
             .Include(b => b.Shop)
             .Include(b => b.ShopBusinessHours)
             .FirstOrDefaultAsync(b => b.Id == request.BranchId, ct);
             
-        if (branch == null || branch.Shop.OwnerId != userId) return new List<BusinessHourResponse>();
+        if (branch == null) return new List<BusinessHourResponse>();
         
         foreach (var h in request.Hours)
         {
@@ -835,8 +1026,9 @@ public sealed class ManageShop : IManageShop
         }).ToList();
     }
 
-    public async Task<List<HolidayResponse>> GetHolidays(int branchId, CancellationToken ct)
+    public async Task<List<HolidayResponse>> GetHolidays(int userId, int branchId, CancellationToken ct)
     {
+        await _permissions.EnsureBranchAsync(userId, branchId, "setting.view", ct);
         var holidays = await _db.ShopHolidays
             .Where(h => h.BranchId == branchId)
             .OrderBy(h => h.HolidayDate)
@@ -852,12 +1044,12 @@ public sealed class ManageShop : IManageShop
 
     public async Task<HolidayResponse?> AddHoliday(int userId, AddHolidayRequest request, string ip, string userAgent, CancellationToken ct)
     {
-        await EnsureAdminRoleAsync(userId, ct);
+        await _permissions.EnsureBranchAsync(userId, request.BranchId, "setting.edit", ct);
         var branch = await _db.ShopBranches
             .Include(b => b.Shop)
             .FirstOrDefaultAsync(b => b.Id == request.BranchId, ct);
             
-        if (branch == null || branch.Shop.OwnerId != userId) return null;
+        if (branch == null) return null;
         
         DateOnly date = DateOnly.TryParse(request.Date, out var dt) ? dt : DateOnly.FromDateTime(DateTime.UtcNow);
         
@@ -883,19 +1075,20 @@ public sealed class ManageShop : IManageShop
 
     public async Task<bool> DeleteHoliday(int userId, int holidayId, string ip, string userAgent, CancellationToken ct)
     {
-        await EnsureAdminRoleAsync(userId, ct);
         var holiday = await _db.ShopHolidays
             .Include(h => h.Shop)
             .FirstOrDefaultAsync(h => h.Id == holidayId, ct);
             
-        if (holiday == null || holiday.Shop.OwnerId != userId) return false;
+        if (holiday == null) return false;
+        await _permissions.EnsureBranchAsync(userId, holiday.BranchId, "setting.edit", ct);
         
         await _crud.DeleteAsync(holiday, ct);
         return true;
     }
 
-    public async Task<QueueRulesResponse> GetQueueRules(int branchId, CancellationToken ct)
+    public async Task<QueueRulesResponse> GetQueueRules(int userId, int branchId, CancellationToken ct)
     {
+        await _permissions.EnsureBranchAsync(userId, branchId, "setting.view", ct);
         var settings = await _db.ShopSettings
             .AsNoTracking()
             .Where(s => s.BranchId == branchId && s.Key.StartsWith("queue."))
@@ -918,12 +1111,12 @@ public sealed class ManageShop : IManageShop
 
     public async Task<QueueRulesResponse> UpdateQueueRules(int userId, UpdateQueueRulesRequest request, string ip, string userAgent, CancellationToken ct)
     {
-        await EnsureAdminRoleAsync(userId, ct);
+        await _permissions.EnsureBranchAsync(userId, request.BranchId, "setting.edit", ct);
         var branch = await _db.ShopBranches
             .Include(b => b.Shop)
             .FirstOrDefaultAsync(b => b.Id == request.BranchId, ct);
 
-        if (branch == null || branch.Shop.OwnerId != userId)
+        if (branch == null)
             throw new Exception("Unauthorized to modify queue rules for this branch");
 
         var settings = await _db.ShopSettings
@@ -988,7 +1181,7 @@ public sealed class ManageShop : IManageShop
         Logo = shop.ShopSettings?.FirstOrDefault(s => s.Key == "Logo")?.Value,
         Description = shop.ShopSettings?.FirstOrDefault(s => s.Key == "Description")?.Value,
         Email = shop.ShopSettings?.FirstOrDefault(s => s.Key == "Email")?.Value,
-        ShopBranches = shop.ShopBranches?.Where(b => branchId == 0 || b.Id == branchId).Select(b => new BranchDto
+        ShopBranches = shop.ShopBranches?.Where(b => b.IsActive && (branchId == 0 || b.Id == branchId)).Select(b => new BranchDto
         {
             Id = b.Id,
             Name = b.Name ?? string.Empty,

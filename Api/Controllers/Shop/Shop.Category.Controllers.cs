@@ -10,11 +10,12 @@ using Queue.Application.DTO.Response;
 using Queue.Application.Interfaces;
 using Queue.Domain.Entities;
 using Queue.Infrastructure.Service;
+using Queue.Api.Authorization;
 namespace Queue.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/shop/category")]
-public class ShopCategoryController : ControllerBase
+public class ShopCategoryController : QueueControllerBase
 {
     private readonly IManageShop _shop;
     private readonly IActionLog _actionLog;
@@ -30,6 +31,7 @@ public class ShopCategoryController : ControllerBase
     }
 
     [Authorize]
+    [RequirePermission("service.view")]
     [HttpGet("get-category")]
     public async Task<ActionResult<ApiResponse<List<ShopCategoryResponse>?>>> GetShopCategory([FromQuery] int shopId, [FromQuery] int? branchId, CancellationToken ct)
     {
@@ -43,18 +45,19 @@ public class ShopCategoryController : ControllerBase
                 return Unauthorized(ApiResponse<List<ShopCategoryResponse>>.Fail(message));
 
             _actionLog.Info("Get shop category request (UserId={UserId}, ShopId={ShopId}, BranchId={BranchId})", userId, shopId, branchId ?? 0);
-            List<ShopCategoryResponse>? resp = await _shop.GetShopCategoryById(shopId, branchId, ip, ua, ct);
+            List<ShopCategoryResponse>? resp = await _shop.GetShopCategoryById(int.Parse(userId), shopId, branchId, ip, ua, ct);
 
             return Ok(ApiResponse<List<ShopCategoryResponse>?>.Ok(resp));
         }
         catch (Exception ex)
         {
             _actionLog.Error(ex, "Get shop category failed (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, ua);
-            return StatusCode(500, ApiResponse<List<ShopCategoryResponse>>.Fail(ex.Message));
+            return Failure<List<ShopCategoryResponse>?>(ex);
         }
     }
 
     [Authorize]
+    [RequirePermission("service.create")]
     [HttpPost("add-category")]
     public async Task<ActionResult<ApiResponse<ShopCategoryResponse>>> AddShopCategory([FromBody] ShopCategoryRequest request, CancellationToken ct)
     {
@@ -73,11 +76,12 @@ public class ShopCategoryController : ControllerBase
         catch (Exception ex)
         {
             _actionLog.Error(ex, "Add shop category failed (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, ua);
-            return StatusCode(500, ApiResponse<ShopCategoryResponse>.Fail(ex.Message));
+            return Failure<ShopCategoryResponse>(ex);
         }
     }
 
     [Authorize]
+    [RequirePermission("service.edit")]
     [HttpPut("update-category")]
     public async Task<ActionResult<ApiResponse<ShopCategoryResponse>>> UpdateShopCategory([FromBody] ShopCategoryRequest request, CancellationToken ct)
     {
@@ -96,11 +100,12 @@ public class ShopCategoryController : ControllerBase
         catch (Exception ex)
         {
             _actionLog.Error(ex, "Update shop category failed (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, ua);
-            return StatusCode(500, ApiResponse<ShopCategoryResponse>.Fail(ex.Message));
+            return Failure<ShopCategoryResponse>(ex);
         }
     }
 
     [Authorize]
+    [RequirePermission("service.delete")]
     [HttpDelete("delete-category")]
     public async Task<ActionResult<ApiResponse<string>>> DeleteShopCategory([FromQuery] int categoryId, CancellationToken ct)
     {
@@ -119,7 +124,7 @@ public class ShopCategoryController : ControllerBase
         catch (Exception ex)
         {
             _actionLog.Error(ex, "Delete shop category failed (UserId={UserId}, CategoryId={CategoryId}, IP={IP}, UserAgent={UserAgent})", userId, categoryId, ip, ua);
-            return StatusCode(500, ApiResponse<string>.Fail(ex.Message));
+            return Failure<string>(ex);
         }
     }
 }

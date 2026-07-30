@@ -10,6 +10,7 @@ using Microsoft.Extensions.Hosting;
 using Queue.Infrastructure.Service;
 using Queue.Application.DTO.Response;
 using Queue.Application.Interfaces;
+using Queue.Infrastructure.Services;
 
 namespace Queue.Infrastructure.Service;
 
@@ -17,6 +18,7 @@ public sealed class RefreshToken
 {
     private readonly AccessToken _accessToken;
     private readonly QueueDbContext _db;
+    private readonly RoleClaimsService _roleClaims;
 
 
     // ===== Cookie names (ตามที่คุณกำหนด) =====
@@ -24,10 +26,11 @@ public sealed class RefreshToken
     private const string REFRESH_COOKIE = "refresh_token";
     private const string SESSION_COOKIE = "session_key";
 
-    public RefreshToken(AccessToken accessToken, QueueDbContext db)
+    public RefreshToken(AccessToken accessToken, QueueDbContext db, RoleClaimsService roleClaims)
     {
         _accessToken = accessToken;
         _db = db;
+        _roleClaims = roleClaims;
     }
     public (string hash, string salt) Hash(string raw)
     {
@@ -129,9 +132,10 @@ public sealed class RefreshToken
         User? _user = _db.Users.Include(c => c.UserRoleMaps).ThenInclude(ur => ur.Role).FirstOrDefault(x => x.Id == session.UserId);
 
         string username = _user?.Email ?? _user?.Phone ?? "unknown";
-        string role = _user?.UserRoleMaps.FirstOrDefault()?.RoleId.ToString() ?? "";
+        var roleClaims = await _roleClaims.ResolveAsync((int)session.UserId, ct);
+        string role = roleClaims.Role;
         string name = _user?.Name ?? "";
-        string[] permissions = _user?.UserRoleMaps.Select(ur => ur.Role.Name).ToArray() ?? Array.Empty<string>();
+        string[] permissions = roleClaims.Permissions;
 
         var (newAccessToken, accessExpiresAtUtc) = _accessToken.CreateAccessToken(
             (int)session.UserId,

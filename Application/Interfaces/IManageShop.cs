@@ -13,7 +13,7 @@ public interface IManageShop
     Task<ShopResponse?> UpdateShop(int userId, UpdateShopRequest request, string ip, string userAgent, CancellationToken ct);
     Task<ShopResponse?> CreateBranch(int userId, CreateShopRequest request, string ip, string userAgent, CancellationToken ct);
     Task<ShopResponse?> UpdateBranch(int userId, UpdateBranchRequest request, string ip, string userAgent, CancellationToken ct);
-    Task<List<ShopCategoryResponse>?> GetShopCategoryById(int shopId, int? branchId, string ip, string userAgent, CancellationToken ct);
+    Task<List<ShopCategoryResponse>?> GetShopCategoryById(int userId, int shopId, int? branchId, string ip, string userAgent, CancellationToken ct);
     Task<ShopCategoryResponse> AddShopCategory(int userId, ShopCategoryRequest request, string ip, string userAgent, CancellationToken ct);
     Task<ShopCategoryResponse> UpdateShopCategory(int userId, ShopCategoryRequest request, string ip, string userAgent, CancellationToken ct);
     Task<bool> DeleteShopCategory(int userId, int categoryId, string ip, string userAgent, CancellationToken ct);
@@ -21,12 +21,12 @@ public interface IManageShop
     Task<ShopServiceResponse> AddShopService(int userId, ShopServiceRequest request, string ip, string userAgent, CancellationToken ct);
     Task<ShopServiceResponse> UpdateShopService(int userId, ShopServiceRequest request, string ip, string userAgent, CancellationToken ct);
     Task<bool> DeleteShopService(int userId, int serviceId, string ip, string userAgent, CancellationToken ct);
-    Task<List<BusinessHourResponse>> GetBusinessHours(int branchId, CancellationToken ct);
+    Task<List<BusinessHourResponse>> GetBusinessHours(int userId, int branchId, CancellationToken ct);
     Task<List<BusinessHourResponse>> UpdateBusinessHours(int userId, UpdateBusinessHoursRequest request, string ip, string userAgent, CancellationToken ct);
-    Task<List<HolidayResponse>> GetHolidays(int branchId, CancellationToken ct);
+    Task<List<HolidayResponse>> GetHolidays(int userId, int branchId, CancellationToken ct);
     Task<HolidayResponse?> AddHoliday(int userId, AddHolidayRequest request, string ip, string userAgent, CancellationToken ct);
     Task<bool> DeleteHoliday(int userId, int holidayId, string ip, string userAgent, CancellationToken ct);
 
-    Task<QueueRulesResponse> GetQueueRules(int branchId, CancellationToken ct);
+    Task<QueueRulesResponse> GetQueueRules(int userId, int branchId, CancellationToken ct);
     Task<QueueRulesResponse> UpdateQueueRules(int userId, UpdateQueueRulesRequest request, string ip, string userAgent, CancellationToken ct);
 }

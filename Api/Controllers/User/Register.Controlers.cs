@@ -74,7 +74,7 @@ public class RegisterController : ControllerBase
         catch (Exception ex)
         {
             _actionLog.Error(ex, "Register failed (Email={Email})", req?.Email ?? "unknown");
-            return StatusCode(500, ApiResponse<RegisterResponse>.Fail(ex.Message));
+            return StatusCode(500, ApiResponse<RegisterResponse>.Fail("An unexpected error occurred."));
         }
     }
 
@@ -116,7 +116,7 @@ public class RegisterController : ControllerBase
         catch (Exception ex)
         {
             _actionLog.Error(ex, "Resend confirmation email failed (Email={Email})", req?.Email ?? "unknown");
-            return StatusCode(500, ApiResponse<string>.Fail(ex.Message));
+            return StatusCode(500, ApiResponse<string>.Fail("An unexpected error occurred."));
         }
     }
 
@@ -144,7 +144,7 @@ public class RegisterController : ControllerBase
         catch (Exception ex)
         {
             _actionLog.Error(ex, "Verify account failed (Token={Token})", req?.Token ?? "unknown");
-            return StatusCode(500, ApiResponse<bool>.Fail(ex.Message));
+            return StatusCode(500, ApiResponse<bool>.Fail("An unexpected error occurred."));
         }
     }
 
@@ -179,7 +179,7 @@ public class RegisterController : ControllerBase
         catch (Exception ex)
         {
             _actionLog.Error(ex, "Reset password failed (UserId={UserId})", userId);
-            return StatusCode(500, ApiResponse<bool>.Fail(ex.Message));
+            return StatusCode(500, ApiResponse<bool>.Fail("An unexpected error occurred."));
         }
     }
 }

@@ -59,6 +59,7 @@ import {
 } from "@/components/ui/tooltip";
 import { http } from "@/lib/http/client";
 import { useShop } from "@/hooks/use-me";
+import { usePermissions } from "@/hooks/use-permissions";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -94,6 +95,8 @@ const SettingHolidayPage = () => {
   const t = useTranslations("HolidaySettings");
   const locale = useLocale();
   const { data: shopData } = useShop();
+  const { can } = usePermissions();
+  const canEditSettings = can("setting.edit");
   const branchId = shopData?.shopBranches?.[0]?.id;
   const currentYear = new Date().getFullYear();
 
@@ -280,6 +283,7 @@ const SettingHolidayPage = () => {
   };
 
   const importHolidays = async () => {
+    if (!canEditSettings) return;
     if (!branchId || !syncData || selectedDates.size === 0) return;
     setIsImporting(true);
 
@@ -317,6 +321,7 @@ const SettingHolidayPage = () => {
   };
 
   const addHoliday = async () => {
+    if (!canEditSettings) return;
     if (!form.name || !form.date || !branchId) return;
     if (existingDates.has(form.date)) {
       toast.error(t("messages.duplicateDate"));
@@ -346,6 +351,7 @@ const SettingHolidayPage = () => {
   };
 
   const deleteHoliday = async () => {
+    if (!canEditSettings) return;
     if (!holidayToDelete) return;
     setIsDeleting(true);
     try {
@@ -381,11 +387,11 @@ const SettingHolidayPage = () => {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" onClick={openSync} className="gap-2">
+          <Button variant="outline" onClick={openSync} className="gap-2" disabled={!canEditSettings}>
             <CloudDownload className="h-4 w-4" />
             {t("syncGovernment")}
           </Button>
-          <Button onClick={() => setDialogOpen(true)} className="gap-2">
+          <Button onClick={() => setDialogOpen(true)} className="gap-2" disabled={!canEditSettings}>
             <Plus className="h-4 w-4" />
             {t("add")}
           </Button>
@@ -589,7 +595,7 @@ const SettingHolidayPage = () => {
                                     variant="outline"
                                     size="icon"
                                     onClick={() => setHolidayToDelete(item)}
-                                    disabled={!isUpcoming}
+                                    disabled={!canEditSettings || !isUpcoming}
                                     aria-label={t("deleteAria", {
                                       name: item.name,
                                     })}
@@ -775,7 +781,7 @@ const SettingHolidayPage = () => {
             </Button>
             <Button
               onClick={addHoliday}
-              disabled={!form.name || !form.date || isSaving}
+              disabled={!canEditSettings || !form.name || !form.date || isSaving}
             >
               {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {t("save")}
@@ -936,7 +942,7 @@ const SettingHolidayPage = () => {
             </Button>
             <Button
               onClick={importHolidays}
-              disabled={!syncData || selectedDates.size === 0 || isImporting}
+              disabled={!canEditSettings || !syncData || selectedDates.size === 0 || isImporting}
               className="gap-2"
             >
               {isImporting ? (

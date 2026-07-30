@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Queue.Api.Authorization;
 using Queue.Api.Common;
 using Queue.Api.Models.Response;
 using Queue.Application.DTO.Request;
@@ -57,12 +58,13 @@ public class ShopController : ControllerBase
         catch (Exception ex)
         {
             _actionLog.Error(ex, "Register shop failed (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, ua);
-            return StatusCode(500, ApiResponse<ShopResponse?>.Fail(ex.Message));
+            return Failure<ShopResponse?>(ex);
         }
     }
     
 
     [Authorize]
+    [RequirePermission("branch.create")]
     [HttpPost("new-branch")]
     public async Task<ActionResult<ApiResponse<ShopResponse?>>> RegisterBranch([FromBody] CreateShopRequest request, CancellationToken ct)
     {
@@ -89,7 +91,20 @@ public class ShopController : ControllerBase
         catch (Exception ex)
         {
             _actionLog.Error(ex, "Register branch failed (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, ua);
-            return StatusCode(500, ApiResponse<ShopResponse?>.Fail(ex.Message));
+            return Failure<ShopResponse?>(ex);
         }
     }
+
+    private ActionResult<ApiResponse<T>> Failure<T>(Exception ex) =>
+        ex switch
+        {
+            UnauthorizedAccessException => StatusCode(
+                StatusCodes.Status403Forbidden,
+                ApiResponse<T>.Fail(ex.Message)),
+            KeyNotFoundException => NotFound(ApiResponse<T>.Fail(ex.Message)),
+            InvalidOperationException => Conflict(ApiResponse<T>.Fail(ex.Message)),
+            _ => StatusCode(
+                StatusCodes.Status500InternalServerError,
+                ApiResponse<T>.Fail("An unexpected error occurred.")),
+        };
 }

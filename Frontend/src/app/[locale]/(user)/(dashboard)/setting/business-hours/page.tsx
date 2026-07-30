@@ -10,7 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { http } from "@/lib/http/client";
 import { useShop } from "@/hooks/use-me";
+import { usePermissions } from "@/hooks/use-permissions";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 type BusinessHour = {
   dayOfWeek: number;
@@ -24,9 +26,6 @@ type QueueRules = {
   advanceBookingWindow: number;
   bufferBetweenServices: number;
 };
-
-const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-const SHORT_DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 const defaultHours: BusinessHour[] = Array.from({ length: 7 }, (_, i) => ({
   dayOfWeek: i,
@@ -42,7 +41,12 @@ const defaultQueueRules: QueueRules = {
 };
 
 const SettingBusinessHoursPage = () => {
+  const t = useTranslations("BusinessHoursSettings");
+  const dayNames = t.raw("days") as string[];
+  const shortDayNames = t.raw("shortDays") as string[];
   const { data: shopData } = useShop();
+  const { can } = usePermissions();
+  const canEditSettings = can("setting.edit");
   const branchId = shopData?.shopBranches?.[0]?.id;
 
   const [hours, setHours] = useState<BusinessHour[]>(defaultHours);
@@ -120,6 +124,7 @@ const SettingBusinessHoursPage = () => {
   };
 
   const handleSave = async () => {
+    if (!canEditSettings) return;
     if (!branchId) return;
     setIsSaving(true);
     try {
@@ -127,17 +132,18 @@ const SettingBusinessHoursPage = () => {
         branchId: branchId,
         hours: hours
       });
-      toast.success("Business hours updated successfully!");
+      toast.success(t("messages.hoursSaved"));
       setSaved(true);
       setTimeout(() => setSaved(false), 2400);
-    } catch (e: any) {
-      toast.error(e.message || "Failed to update business hours");
+    } catch {
+      toast.error(t("messages.hoursError"));
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleSaveRules = async () => {
+    if (!canEditSettings) return;
     if (!branchId) return;
     setIsSavingRules(true);
     try {
@@ -145,9 +151,9 @@ const SettingBusinessHoursPage = () => {
         branchId: branchId,
         ...queueRules
       });
-      toast.success("Queue rules updated successfully!");
-    } catch (e: any) {
-      toast.error(e.message || "Failed to update queue rules");
+      toast.success(t("messages.rulesSaved"));
+    } catch {
+      toast.error(t("messages.rulesError"));
     } finally {
       setIsSavingRules(false);
     }
@@ -159,7 +165,7 @@ const SettingBusinessHoursPage = () => {
     return (
       <div className="flex h-[420px] items-center justify-center text-sm text-muted-foreground">
         <Loader2 className="mr-2 h-4 w-4 animate-spin text-primary" />
-        Loading settings...
+        {t("loading")}
       </div>
     );
   }
@@ -167,18 +173,18 @@ const SettingBusinessHoursPage = () => {
   return (
     <div className="space-y-6">
       <DashboardPageHeader
-        eyebrow="Shop settings"
-        title="Business hours & Queue rules"
-        description="Configure weekly opening hours and queue behaviors for your branch."
+        eyebrow={t("eyebrow")}
+        title={t("title")}
+        description={t("description")}
         actions={
           <>
-            <Button variant="outline" onClick={copyMondayToWeekdays} className="gap-2">
+            <Button variant="outline" onClick={copyMondayToWeekdays} className="gap-2" disabled={!canEditSettings}>
               <Copy className="h-4 w-4" />
-              Copy Monday
+              {t("copyMonday")}
             </Button>
-            <Button onClick={handleSave} disabled={isSaving} className="gap-2">
+            <Button onClick={handleSave} disabled={isSaving || !canEditSettings} className="gap-2">
               {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : saved ? <Check className="h-4 w-4" /> : <Save className="h-4 w-4" />}
-              {isSaving ? "Saving..." : saved ? "Saved" : "Save hours"}
+              {isSaving ? t("saving") : saved ? t("saved") : t("saveHours")}
             </Button>
           </>
         }
@@ -187,8 +193,8 @@ const SettingBusinessHoursPage = () => {
       <div className="grid gap-6 xl:grid-cols-[1.4fr_0.8fr]">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base">Weekly schedule</CardTitle>
-            <Badge color="secondary">{openDays} open days</Badge>
+            <CardTitle className="text-base">{t("weeklySchedule")}</CardTitle>
+            <Badge color="secondary">{t("openDays", { count: openDays })}</Badge>
           </CardHeader>
           <CardContent className="space-y-3">
             {hours.map((item, index) => (
@@ -198,17 +204,17 @@ const SettingBusinessHoursPage = () => {
               >
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-md bg-default-100 text-sm font-semibold">
-                    {SHORT_DAY_NAMES[item.dayOfWeek]}
+                    {shortDayNames[item.dayOfWeek]}
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-default-900">{DAY_NAMES[item.dayOfWeek]}</p>
-                    <p className="text-xs text-muted-foreground">{item.isOpen ? "Open" : "Closed"}</p>
+                    <p className="text-sm font-medium text-default-900">{dayNames[item.dayOfWeek]}</p>
+                    <p className="text-xs text-muted-foreground">{item.isOpen ? t("open") : t("closed")}</p>
                   </div>
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div>
-                    <label className="mb-1 block text-xs text-muted-foreground">Open</label>
+                    <label className="mb-1 block text-xs text-muted-foreground">{t("openTime")}</label>
                     <Input
                       type="time"
                       value={item.openTime}
@@ -217,7 +223,7 @@ const SettingBusinessHoursPage = () => {
                     />
                   </div>
                   <div>
-                    <label className="mb-1 block text-xs text-muted-foreground">Close</label>
+                    <label className="mb-1 block text-xs text-muted-foreground">{t("closeTime")}</label>
                     <Input
                       type="time"
                       value={item.closeTime}
@@ -240,12 +246,12 @@ const SettingBusinessHoursPage = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <Clock className="h-4 w-4" />
-              Queue rules
+              {t("queueRules")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <label className="mb-1 block text-xs text-muted-foreground">Slot interval (minutes)</label>
+              <label className="mb-1 block text-xs text-muted-foreground">{t("slotInterval")}</label>
               <Input 
                 type="number"
                 min="5" 
@@ -255,7 +261,7 @@ const SettingBusinessHoursPage = () => {
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs text-muted-foreground">Advance booking window (days)</label>
+              <label className="mb-1 block text-xs text-muted-foreground">{t("advanceWindow")}</label>
               <Input 
                 type="number"
                 min="1"
@@ -265,7 +271,7 @@ const SettingBusinessHoursPage = () => {
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs text-muted-foreground">Buffer between services (minutes)</label>
+              <label className="mb-1 block text-xs text-muted-foreground">{t("serviceBuffer")}</label>
               <Input 
                 type="number"
                 min="0"
@@ -274,9 +280,9 @@ const SettingBusinessHoursPage = () => {
                 onChange={(e) => updateRule("bufferBetweenServices", parseInt(e.target.value) || 0)} 
               />
             </div>
-            <Button onClick={handleSaveRules} disabled={isSavingRules} variant="outline" className="w-full gap-2">
+            <Button onClick={handleSaveRules} disabled={isSavingRules || !canEditSettings} variant="outline" className="w-full gap-2">
               {isSavingRules ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-              {isSavingRules ? "Saving rules..." : "Save rules"}
+              {isSavingRules ? t("savingRules") : t("saveRules")}
             </Button>
           </CardContent>
         </Card>

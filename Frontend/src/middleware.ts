@@ -44,7 +44,18 @@ export function middleware(request: NextRequest) {
   }
 
   // 👉 protected routes
-  const protectedPaths = ["/auth/resetpassword", "/dashboard", "/info", "/service"];
+  const protectedPaths = [
+    "/auth/resetpassword",
+    "/dashboard",
+    "/info",
+    "/service",
+    "/queue",
+    "/booking",
+    "/customer",
+    "/setting",
+    "/notification",
+    "/account",
+  ];
   const isProtected = protectedPaths.some(
     (p) => pathWithoutLocale === p || pathWithoutLocale.startsWith(p + "/"),
   );

@@ -4,6 +4,8 @@ namespace Queue.Application.DTO.Request;
 
 public sealed class CreateShopRequest
 {
+    public int? ShopId { get; set; }
+
     [Required(ErrorMessage = "ShopName is required")]
     [MaxLength(100, ErrorMessage = "ShopName must not exceed 100 characters")]
     public string ShopName { get; set; } = string.Empty;

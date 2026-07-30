@@ -9,6 +9,7 @@ using Queue.Application.Interfaces;
 using Queue.Domain.Entities;
 using Queue.Infrastructure.Identity.Security;
 using Queue.Infrastructure.Service;
+using Queue.Infrastructure.Services;
 
 namespace Queue.Infrastructure.Persistence.Repositories;
 
@@ -20,8 +21,18 @@ public sealed class Users : IUsers
     private readonly ICrudService _crud;
     private readonly IConfiguration _config;
     private readonly Microsoft.Extensions.Hosting.IHostEnvironment _env;
+    private readonly RoleClaimsService _roleClaims;
+    private readonly AccountShopGuard _accountShopGuard;
 
-    public Users(IActionLog actionLog, QueueDbContext db, IEmailService emailService, ICrudService crud, IConfiguration config, Microsoft.Extensions.Hosting.IHostEnvironment env)
+    public Users(
+        IActionLog actionLog,
+        QueueDbContext db,
+        IEmailService emailService,
+        ICrudService crud,
+        IConfiguration config,
+        Microsoft.Extensions.Hosting.IHostEnvironment env,
+        RoleClaimsService roleClaims,
+        AccountShopGuard accountShopGuard)
     {
         _actionLog = actionLog;
         _db = db;
@@ -29,6 +40,8 @@ public sealed class Users : IUsers
         _config = config;
         _crud = crud;
         _env = env;
+        _roleClaims = roleClaims;
+        _accountShopGuard = accountShopGuard;
     }
 
     public async Task<RegisterResponse?> LocalRegister(RegisterRequest data, string originUrl, string ip, string userAgent, CancellationToken ct)
@@ -57,7 +70,9 @@ public sealed class Users : IUsers
         using var transaction = await _db.Database.BeginTransactionAsync(ct);
         try
         {
-            Role? adminRole = await _db.Roles.FirstOrDefaultAsync(r => r.Name == "Admin", ct);
+            Role? customerRole = await _db.Roles.FirstOrDefaultAsync(
+                role => role.Name == "Customer",
+                ct);
 
             User _newUser = new User
             {
@@ -72,7 +87,9 @@ public sealed class Users : IUsers
                     {
                         new UserRoleMap
                         {
-                            RoleId = adminRole?.Id ?? 1
+                            RoleId = customerRole?.Id
+                                ?? throw new InvalidOperationException(
+                                    "The default Customer role is not configured.")
                         }
                     }
             };
@@ -126,6 +143,7 @@ public sealed class Users : IUsers
 
         if (user == null) return null;
 
+        var roleClaims = await _roleClaims.ResolveAsync(user.Id, ct);
 
         return new UserResponse
         {
@@ -134,7 +152,8 @@ public sealed class Users : IUsers
             Email = user?.Email ?? string.Empty,
             Phone = user?.Phone ?? string.Empty,
             Status = user?.Status.NameTh ?? "",
-            Role = user?.UserRoleMaps.FirstOrDefault()?.Role.Name ?? string.Empty,
+            Role = roleClaims.Role,
+            Permissions = roleClaims.Permissions,
             ProfilePictureUrl = user?.UserImages.FirstOrDefault(ui => ui.IsPrimary)?.FileUrl ?? string.Empty,
             IsChangPassword = user?.UserAuthentications.Any(a => a.LastLoginAt == null) ?? false
         };
@@ -207,6 +226,71 @@ public sealed class Users : IUsers
 
             user.EmailConfirmed = true;
             await _crud.UpdateAsync(user, ct);
+
+            var pendingStaff = await _db.ShopStaffs
+                .Where(s =>
+                    s.UserId == null
+                    && s.CanLogin
+                    && s.IsActive
+                    && s.Email == user.Email)
+                .ToListAsync(ct);
+            int[] pendingShopIds = pendingStaff.Select(staff => staff.ShopId).Distinct().ToArray();
+            if (pendingShopIds.Length > 1)
+                throw new InvalidOperationException(
+                    "This email has invitations from more than one shop. Contact support before continuing.");
+            if (pendingShopIds.Length == 1)
+                await _accountShopGuard.BindAsync(user.Id, pendingShopIds[0], ct);
+            foreach (var staff in pendingStaff)
+            {
+                staff.UserId = user.Id;
+                staff.UpdatedAt = DateTime.UtcNow;
+                string roleCode = string.IsNullOrWhiteSpace(staff.SystemRoleCode)
+                    ? "Staff"
+                    : staff.SystemRoleCode;
+                string customPrefix = $"Custom_{staff.ShopId}_";
+                var shopRole = await _db.ShopRoles.FirstOrDefaultAsync(role =>
+                    role.Code == roleCode
+                    && role.IsActive
+                    && (role.IsSystem || role.Code.StartsWith(customPrefix)), ct)
+                    ?? await _db.ShopRoles.FirstAsync(role => role.Code == "Staff" && role.IsActive, ct);
+                staff.SystemRoleCode = shopRole.Code;
+
+                if (shopRole.Scope.Equals("Shop", StringComparison.OrdinalIgnoreCase))
+                {
+                    var existingShopMaps = await _db.ShopUserRoleMaps
+                        .Where(map => map.ShopId == staff.ShopId && map.UserId == user.Id)
+                        .ToListAsync(ct);
+                    _db.ShopUserRoleMaps.RemoveRange(existingShopMaps);
+                    _db.ShopUserRoleMaps.Add(new ShopUserRoleMap
+                    {
+                        ShopId = staff.ShopId,
+                        UserId = user.Id,
+                        RoleCode = shopRole.Code,
+                        IsActive = true,
+                        GrantedBy = staff.CreatedBy,
+                        CreatedAt = DateTime.UtcNow,
+                        CreatedBy = staff.CreatedBy,
+                    });
+                }
+                else
+                {
+                    var existingBranchMaps = await _db.BranchUserRoleMaps
+                        .Where(map => map.BranchId == staff.BranchId && map.UserId == user.Id)
+                        .ToListAsync(ct);
+                    _db.BranchUserRoleMaps.RemoveRange(existingBranchMaps);
+                    _db.BranchUserRoleMaps.Add(new BranchUserRoleMap
+                    {
+                        BranchId = staff.BranchId,
+                        UserId = user.Id,
+                        RoleCode = shopRole.Code,
+                        IsActive = true,
+                        GrantedBy = staff.CreatedBy,
+                        CreatedAt = DateTime.UtcNow,
+                        CreatedBy = staff.CreatedBy,
+                    });
+                }
+            }
+
             if (user.UserAuthentications.Any())
             {
                 user.UserAuthentications.First().PasswordHash = Crypto.HashPassword(tempPassword);
@@ -263,7 +347,8 @@ public sealed class Users : IUsers
         var auth = user.UserAuthentications.FirstOrDefault(a => a.ProviderId == "User");
         if (auth == null) return false;
 
-        if (!Crypto.VerifyPassword(oldPassword, auth.PasswordHash))
+        if (string.IsNullOrWhiteSpace(auth.PasswordHash)
+            || !Crypto.VerifyPassword(oldPassword, auth.PasswordHash))
         {
             throw new UnauthorizedAccessException("Incorrect old password");
         }

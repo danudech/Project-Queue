@@ -15,6 +15,8 @@ public partial class User
 
     public string? Phone { get; set; }
 
+    public int? HomeShopId { get; set; }
+
     public int StatusId { get; set; }
 
     public bool EmailConfirmed { get; set; }
@@ -58,4 +60,6 @@ public partial class User
     public virtual ICollection<UserRoleMap> UserRoleMaps { get; set; } = new List<UserRoleMap>();
 
     public virtual ICollection<UserSession> UserSessions { get; set; } = new List<UserSession>();
+
+    public virtual Shop? HomeShop { get; set; }
 }

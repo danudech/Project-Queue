@@ -5,6 +5,7 @@ export type ShopType = {
 };
 
 export type AddShop = {
+    shopId?: number;
     shopname: string;
     shoptype: string;
     branch: ShopBranch;

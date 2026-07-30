@@ -2,8 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import { http } from "@/lib/http/client";
 import { ProfileUser } from "@/types/user";
 import { ShopResponse } from "@/types/shop/shop-responsd";
-import { storage } from "@/services/localstorage";
-import React, { useEffect, useState } from "react";
 
 export const useProfile = () => {
   return useQuery({
@@ -13,24 +11,9 @@ export const useProfile = () => {
 };
 
 export const useShop = () => {
-  const [branchId, setBranchId] = useState<number | null>(null);
-  const [isReady, setIsReady] = useState(false);
-
-  useEffect(() => {
-    const getBranchId = async () => {
-      const branchselect: number | null = (await storage.get("branch")) ?? null;
-      setBranchId(branchselect);
-      setIsReady(true); // Note
-    };
-    getBranchId();
-  }, []);
-
   return useQuery({
-    queryKey: ["shop", branchId], // Note
-    queryFn: () =>
-      http.get<ShopResponse>("shopdata", {
-        params: { ...(branchId && { branchId }) },
-      }),
-    enabled: isReady, // Note
+    queryKey: ["shop", "active-branches-v2"],
+    queryFn: () => http.get<ShopResponse | null>("shopdata"),
+    refetchOnMount: "always",
   });
 };

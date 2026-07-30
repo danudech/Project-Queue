@@ -10,6 +10,7 @@ using Queue.Infrastructure.Identity.Jwt;
 using Queue.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Queue.Infrastructure.Service;
+using Queue.Infrastructure.Services;
 
 namespace Queue.Infrastructure.Persistence.Repositories;
 
@@ -19,10 +20,11 @@ public sealed class Authentication : IAuthentication
     private readonly AccessToken _accessToken;
     private readonly QueueDbContext _db;
     private readonly RefreshToken _refreshToken;
+    private readonly RoleClaimsService _roleClaims;
 
     private readonly ICrudService _crud;
 
-    public Authentication(IActionLog actionLog, AccessToken accessToken, QueueDbContext db, RefreshToken refreshToken, ICrudService crud)
+    public Authentication(IActionLog actionLog, AccessToken accessToken, QueueDbContext db, RefreshToken refreshToken, ICrudService crud, RoleClaimsService roleClaims)
 
     {
         _actionLog = actionLog;
@@ -30,6 +32,7 @@ public sealed class Authentication : IAuthentication
         _db = db;
         _refreshToken = refreshToken;
         _crud = crud;
+        _roleClaims = roleClaims;
 
     }
 
@@ -72,9 +75,10 @@ public sealed class Authentication : IAuthentication
             return new LoginResponse { Message = "invalid email/phone or password" };
         }
         
-        string role = user.UserRoleMaps.FirstOrDefault()?.RoleId.ToString() ?? string.Empty;
+        var roleClaims = await _roleClaims.ResolveAsync(user.Id, ct);
+        string role = roleClaims.Role;
         string name = user.Name ?? string.Empty;
-        string[] permissions = user.UserRoleMaps.Select(ur => ur.Role.Name).ToArray();
+        string[] permissions = roleClaims.Permissions;
 
         var (token, expUtc) = _accessToken.CreateAccessToken((int)(user?.Id ?? 0), EmailOrPhone, role, name, permissions);
         string refreshRaw = _accessToken.GenerateRefreshToken();
@@ -109,6 +113,7 @@ public sealed class Authentication : IAuthentication
                 Phone = user?.Phone ?? string.Empty,
                 Status = user?.Status.NameTh ?? "",
                 Role = role,
+                Permissions = permissions,
                 ProfilePictureUrl = "",
                 IsChangPassword = authInfo.LastLoginAt == null
             },

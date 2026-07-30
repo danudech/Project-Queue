@@ -431,7 +431,9 @@
     "typeSalon": "Beauty / Haircut / Nails",
     "typeRestaurant": "Restaurant / Cafe / Bakery",
     "typeOther": "Other / General Services",
-    "streetPlaceholder": "Sukhumvit"
+    "streetPlaceholder": "Sukhumvit",
+    "optional": "(Optional)",
+    "loading": "Loading..."
   },
   "Changelog": {
     "version": "Version's",
@@ -579,7 +581,8 @@
       "durationMin": "Duration must be greater than 0",
       "priceRequired": "Please enter price",
       "priceMin": "Price cannot be negative",
-      "categoryRequired": "Please select a category"
+      "categoryRequired": "Please select a category",
+      "activeStaffRequired": "Select at least one staff member before activating this service"
     },
     "toast": {
       "deleteSuccess": "Service deleted successfully",
@@ -595,6 +598,24 @@
     "dialog": {
       "edit": "Edit Service",
       "add": "Add New Service"
+    },
+    "missingCategoryDialog": {
+      "title": "Add a service category first",
+      "description": "You need at least one service category before you can add a service.",
+      "cancel": "Not now",
+      "action": "Add category"
+    },
+    "providerSelection": {
+      "label": "Provider selection",
+      "auto": "Assign automatically",
+      "optional": "Customer may choose or leave unspecified",
+      "required": "Customer must choose",
+      "description": "Choose how customers select a provider for this service.",
+      "disabledDescription": "Add a service staff member before configuring provider selection.",
+      "staffLabel": "Staff who can provide this service",
+      "noStaff": "There are no active service staff members in this branch yet.",
+      "addStaff": "Add staff member",
+      "inactiveNotice": "This service will be saved as inactive until at least one service staff member is assigned."
     },
     "form": {
       "name": "Service Name",
@@ -840,7 +861,34 @@
       "confirm": "Confirm Booking",
       "loginRequired": "Please sign in before booking",
       "success": "Booking successful!",
-      "error": "An error occurred while booking"
+      "error": "An error occurred while booking",
+      "eyebrow": "Online booking",
+      "visitTitle": "Book your visit",
+      "visitDescription": "Choose a service, a convenient time, and your preferred staff member.",
+      "invalidBranch": "Open this booking page from a shop link with a valid branch.",
+      "details": "Booking details",
+      "fallbackService": "EZQueue service",
+      "service": "Service",
+      "selectService": "Select a service",
+      "date": "Date",
+      "availableTime": "Available time",
+      "loadingTimes": "Loading times…",
+      "selectTime": "Select a time",
+      "remaining": "{count} left",
+      "staffRequired": "Staff member (required)",
+      "staffOptional": "Preferred staff (optional)",
+      "anyone": "Anyone available",
+      "selectStaff": "Select staff",
+      "autoAssignment": "We’ll assign the best available staff member automatically.",
+      "note": "Note (optional)",
+      "notePlaceholder": "Anything the team should know?",
+      "summary": "Summary",
+      "time": "Time",
+      "staff": "Staff",
+      "autoAssigned": "Auto assigned",
+      "selectServiceAndTime": "Please select a service and time",
+      "selectStaffError": "Please select a staff member",
+      "loadError": "Unable to load booking information"
     }
   },
   "HolidaySettings": {
@@ -929,6 +977,123 @@
       "importPartial": "{count} holidays could not be saved"
     }
   },
+  "AccessControl": {
+    "title": "You do not have access to this page",
+    "description": "Your account has not been granted permission for this data or action. Contact the shop owner or a role administrator.",
+    "unavailable": "This module is not connected to a production workflow yet and has been disabled to avoid exposing mock functionality.",
+    "required": "Required permission"
+  },
+  "RoleSettings": {
+    "eyebrow": "Team & access",
+    "title": "Roles and permissions",
+    "description": "Define what each user group can do and control access to sensitive shop and branch data.",
+    "create": "Create role",
+    "search": "Search roles...",
+    "systemRole": "System role",
+    "permissionCount": "permissions",
+    "active": "Active",
+    "inactive": "Inactive",
+    "edit": "Edit role",
+    "delete": "Delete role",
+    "empty": "No matching roles found.",
+    "save": "Save",
+    "cancel": "Cancel",
+    "stats": {
+      "total": "Total roles",
+      "active": "Active roles",
+      "custom": "Custom roles",
+      "users": "Assigned users"
+    },
+    "table": {
+      "title": "Role list",
+      "description": "System roles are shared defaults. Their permissions can be tailored for this shop."
+    },
+    "columns": {
+      "role": "Role",
+      "scope": "Scope",
+      "permissions": "Permissions",
+      "users": "Users",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "scope": {
+      "shop": "Shop level",
+      "branch": "Branch level"
+    },
+    "systemRoles": {
+      "ShopOwner": "Shop owner",
+      "ShopManager": "Shop manager",
+      "BranchManager": "Branch manager",
+      "Staff": "Staff"
+    },
+    "dialog": {
+      "createTitle": "Create a role",
+      "editTitle": "Edit role and permissions",
+      "description": "Name the role, choose its scope, and grant only the permissions required for the job.",
+      "systemDescription": "System role names and scopes are protected, but their permissions can be tailored for this shop."
+    },
+    "fields": {
+      "name": "Role name",
+      "scope": "Access scope",
+      "active": "Enable this role",
+      "activeHelp": "Inactive roles cannot be assigned to new staff."
+    },
+    "permissions": {
+      "title": "Permission settings",
+      "description": "Select only the capabilities this role needs. Use a group header to select the whole group."
+    },
+    "groups": {
+      "shop": "Shop",
+      "branch": "Branches",
+      "staff": "Staff",
+      "role": "Roles and permissions",
+      "service": "Services",
+      "customer": "Customers",
+      "booking": "Bookings",
+      "queue": "Queues",
+      "setting": "Settings"
+    },
+    "permissionLabels": {
+      "shop_view": "View shop details",
+      "shop_edit": "Edit shop details",
+      "branch_view": "View branches",
+      "branch_create": "Create branches",
+      "branch_edit": "Edit branches",
+      "staff_view": "View staff",
+      "staff_invite": "Invite staff to the system",
+      "staff_edit": "Edit staff",
+      "staff_remove": "Remove staff",
+      "role_assign": "Assign roles and permissions",
+      "service_view": "View services",
+      "service_create": "Create services",
+      "service_edit": "Edit services",
+      "service_delete": "Delete services",
+      "customer_view": "View customers",
+      "customer_manage": "Create, edit, and remove customers",
+      "booking_view": "View bookings",
+      "booking_manage": "Manage bookings",
+      "queue_view": "View queues",
+      "queue_manage": "Manage queues",
+      "setting_view": "View settings",
+      "setting_edit": "Edit settings"
+    },
+    "validation": {
+      "name": "Please enter a role name"
+    },
+    "deleteDialog": {
+      "title": "Delete this role?",
+      "description": "Delete {name}? Roles that are still assigned to staff cannot be deleted.",
+      "confirm": "Delete role"
+    },
+    "messages": {
+      "loadError": "Unable to load roles",
+      "saveError": "Unable to save the role",
+      "created": "Role created",
+      "updated": "Role and permissions updated",
+      "deleted": "Role deleted",
+      "deleteError": "Unable to delete the role"
+    }
+  },
   "StaffSettings": {
     "eyebrow": "Team & access",
     "title": "Staff",
@@ -945,27 +1110,60 @@
     "serviceStaff": "Service staff",
     "systemAccess": "System access",
     "pendingAccess": "Pending activation",
+    "confirmed": "Confirmed",
     "active": "Active",
     "inactive": "Inactive",
     "empty": "No staff yet. Add the first team member to start assigning services.",
+    "noResults": "No matching staff found.",
     "dialog": {
       "addTitle": "Add staff member",
-      "editTitle": "Edit staff member"
+      "editTitle": "Edit staff member",
+      "description": "Keep team details, service responsibilities, and access settings in one place."
+    },
+    "photo": {
+      "title": "Staff photo",
+      "optional": "(optional)",
+      "description": "JPG, PNG, or WebP, up to 5 MB. A square image works best.",
+      "upload": "Upload photo",
+      "change": "Change photo",
+      "remove": "Remove",
+      "alt": "Staff profile photo"
+    },
+    "sections": {
+      "basic": "Basic information",
+      "basicDescription": "The name and position displayed within this branch.",
+      "permissions": "Service and access settings",
+      "permissionsDescription": "Control service assignments, availability, and access to EZQueue.",
+      "access": "System access details",
+      "accessDescription": "Enter an email for the invitation and account verification. The phone number is optional."
     },
     "fields": {
       "name": "Name",
-      "position": "Role / position",
-      "selectPosition": "Select a role",
-      "positionHelp": "This describes the position only. System access is controlled separately below.",
+      "position": "Job position",
+      "selectPosition": "Select a job position",
+      "positionHelp": "Used to describe this person's work in the branch. It does not grant access to the system.",
       "email": "Email",
       "phone": "Phone",
+      "systemRole": "System access role",
+      "selectSystemRole": "Select a role and permission set",
+      "systemRoleHelp": "This controls the menus and data the staff member can access. It is separate from the displayed job position above.",
+      "systemRoleScope": {
+        "shop": "Shop level",
+        "branch": "Branch level"
+      },
       "services": "Services"
     },
-    "roles": {
-      "shopOwner": "Shop owner",
-      "shopManager": "Shop manager",
+    "positions": {
+      "serviceStaff": "Service staff",
+      "receptionist": "Reception / queue staff",
       "branchManager": "Branch manager",
-      "staff": "Staff"
+      "staff": "General staff"
+    },
+    "systemRoles": {
+      "ShopOwner": "Shop owner",
+      "ShopManager": "Shop manager",
+      "BranchManager": "Branch manager",
+      "Staff": "Staff"
     },
     "toggles": {
       "serve": {
@@ -975,7 +1173,7 @@
       },
       "login": {
         "label": "Allow system access",
-        "description": "Links to an existing active EZQueue account with the same email."
+        "description": "Sends an invitation to register with this email. Existing verified accounts are linked automatically."
       },
       "available": {
         "label": "Available now",
@@ -991,12 +1189,15 @@
     "save": "Save",
     "validation": {
       "name": "Please enter the staff name",
-      "role": "Please select a role / position",
+      "role": "Please select a job position",
       "email": "Email is required for system access",
+      "systemRole": "Please select a system access role",
       "emailInvalid": "Invalid email format",
       "phoneStart": "Phone number must start with 0",
       "phoneLength": "Phone number must be 10 digits",
       "phoneDigits": "Please enter numbers only",
+      "photoType": "Please select a JPG, PNG, or WebP image",
+      "photoSize": "The image must not exceed 5 MB",
       "noBranchServices": "This branch has no services configured yet",
       "selectAtLeastOneService": "Please select at least 1 service for this staff member"
     },
@@ -1011,15 +1212,175 @@
       "systemAccess": "System Access",
       "actions": "Actions"
     },
+    "actions": {
+      "sendInvitation": "Send registration invitation",
+      "delete": "Remove staff"
+    },
+    "pagination": {
+      "showing": "Showing {from}-{to} of {total} entries",
+      "selected": "{selected} of {total} row(s) selected"
+    },
+    "deleteDialog": {
+      "title": "Remove this staff member?",
+      "description": "Remove {name} from active staff? Their history will be retained, but system access and new assignments will be disabled.",
+      "confirm": "Remove staff",
+      "deleting": "Removing..."
+    },
     "messages": {
       "loadError": "Unable to load staff",
       "saveError": "Unable to save staff",
       "created": "Staff member added",
-      "updated": "Staff details updated"
-      ,"invitationSent": "Registration invitation sent to the staff email"
-      ,"confirmationResent": "Email confirmation link sent again"
-      ,"accountLinked": "The existing EZQueue account has been linked"
-      ,"inviteError": "Staff was saved, but the registration invitation could not be sent"
+      "updated": "Staff details updated",
+      "photoSaveError": "Staff details were saved, but the photo could not be updated",
+      "deleted": "Staff member removed",
+      "deleteError": "Unable to remove staff",
+      "invitationSent": "Registration invitation sent to the staff email",
+      "confirmationResent": "Email confirmation link sent again",
+      "accountLinked": "The existing EZQueue account has been linked",
+      "inviteError": "Staff was saved, but the registration invitation could not be sent"
+    }
+  },
+  "OperationsPages": {
+    "booking": {
+      "eyebrow": "Operations",
+      "title": "Booking list",
+      "description": "Appointments, assigned staff, and service status in one place.",
+      "all": "All bookings",
+      "waiting": "Waiting",
+      "confirmed": "Confirmed",
+      "completed": "Completed",
+      "noShow": "No show",
+      "appointments": "Appointments",
+      "appointmentsDescription": "Assignments shown here are the same records used by live operations.",
+      "withStaff": "With {name}",
+      "staffPending": "Staff will be assigned",
+      "confirm": "Confirm",
+      "checkIn": "Check in",
+      "complete": "Complete",
+      "cancel": "Cancel",
+      "empty": "No bookings for this branch yet.",
+      "updated": "Booking updated",
+      "loadError": "Unable to load bookings",
+      "updateError": "Unable to update booking"
+    },
+    "queue": {
+      "eyebrow": "Operations",
+      "title": "Live queue",
+      "description": "Call, serve, and complete queues with the correct staff assignment.",
+      "addWalkIn": "Add walk-in",
+      "waiting": "Waiting",
+      "serving": "Serving",
+      "completed": "Completed",
+      "board": "Queue board",
+      "boardDescription": "New work follows the staff selection rule configured on each service.",
+      "walkInCustomer": "Walk-in customer",
+      "service": "Service",
+      "assignedTo": "Assigned to {name}",
+      "waitingAssignment": "Waiting for staff assignment",
+      "start": "Start serving",
+      "complete": "Complete",
+      "skip": "Skip",
+      "empty": "The live queue is clear.",
+      "customerOptional": "Customer name (optional)",
+      "selectService": "Select service",
+      "staffRequired": "Staff (required)",
+      "staffOptional": "Staff (optional)",
+      "anyone": "Anyone available",
+      "selectStaff": "Select staff",
+      "autoAssignment": "The least-busy available staff member will be assigned automatically.",
+      "cancel": "Cancel",
+      "add": "Add queue",
+      "selectServiceError": "Please select a service",
+      "selectStaffError": "Please select a staff member",
+      "loadError": "Unable to load queue",
+      "updateError": "Unable to update queue",
+      "addError": "Unable to add queue",
+      "added": "Queue Q-{number} added"
+    },
+    "slots": {
+      "eyebrow": "Capacity",
+      "title": "Booking slots",
+      "description": "Review bookable time windows and remaining capacity.",
+      "availableTimes": "Available times",
+      "capacityHint": "Slots at full capacity are automatically hidden from customer booking.",
+      "slotNumber": "Slot #{id}",
+      "remaining": "{count} left",
+      "empty": "No available slots for this date.",
+      "loadError": "Unable to load slots"
+    },
+    "history": {
+      "eyebrow": "Operations",
+      "title": "Queue history",
+      "description": "Completed, canceled, and skipped queue records with staff accountability.",
+      "pastQueues": "Past queues",
+      "recordCount": "{count} records in this branch",
+      "loadError": "Unable to load queue history",
+      "walkInCustomer": "Walk-in customer",
+      "service": "Service",
+      "unassigned": "Unassigned",
+      "empty": "No completed queue records yet.",
+      "status": {
+        "done": "Completed",
+        "cancelled": "Canceled",
+        "skipped": "Skipped"
+      }
+    }
+  },
+  "Dashboard": {
+    "eyebrow": "Today overview",
+    "description": "Queue activity, revenue, and upcoming appointments.",
+    "fallbackShop": "EZQueue Shop",
+    "export": "Export report",
+    "newBooking": "New booking",
+    "upcomingQueue": "Upcoming queue",
+    "live": "Live",
+    "revenueToday": "Revenue today",
+    "revenueHint": "Estimated from completed queues",
+    "utilization": "Branch utilization",
+    "popularServices": "Popular services",
+    "bookingCount": "{count} bookings",
+    "walkInCustomer": "Walk-in customer",
+    "serviceFallback": "Service",
+    "stats": {
+      "bookings": "Bookings today",
+      "waiting": "Waiting queue",
+      "completed": "Completed",
+      "customers": "Customers"
+    },
+    "status": {
+      "waiting": "Waiting",
+      "in_progress": "In progress",
+      "completed": "Completed"
+    }
+  },
+  "BusinessHoursSettings": {
+    "eyebrow": "Shop settings",
+    "title": "Business hours & queue rules",
+    "description": "Configure weekly opening hours and queue behaviors for your branch.",
+    "loading": "Loading settings...",
+    "copyMonday": "Copy Monday",
+    "saving": "Saving...",
+    "saved": "Saved",
+    "saveHours": "Save hours",
+    "weeklySchedule": "Weekly schedule",
+    "openDays": "{count} open days",
+    "open": "Open",
+    "closed": "Closed",
+    "openTime": "Open",
+    "closeTime": "Close",
+    "queueRules": "Queue rules",
+    "slotInterval": "Slot interval (minutes)",
+    "advanceWindow": "Advance booking window (days)",
+    "serviceBuffer": "Buffer between services (minutes)",
+    "savingRules": "Saving rules...",
+    "saveRules": "Save rules",
+    "days": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+    "shortDays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    "messages": {
+      "hoursSaved": "Business hours updated successfully!",
+      "hoursError": "Failed to update business hours",
+      "rulesSaved": "Queue rules updated successfully!",
+      "rulesError": "Failed to update queue rules"
     }
   },
   "QueueStatus": {

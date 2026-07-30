@@ -35,7 +35,8 @@ import {
 import { Switch } from "@/components/ui/switch"
 import { useConfig } from "@/hooks/use-config"
 import { useMenuHoverConfig } from "@/hooks/use-menu-hover"
-import { useShop, useProfile } from "@/hooks/use-me"
+import { useShop } from "@/hooks/use-me"
+import { usePermissions } from "@/hooks/use-permissions"
 import { AddShop, BusinessHour, ShopType } from "@/types/shop/shoptype"
 import { useLocale, useTranslations } from "next-intl"
 import { http } from "@/lib/http/client"
@@ -43,6 +44,7 @@ import { AddressType } from "@/types/address/address-type"
 import { ShopResponse } from "@/types/shop/shop-responsd"
 import toast from "react-hot-toast"
 import { storage } from "@/services/localstorage"
+import { resolveActiveBranchId } from "@/lib/active-branch"
 
 // ─────────────────────────────────────────────────────────
 // Constants
@@ -490,7 +492,9 @@ export default function TeamSwitcher({ className }: { className?: string }) {
     const t = useTranslations("Shop")
 
     const { data: shopData, isLoading, refetch } = useShop()
-    const { data: profile } = useProfile()
+    const { can } = usePermissions()
+    const canCreateBranch = can("branch.create")
+    const canCreateShop = !shopData
 
     const [open, setOpen] = React.useState(false)
     const [showDialog, setShowDialog] = React.useState(false)
@@ -508,9 +512,9 @@ export default function TeamSwitcher({ className }: { className?: string }) {
     React.useEffect(() => {
         const freshdata = async () => {
             if (shopData && !selectedShopId) {
-                const branchselect: number | null = await storage.get("branch") || shopData.shopBranches?.[0]?.id || null;
+                const branchselect = await resolveActiveBranchId(shopData.shopBranches);
                 setSelectedShopId(shopData.id ?? null)
-                setSelectedBranchId(branchselect)
+                setSelectedBranchId(branchselect || null)
             }
         }
         freshdata()
@@ -583,6 +587,7 @@ export default function TeamSwitcher({ className }: { className?: string }) {
         setIsSubmitting(true)
         try {
             const payload: AddShop = {
+                shopId: shopData?.id,
                 shopname: shopData?.name ?? "",
                 shoptype: shopData?.type ?? "",
                 branch: {
@@ -751,7 +756,7 @@ export default function TeamSwitcher({ className }: { className?: string }) {
                         <CommandList>
                             <CommandGroup>
                                 {/* Section */}
-                                {profile?.role === "Admin" && (
+                                {(shopData ? canCreateBranch : canCreateShop) && (
                                     shopData ? (
                                         <CommandItem
                                             onSelect={() => { setOpen(false); setDialogMode("branch"); setShowDialog(true) }}
