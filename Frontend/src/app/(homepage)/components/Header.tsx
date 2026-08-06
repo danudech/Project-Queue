@@ -7,7 +7,7 @@ import { Menu, X } from "lucide-react";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { localePath, type HomepageCopy, type HomepageLocale } from "../i18n";
 
-const sectionIds = ["home", "about", "features", "price", "service", "blog"];
+const sectionIds = ["home", "about", "features", "service"];
 
 type HeaderProps = {
   locale: HomepageLocale;

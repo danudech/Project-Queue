@@ -303,28 +303,6 @@ export function getMenuList(
     // ─────────────────────────────────────────
     // Account
     // ─────────────────────────────────────────
-    {
-      groupLabel: "",
-      id: "account",
-      menus: [
-        {
-          id: "profile",
-          href: "/account/profile",
-          label: t("myProfile"),
-          active: pathname.startsWith("/account"),
-          icon: "heroicons-outline:user-circle",
-          submenus: [],
-        },
-        {
-          id: "logout",
-          href: "/auth/login",
-          label: t("logout"),
-          active: false,
-          icon: "heroicons-outline:arrow-right-on-rectangle",
-          submenus: [],
-        },
-      ],
-    },
   ];
 
   return groups
@@ -337,11 +315,8 @@ export function getMenuList(
             return Boolean(rule && hasPermission(permissions, rule.permission));
           });
           const directRule = accessRuleForPath(menu.href);
-          const isAccountAction =
-            menu.id === "logout" || menu.id === "profile";
           if (
             submenus.length === 0
-            && !isAccountAction
             && (!directRule
               || !hasPermission(permissions, directRule.permission))
           ) {

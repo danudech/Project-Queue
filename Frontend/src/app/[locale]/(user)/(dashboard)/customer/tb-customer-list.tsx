@@ -13,7 +13,7 @@ import {
 import { format } from "date-fns"
 import { th } from "date-fns/locale"
 import {
-    CalendarIcon, Clock, User, Phone,
+    CalendarIcon, Clock, User, Phone, CalendarDays,
     Scissors, ChevronRight, CheckCircle2,
 } from "lucide-react"
 
@@ -71,6 +71,8 @@ import { ShopResponse } from "@/types/shop/shop-responsd"
 import { SetService } from "@/types/shop/service"
 import { BookingDateField } from "./bookingdatefield"
 import { useTranslations } from "next-intl"
+import type { BookingDto } from "@/types/booking"
+import { resolveActiveBranchId } from "@/lib/active-branch"
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -150,6 +152,9 @@ const CustomerPage = () => {
     const [dialogOpen, setDialogOpen] = React.useState(false)
     const [editTarget, setEditTarget] = React.useState<CustomerType | null>(null)
     const [btnLoading, setBtnLoading] = React.useState(false)
+    const [historyTarget, setHistoryTarget] = React.useState<CustomerType | null>(null)
+    const [historyRows, setHistoryRows] = React.useState<BookingDto[]>([])
+    const [historyLoading, setHistoryLoading] = React.useState(false)
 
     // booking dialog state
     const [step, setStep] = React.useState<"info" | "booking">("info")
@@ -218,6 +223,24 @@ const CustomerPage = () => {
                 ) ?? null
             )
             toast.error(tc("error.statusChangeFailed"))
+        }
+    }
+
+    const openHistory = async (customer: CustomerType) => {
+        setHistoryTarget(customer)
+        setHistoryRows([])
+        setHistoryLoading(true)
+        try {
+            const branchId = shopData ? await resolveActiveBranchId(shopData.shopBranches) : 0
+            const bookings = branchId ? await http.get<BookingDto[]>("booking", { params: { branchId } }) : []
+            setHistoryRows((Array.isArray(bookings) ? bookings : []).filter((booking) =>
+                booking.customerPhone === customer.phone ||
+                (!booking.customerPhone && booking.customerName.trim().toLowerCase() === customer.name.trim().toLowerCase()),
+            ))
+        } catch {
+            toast.error(tc("error.loadFailed"))
+        } finally {
+            setHistoryLoading(false)
         }
     }
 
@@ -338,7 +361,7 @@ const CustomerPage = () => {
         getFilteredRowModel: getFilteredRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
         getSortedRowModel: getSortedRowModel(),
-        meta: { openEdit, deleteRow, toggleStatus, canManage: canManageCustomers },
+        meta: { openEdit, openHistory, deleteRow, toggleStatus, canManage: canManageCustomers },
     })
 
     // ── Render ─────────────────────────────────────────────────────────────
@@ -356,6 +379,13 @@ const CustomerPage = () => {
 
             {/* 2. Table */}
             <CommonTable table={table} columnsLength={getColumns(t, tc).length} />
+
+            <Dialog open={historyTarget !== null} onOpenChange={(open) => { if (!open) setHistoryTarget(null) }}>
+                <DialogContent className="overflow-hidden border-0 bg-slate-50 p-0 shadow-2xl sm:max-w-2xl">
+                    <DialogHeader className="border-b bg-white px-6 py-5"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">{t("history.eyebrow")}</p><DialogTitle className="mt-1 text-xl">{t("history.title")} <span className="text-primary">· {historyTarget?.name}</span></DialogTitle></DialogHeader>
+                    {historyLoading ? <div className="bg-slate-50 py-14 text-center text-sm text-muted-foreground">{t("history.loading")}</div> : historyRows.length ? <div className="max-h-[60vh] space-y-3 overflow-y-auto p-6">{historyRows.map((booking, index) => <div key={booking.id} className="relative flex gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm"><div className="grid size-10 shrink-0 place-items-center rounded-full bg-primary/10 text-sm font-bold text-primary">{index + 1}</div><div className="min-w-0 flex-1"><div className="flex flex-wrap items-start justify-between gap-2"><div><p className="font-semibold text-slate-900">{booking.serviceName}</p><p className="mt-1 flex items-center gap-1.5 text-sm text-slate-500"><CalendarDays className="size-3.5" />{new Date(booking.date).toLocaleDateString()} <span>·</span> <Clock className="size-3.5" />{booking.startTime}</p></div><Badge className={`border ${historyStatusClass(booking.status)}`}>{booking.status}</Badge></div>{booking.staffName && <p className="mt-3 text-xs text-slate-500">{t("history.staff")}: {booking.staffName}</p>}</div></div>)}</div> : <div className="bg-slate-50 px-6 py-14 text-center text-sm text-muted-foreground">{t("history.empty")}</div>}
+                </DialogContent>
+            </Dialog>
 
             {/* 3. Add / Edit Dialog */}
             <Dialog open={dialogOpen} onOpenChange={handleCloseDialog}>
@@ -639,3 +669,13 @@ const CustomerPage = () => {
 }
 
 export default CustomerPage
+
+function historyStatusClass(status: string) {
+    switch (status) {
+        case "DONE": return "border-emerald-200 bg-emerald-50 text-emerald-700"
+        case "CANCELLED": return "border-rose-200 bg-rose-50 text-rose-700"
+        case "CONFIRMED": return "border-sky-200 bg-sky-50 text-sky-700"
+        case "CHECKED_IN": return "border-violet-200 bg-violet-50 text-violet-700"
+        default: return "border-amber-200 bg-amber-50 text-amber-700"
+    }
+}

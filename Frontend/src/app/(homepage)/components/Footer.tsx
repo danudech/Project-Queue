@@ -1,14 +1,18 @@
 import Image from "next/image";
 import Link from "next/link";
-import { AtSign, Globe, Mail, MapPin, MessageCircle, Phone, Send } from "lucide-react";
+import { Mail, MapPin, Phone } from "lucide-react";
 import type { HomepageCopy } from "../i18n";
 
 type FooterProps = {
   copy: HomepageCopy["footer"];
-  actions: HomepageCopy["actions"];
 };
 
-const Footer = ({ copy, actions }: FooterProps) => {
+const Footer = ({ copy }: FooterProps) => {
+  const groupRoutes = [
+    ["#home", "#how-it-works", "#features", "#service"],
+    ["#service", "#features", "#how-it-works", "#about"],
+    ["#about", "#features", "#how-it-works"],
+  ];
   return (
     <>
       <footer className="section footer">
@@ -28,28 +32,15 @@ const Footer = ({ copy, actions }: FooterProps) => {
               </Link>
               <h3>{copy.title}</h3>
               <p>{copy.description}</p>
-              <div className="footer-subscribe">
-                <input type="email" aria-label="Email" placeholder={copy.emailPlaceholder} />
-                <button className="ez-btn ez-btn-primary" type="button">
-                  {actions.subscribe}
-                </button>
-              </div>
-              <div className="footer-icon">
-                {[Globe, AtSign, MessageCircle, Send].map((Icon, index) => (
-                  <Link href="#" className="icon-link" key={index}>
-                    <Icon className="h-4 w-4" />
-                  </Link>
-                ))}
-              </div>
             </div>
 
-            {copy.groups.map((group) => (
+            {copy.groups.map((group, groupIndex) => (
               <div className="footer-links" key={group.title}>
                 <h5>{group.title}</h5>
                 <ul>
-                  {group.links.map((link) => (
+                  {group.links.map((link, index) => (
                     <li key={link}>
-                      <Link href="#home">{link}</Link>
+                      <Link href={groupRoutes[groupIndex]?.[index] ?? "#home"}>{link}</Link>
                     </li>
                   ))}
                 </ul>

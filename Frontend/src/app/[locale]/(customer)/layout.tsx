@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import QueryProvider from "@/components/providers/query-provider";
 
 export async function generateMetadata() {
   const t = await getTranslations("CustomerBooking.metadata");
@@ -10,7 +11,7 @@ export async function generateMetadata() {
 }
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
-  return <>{children}</>;
+  return <QueryProvider>{children}</QueryProvider>;
 };
 
 export default Layout;

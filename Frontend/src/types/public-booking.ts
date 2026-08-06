@@ -24,6 +24,9 @@ export interface PublicBookingPage {
   shopSlug: string;
   shopName: string;
   logoUrl?: string | null;
+  logoPosition?: string | null;
+  coverUrl?: string | null;
+  coverPosition?: string | null;
   shopDescription?: string | null;
   shopEmail?: string | null;
   shopTypeNameTh?: string | null;
@@ -62,6 +65,8 @@ export interface PublicBookingConfirmation {
 
 export interface PublicBookingManagement {
   guid: string;
+  shopSlug: string;
+  branchPublicId: string;
   shopName: string;
   logoUrl?: string | null;
   shopTypeNameTh?: string | null;

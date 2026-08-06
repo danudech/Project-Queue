@@ -23,6 +23,12 @@ public partial class Service
 
     public bool IsActive { get; set; }
 
+    public int? SlotInterval { get; set; }
+
+    public int? AdvanceBookingWindow { get; set; }
+
+    public int? BufferBetweenServices { get; set; }
+
     public DateTime CreatedAt { get; set; }
 
     public int? CreatedBy { get; set; }

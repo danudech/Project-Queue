@@ -474,6 +474,9 @@ public sealed class ManageShop : IManageShop
                 IsActive = s.IsActive,
                 StaffSelectionMode = s.StaffSelectionMode,
                 StaffIds = s.ServiceStaffMaps.Select(m => m.StaffId).ToList(),
+                SlotInterval = s.SlotInterval,
+                AdvanceBookingWindow = s.AdvanceBookingWindow,
+                BufferBetweenServices = s.BufferBetweenServices,
                 CreatedAt = s.CreatedAt
             }).ToList();
         }
@@ -512,6 +515,7 @@ public sealed class ManageShop : IManageShop
                 request.StaffIds,
                 request.IsActive,
                 ct);
+            ValidateBookingRuleOverrides(request);
 
             Domain.Entities.Service newService = new Domain.Entities.Service
             {
@@ -522,6 +526,9 @@ public sealed class ManageShop : IManageShop
                 Price = request.Price,
                 StaffSelectionMode = staffSelectionMode,
                 IsActive = request.IsActive,
+                SlotInterval = request.SlotInterval,
+                AdvanceBookingWindow = request.AdvanceBookingWindow,
+                BufferBetweenServices = request.BufferBetweenServices,
                 CreatedAt = _dateTime.LocalNow(),
                 CreatedBy = userId
             };
@@ -558,6 +565,9 @@ public sealed class ManageShop : IManageShop
                 IsActive = newService.IsActive,
                 StaffSelectionMode = newService.StaffSelectionMode,
                 StaffIds = staffIds,
+                SlotInterval = newService.SlotInterval,
+                AdvanceBookingWindow = newService.AdvanceBookingWindow,
+                BufferBetweenServices = newService.BufferBetweenServices,
                 CreatedAt = newService.CreatedAt
             };
         }
@@ -600,12 +610,16 @@ public sealed class ManageShop : IManageShop
                 request.StaffIds,
                 request.IsActive,
                 ct);
+            ValidateBookingRuleOverrides(request);
 
             if (service.Name != request.Name) service.Name = request.Name;
             if (service.Duration != request.Duration) service.Duration = request.Duration;
             if (service.Price != request.Price) service.Price = request.Price;
             if (service.StaffSelectionMode != staffSelectionMode) service.StaffSelectionMode = staffSelectionMode;
             if (service.IsActive != request.IsActive) service.IsActive = request.IsActive;
+            if (service.SlotInterval != request.SlotInterval) service.SlotInterval = request.SlotInterval;
+            if (service.AdvanceBookingWindow != request.AdvanceBookingWindow) service.AdvanceBookingWindow = request.AdvanceBookingWindow;
+            if (service.BufferBetweenServices != request.BufferBetweenServices) service.BufferBetweenServices = request.BufferBetweenServices;
             service.UpdatedAt = _dateTime.LocalNow();
             service.UpdatedBy = userId;
 
@@ -655,6 +669,9 @@ public sealed class ManageShop : IManageShop
                 IsActive = service.IsActive,
                 StaffSelectionMode = service.StaffSelectionMode,
                 StaffIds = staffIds,
+                SlotInterval = service.SlotInterval,
+                AdvanceBookingWindow = service.AdvanceBookingWindow,
+                BufferBetweenServices = service.BufferBetweenServices,
                 CreatedAt = service.CreatedAt
             };
         }
@@ -679,6 +696,16 @@ public sealed class ManageShop : IManageShop
             throw new InvalidOperationException("Invalid staff selection mode.");
 
         return normalized;
+    }
+
+    private static void ValidateBookingRuleOverrides(ShopServiceRequest request)
+    {
+        if (request.SlotInterval is < 5 or > 120)
+            throw new InvalidOperationException("Slot interval must be between 5 and 120 minutes.");
+        if (request.AdvanceBookingWindow is < 1 or > 365)
+            throw new InvalidOperationException("Advance booking window must be between 1 and 365 days.");
+        if (request.BufferBetweenServices is < 0 or > 60)
+            throw new InvalidOperationException("Buffer between services must be between 0 and 60 minutes.");
     }
 
     private async Task<List<int>> ValidateServiceStaffIdsAsync(
@@ -846,6 +873,42 @@ public sealed class ManageShop : IManageShop
                     logoSetting.UpdatedBy = userId;
                     await _crud.UpdateAsync(logoSetting, ct);
                 }
+            }
+
+            // Update Description if provided
+            if (request.Cover != null && request.Cover.Length > 0)
+            {
+                var coverSetting = shop.ShopSettings.FirstOrDefault(s => s.Key == "Cover");
+                if (coverSetting != null && !string.IsNullOrEmpty(coverSetting.Value))
+                {
+                    var oldCoverPath = Path.Combine(_env.ContentRootPath, "wwwroot", coverSetting.Value.TrimStart('/'));
+                    if (System.IO.File.Exists(oldCoverPath)) System.IO.File.Delete(oldCoverPath);
+                }
+                var uploadsFolder = Path.Combine(_env.ContentRootPath, "wwwroot", "uploads", "shops");
+                if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
+                var uniqueFileName = $"{Guid.NewGuid()}_{Path.GetFileName(request.Cover.FileName)}";
+                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                using (var stream = new FileStream(filePath, FileMode.Create)) await request.Cover.CopyToAsync(stream, ct);
+                var fileUrl = $"/uploads/shops/{uniqueFileName}";
+                if (coverSetting == null)
+                    await _crud.InsertAsync(new ShopSetting { ShopId = shop.Id, BranchId = request.BranchId > 0 ? request.BranchId : null, Key = "Cover", Value = fileUrl, CreatedAt = DateTime.UtcNow, CreatedBy = userId }, ct);
+                else { coverSetting.Value = fileUrl; coverSetting.UpdatedAt = DateTime.UtcNow; coverSetting.UpdatedBy = userId; await _crud.UpdateAsync(coverSetting, ct); }
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.LogoPosition))
+            {
+                var logoPositionSetting = shop.ShopSettings.FirstOrDefault(s => s.Key == "LogoPosition");
+                if (logoPositionSetting == null)
+                    await _crud.InsertAsync(new ShopSetting { ShopId = shop.Id, BranchId = request.BranchId > 0 ? request.BranchId : null, Key = "LogoPosition", Value = request.LogoPosition.Trim(), CreatedAt = DateTime.UtcNow, CreatedBy = userId }, ct);
+                else { logoPositionSetting.Value = request.LogoPosition.Trim(); logoPositionSetting.UpdatedAt = DateTime.UtcNow; logoPositionSetting.UpdatedBy = userId; await _crud.UpdateAsync(logoPositionSetting, ct); }
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.CoverPosition))
+            {
+                var positionSetting = shop.ShopSettings.FirstOrDefault(s => s.Key == "CoverPosition");
+                if (positionSetting == null)
+                    await _crud.InsertAsync(new ShopSetting { ShopId = shop.Id, BranchId = request.BranchId > 0 ? request.BranchId : null, Key = "CoverPosition", Value = request.CoverPosition.Trim(), CreatedAt = DateTime.UtcNow, CreatedBy = userId }, ct);
+                else { positionSetting.Value = request.CoverPosition.Trim(); positionSetting.UpdatedAt = DateTime.UtcNow; positionSetting.UpdatedBy = userId; await _crud.UpdateAsync(positionSetting, ct); }
             }
 
             // Update Description if provided
@@ -1128,6 +1191,13 @@ public sealed class ManageShop : IManageShop
 
     public async Task<QueueRulesResponse> UpdateQueueRules(int userId, UpdateQueueRulesRequest request, string ip, string userAgent, CancellationToken ct)
     {
+        if (request.SlotInterval is < 5 or > 120)
+            throw new InvalidOperationException("Slot interval must be between 5 and 120 minutes.");
+        if (request.AdvanceBookingWindow is < 1 or > 365)
+            throw new InvalidOperationException("Advance booking window must be between 1 and 365 days.");
+        if (request.BufferBetweenServices is < 0 or > 60)
+            throw new InvalidOperationException("Buffer between services must be between 0 and 60 minutes.");
+
         await _permissions.EnsureBranchAsync(userId, request.BranchId, "setting.edit", ct);
         var branch = await _db.ShopBranches
             .Include(b => b.Shop)
@@ -1197,6 +1267,9 @@ public sealed class ManageShop : IManageShop
                     ? MapAddress(shop.ShopBranches.FirstOrDefault(b => branchId == 0 || b.Id == branchId)!.Address)!.FullAddress 
                     : string.Empty,
         Logo = shop.ShopSettings?.FirstOrDefault(s => s.Key == "Logo")?.Value,
+        LogoPosition = shop.ShopSettings?.FirstOrDefault(s => s.Key == "LogoPosition")?.Value ?? "50% 50%",
+        Cover = shop.ShopSettings?.FirstOrDefault(s => s.Key == "Cover")?.Value,
+        CoverPosition = shop.ShopSettings?.FirstOrDefault(s => s.Key == "CoverPosition")?.Value ?? "50% 50%",
         Description = shop.ShopSettings?.FirstOrDefault(s => s.Key == "Description")?.Value,
         Email = shop.ShopSettings?.FirstOrDefault(s => s.Key == "Email")?.Value,
         ShopBranches = shop.ShopBranches?.Where(b => b.IsActive && (branchId == 0 || b.Id == branchId)).Select(b => new BranchDto

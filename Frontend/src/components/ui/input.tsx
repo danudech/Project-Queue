@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { InputColor } from "@/lib/type";
 
 export const inputVariants = cva(
-  " w-full  bg-background  rounded py-2 px-3 h-9 border text-sm font-normal border border-solid border-default-200 outline-none focus:outline-none  file:border-0 file:bg-transparent file:text-sm file:font-medium read-only:bg-default-200 disabled:cursor-not-allowed disabled:opacity-50  transition-all duration-300 ",
+  " w-full  bg-background  rounded py-2 px-3 h-10 border text-sm font-normal border border-solid border-default-200 outline-none focus:outline-none  file:border-0 file:bg-transparent file:text-sm file:font-medium read-only:bg-default-200 disabled:cursor-not-allowed disabled:opacity-50  transition-all duration-300 ",
   {
     variants: {
       color: {
@@ -25,7 +25,7 @@ export const inputVariants = cva(
 
       size: {
         sm: "h-8 text-xs read-only:leading-8",
-        default: "h-9 text-xs read-only:leading-none",
+        default: "h-10 text-xs read-only:leading-none",
         md: "h-10 text-sm read-only:leading-10",
         lg: "h-12  text-sm read-only:leading-[48px]",
       },

@@ -16,6 +16,9 @@ public class ShopResponse
     public List<Service>? Services { get; set; } = new List<Service>();
     public bool IsActive { get; set; } = true;
     public string? Logo { get; set; }
+    public string? LogoPosition { get; set; }
+    public string? Cover { get; set; }
+    public string? CoverPosition { get; set; }
     public string? Description { get; set; }
     public string? Email { get; set; }
 }

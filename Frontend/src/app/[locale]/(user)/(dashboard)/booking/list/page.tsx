@@ -53,6 +53,7 @@ export default function BookingListPage() {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<number | null>(null);
   const [search, setSearch] = useState("");
+  const [selectedDate, setSelectedDate] = useState(getTodayDateKey);
   const [currentPage, setCurrentPage] = useState(1);
 
   const load = useCallback(async () => {
@@ -91,17 +92,18 @@ export default function BookingListPage() {
 
   const filteredRows = useMemo(() => {
     const keyword = search.trim().toLocaleLowerCase();
-    if (!keyword) return rows;
-    return rows.filter((row) =>
-      [
+    return rows.filter((row) => {
+      if (selectedDate && toDateKey(row.date) !== selectedDate) return false;
+      if (!keyword) return true;
+      return [
         row.customerName,
         row.serviceName,
         row.staffName ?? "",
         row.status,
         row.guid,
-      ].some((value) => value.toLocaleLowerCase().includes(keyword)),
-    );
-  }, [rows, search]);
+      ].some((value) => value.toLocaleLowerCase().includes(keyword));
+    });
+  }, [rows, search, selectedDate]);
 
   const totalPages = Math.max(1, Math.ceil(filteredRows.length / PAGE_SIZE));
   const paginatedRows = useMemo(
@@ -119,7 +121,7 @@ export default function BookingListPage() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [search]);
+  }, [search, selectedDate]);
 
   useEffect(() => {
     if (currentPage > totalPages) setCurrentPage(totalPages);
@@ -193,14 +195,15 @@ export default function BookingListPage() {
               {t("appointmentsDescription")}
             </CardDescription>
           </div>
-          <div className="relative w-full sm:max-w-sm">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder={t("search")}
-              className="pl-9"
-            />
+          <div className="flex w-full flex-col gap-2 sm:max-w-xl sm:flex-row">
+            <label className="flex items-center gap-2 text-sm text-muted-foreground">
+              {t("dateFilter")}
+              <Input type="date" value={selectedDate} onChange={(event) => setSelectedDate(event.target.value)} className="w-auto" />
+            </label>
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t("search")} className="pl-9" />
+            </div>
           </div>
         </CardHeader>
 
@@ -236,10 +239,7 @@ export default function BookingListPage() {
                 {paginatedRows.map((row, index) => {
                   const isUpdating = updating === row.id;
                   return (
-                    <TableRow
-                      key={row.id}
-                      className="transition-colors hover:bg-default-100"
-                    >
+                    <TableRow key={row.id} className="transition-colors hover:bg-default-100">
                       <TableCell className="px-6 text-muted-foreground">
                         {visibleFrom + index}
                       </TableCell>
@@ -420,6 +420,16 @@ function getStatusTranslationKey(status: string) {
   if (status === "CANCELLED") return "cancel" as const;
   if (status === "NO_SHOW") return "noShow" as const;
   return "waiting" as const;
+}
+
+function toDateKey(value: string) {
+  const date = new Date(value);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function getTodayDateKey() {
+  const date = new Date();
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
 function Status({ value, label }: { value: string; label: string }) {

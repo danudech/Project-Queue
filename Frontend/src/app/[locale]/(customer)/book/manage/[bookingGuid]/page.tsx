@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
-import { CalendarDays, CheckCircle2, Clock3, Loader2, Mail, MapPin, Phone, Store, UserRound, XCircle } from "lucide-react";
+import { CalendarDays, CheckCircle2, Clock3, History, Loader2, Mail, MapPin, Phone, Store, UserRound, XCircle } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import toast from "react-hot-toast";
 import LocalSwitcher from "@/components/partials/header/locale-switcher";
@@ -19,10 +19,11 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useRouter } from "@/i18n/routing";
+import { Link, useRouter } from "@/i18n/routing";
 import { env } from "@/config/env";
 import { http } from "@/lib/http/client";
 import { startRouteLoading } from "@/lib/route-loading";
+import { readRecentBookings, saveRecentBooking, updateRecentBookingStatus } from "@/lib/recent-bookings";
 import type { PublicBookingManagement } from "@/types/public-booking";
 
 export default function ManagePublicBookingPage() {
@@ -39,7 +40,13 @@ export default function ManagePublicBookingPage() {
 
   useEffect(() => {
     http.get<PublicBookingManagement>(path, { params: { token } })
-      .then(setBooking)
+      .then((result) => {
+        setBooking(result);
+        const previous = readRecentBookings().find((item) => item.guid === result.guid);
+        const bookingPageHref = previous?.bookingPageHref
+          || `/book/${encodeURIComponent(result.shopSlug)}?branch=${encodeURIComponent(result.branchPublicId)}`;
+        saveRecentBooking({ guid: result.guid, managementHref: `/book/manage/${result.guid}?token=${encodeURIComponent(token)}`, bookingPageHref, shopName: result.shopName, branchName: result.branchName, serviceName: result.serviceName, date: result.date, startTime: result.startTime, status: result.status, createdAt: previous?.createdAt || new Date().toISOString() });
+      })
       .catch(() => {
         try {
           const latest = window.localStorage.getItem("ezqueue.latestBooking") ?? "";
@@ -54,12 +61,14 @@ export default function ManagePublicBookingPage() {
   }, [params.bookingGuid, path, token, t]);
 
   const bookAgain = () => {
-    let destination = "/book";
+    let destination = booking?.shopSlug && booking.branchPublicId
+      ? `/book/${encodeURIComponent(booking.shopSlug)}?branch=${encodeURIComponent(booking.branchPublicId)}`
+      : readRecentBookings().find((item) => item.guid === params.bookingGuid)?.bookingPageHref || "/book/my";
     try {
       destination = window.localStorage.getItem("ezqueue.bookingPage") || destination;
       window.localStorage.removeItem("ezqueue.latestBooking");
     } catch {
-      // Continue to the booking page even when browser storage is unavailable.
+      // Continue to the saved booking history when browser storage is unavailable.
     }
     const separator = destination.includes("?") ? "&" : "?";
     startRouteLoading();
@@ -75,6 +84,7 @@ export default function ManagePublicBookingPage() {
         { params: { token } },
       );
       setBooking(result);
+      updateRecentBookingStatus(result.guid, result.status);
       toast.success(t("cancelSuccess"));
     } catch {
       toast.error(t("cancelError"));
@@ -204,6 +214,7 @@ export default function ManagePublicBookingPage() {
                 </AlertDialogContent>
               </AlertDialog>
             )}
+            <Button asChild variant="outline" className="w-full"><Link href="/book/my"><History className="mr-2 size-4" />{t("myBookings")}</Link></Button>
             <Button variant="outline" className="w-full" onClick={bookAgain}>{t("bookAgain")}</Button>
           </CardContent>
         </Card>

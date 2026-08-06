@@ -5,6 +5,9 @@ public sealed class PublicBookingPageResponse
     public string ShopSlug { get; set; } = string.Empty;
     public string ShopName { get; set; } = string.Empty;
     public string? LogoUrl { get; set; }
+    public string LogoPosition { get; set; } = "50% 50%";
+    public string? CoverUrl { get; set; }
+    public string CoverPosition { get; set; } = "50% 50%";
     public string? ShopDescription { get; set; }
     public string? ShopEmail { get; set; }
     public string? ShopTypeNameTh { get; set; }
@@ -47,6 +50,8 @@ public sealed class PublicBookingStaffResponse
 public class PublicBookingManagementResponse
 {
     public Guid Guid { get; set; }
+    public string ShopSlug { get; set; } = string.Empty;
+    public Guid BranchPublicId { get; set; }
     public string ShopName { get; set; } = string.Empty;
     public string? LogoUrl { get; set; }
     public string? ShopTypeNameTh { get; set; }

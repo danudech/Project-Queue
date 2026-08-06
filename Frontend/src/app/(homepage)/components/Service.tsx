@@ -1,16 +1,13 @@
-import Link from "next/link";
-import { ArrowRight, CalendarCheck, CreditCard, MonitorCheck, UsersRound } from "lucide-react";
-import { localePath, type HomepageCopy, type HomepageLocale } from "../i18n";
+import { CalendarCheck, CreditCard, MonitorCheck, UsersRound } from "lucide-react";
+import type { HomepageCopy } from "../i18n";
 
 const icons = [CalendarCheck, MonitorCheck, UsersRound, CreditCard];
 
 type ServiceProps = {
-  locale: HomepageLocale;
   copy: HomepageCopy["service"];
-  actions: HomepageCopy["actions"];
 };
 
-const Service = ({ locale, copy, actions }: ServiceProps) => {
+const Service = ({ copy }: ServiceProps) => {
   return (
     <section className="section bg-services pt-0" id="service">
       <div className="ez-container">
@@ -30,10 +27,6 @@ const Service = ({ locale, copy, actions }: ServiceProps) => {
                 </div>
                 <h3>{item.title}</h3>
                 <p>{item.description}</p>
-                <Link href={localePath(locale, "/dashboard")} className="ez-inline-link">
-                  {actions.exploreMore}
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
               </div>
             );
           })}

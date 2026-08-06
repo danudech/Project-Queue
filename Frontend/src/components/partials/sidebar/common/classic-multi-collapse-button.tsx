@@ -57,7 +57,7 @@ export function MultiCollapseMenuButton({
                     <Button
                         color='secondary'
                         variant="ghost"
-                        className="w-full justify-start h-auto hover:bg-transparent hover:ring-offset-0 capitalize text-sm font-normal   md:px-5 px-5 "
+                        className="w-full justify-start h-auto hover:bg-transparent hover:ring-offset-0 capitalize text-sm font-normal md:px-5 px-5 "
                         fullWidth
                     >
                         <div className="w-full items-center flex justify-between">

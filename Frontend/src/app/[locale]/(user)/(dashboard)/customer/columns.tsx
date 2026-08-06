@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/tooltip"
 
 import { ColumnDef } from "@tanstack/react-table"
-import { SquarePen, Trash2, Power } from "lucide-react"
+import { SquarePen, Trash2, Power, History } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -90,6 +90,16 @@ export const getColumns = (t: any, tc: any): ColumnDef<CustomerType>[] => [
 
       return (
         <div className="flex items-center gap-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="outline" size="icon" className="w-7 h-7 border-default-200 text-primary" onClick={() => meta?.openHistory(row.original)}>
+                  <History className="w-3.5 h-3.5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top"><p>{t("history.title")}</p></TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           {/* Toggle Status */}
           {meta?.canManage ? <TooltipProvider>
             <Tooltip>

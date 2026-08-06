@@ -11,5 +11,8 @@ export type SetService = {
     isActive: boolean;
     staffSelectionMode: "AUTO" | "OPTIONAL" | "REQUIRED";
     staffIds: number[];
+    slotInterval?: number | null;
+    advanceBookingWindow?: number | null;
+    bufferBetweenServices?: number | null;
     createdAt?: string;
 }

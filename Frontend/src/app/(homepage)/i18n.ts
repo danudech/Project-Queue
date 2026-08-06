@@ -26,15 +26,14 @@ export const homepageCopy = {
       home: "Home",
       about: "About",
       features: "Features",
-      price: "Pricing",
+      howItWorks: "How it works",
       service: "Solutions",
-      blog: "Use cases",
     },
     actions: {
       login: "Log in",
       signup: "Sign up",
       tryFree: "Try it for free",
-      learnMore: "See booking page",
+      learnMore: "Explore features",
       readMore: "Explore platform",
       buyNow: "Choose plan",
       exploreMore: "Explore more",
@@ -67,14 +66,14 @@ export const homepageCopy = {
       titlePrefix: "Built for service businesses that need",
       titleHighlight: "faster queues and cleaner bookings",
       description:
-        "The platform is designed around real front-desk work: customers book online, staff call and serve queue numbers, owners review branch performance, and admins keep services, roles, subscriptions, and billing under control. Every homepage section points back to the actual dashboard modules already mocked in the project.",
+        "EZQueue connects public booking, branch hours, live queue operations, staff assignment, customer records, and shop settings in one workflow built for service businesses.",
       imageAlt: "EZQueue service operation overview illustration",
     },
     features: {
       badge: "CORE FEATURES",
-      title: "Everything your shop needs before real API integration",
+      title: "The workflows already available in EZQueue",
       description:
-        "The frontend is structured as a full product foundation, so backend teams can connect real data module by module without redesigning the customer journey.",
+        "Each capability below maps to a working customer or dashboard route in this project.",
       items: [
         {
           question: "Public booking and queue intake",
@@ -85,13 +84,13 @@ export const homepageCopy = {
         {
           question: "Live operations and analytics",
           answer:
-            "Dashboards already cover queue status, bookings today, wait time, completed jobs, payment success, customer activity, and branch-level reporting.",
+            "The dashboard and queue views show active bookings, waiting customers, staff assignment, and completed work for the branch.",
           variant: "primary",
         },
         {
           question: "Admin-ready shop management",
           answer:
-            "Staff, roles, services, customers, tags, invoices, subscriptions, system settings, and audit logs are separated into routes ready for API contracts.",
+            "Owners can manage services, staff, roles, customers, branch hours, holidays, and shop settings from the dashboard.",
           variant: "success",
         },
       ],
@@ -148,6 +147,17 @@ export const homepageCopy = {
           title: "Payment & Billing",
           description: "Prepare invoice, subscription, and payment screens for gateway integration.",
         },
+      ],
+    },
+    workflow: {
+      badge: "HOW IT WORKS",
+      title: "From setup to a smoother service day",
+      description: "A simple workflow connects the owner, staff, and customers around the same queue and booking information.",
+      stepLabel: "Step",
+      steps: [
+        { title: "Set up your branch", description: "Add services, staff, business hours, holidays, and booking rules for each service." },
+        { title: "Customers choose a slot", description: "Customers select a service and available time from the public booking page, without an OTP." },
+        { title: "Staff serve the queue", description: "The team sees waiting bookings, calls the next customer, updates status, and keeps the branch moving." },
       ],
     },
     blog: {
@@ -207,7 +217,7 @@ export const homepageCopy = {
       login: "เข้าสู่ระบบ",
       signup: "สมัครใช้งาน",
       tryFree: "ทดลองใช้งาน",
-      learnMore: "ดูหน้าจองคิว",
+      learnMore: "ดูฟีเจอร์",
       readMore: "ดูระบบเพิ่มเติม",
       buyNow: "เลือกแพ็กเกจ",
       exploreMore: "ดูรายละเอียด",

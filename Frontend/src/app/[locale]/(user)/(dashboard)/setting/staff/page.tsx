@@ -112,6 +112,7 @@ export default function StaffPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [invitingId, setInvitingId] = useState<number | null>(null);
+  const [availabilityUpdatingId, setAvailabilityUpdatingId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<StaffMember | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -453,6 +454,20 @@ export default function StaffPage() {
     }
   };
 
+  const toggleAvailability = async (item: StaffMember, available: boolean) => {
+    if (!canEditStaff || availabilityUpdatingId !== null) return;
+    setAvailabilityUpdatingId(item.id);
+    try {
+      const saved = await http.put<StaffMember>("staff", { ...item, isAvailable: available });
+      setStaff((current) => current.map((row) => row.id === saved.id ? saved : row));
+      toast.success(t("messages.updated"));
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : t("messages.saveError"));
+    } finally {
+      setAvailabilityUpdatingId(null);
+    }
+  };
+
   const deleteStaff = async () => {
     if (!deleteTarget || deletingId !== null) return;
     setDeletingId(deleteTarget.id);
@@ -609,6 +624,9 @@ export default function StaffPage() {
                   <TableHead className="text-xs font-semibold uppercase tracking-wide">
                     {t("columns.status")}
                   </TableHead>
+                  <TableHead className="text-xs font-semibold uppercase tracking-wide">
+                    {t("toggles.available.label")}
+                  </TableHead>
                   <TableHead className="w-28 text-xs font-semibold uppercase tracking-wide text-right pr-6">
                     {t("columns.actions")}
                   </TableHead>
@@ -719,6 +737,14 @@ export default function StaffPage() {
                       >
                         {item.isActive ? t("active") : t("inactive")}
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Switch
+                        checked={item.isActive && item.canServeQueues && item.isAvailable}
+                        disabled={!canEditStaff || availabilityUpdatingId === item.id || !item.isActive || !item.canServeQueues}
+                        onCheckedChange={(checked) => void toggleAvailability(item, checked)}
+                        aria-label={t("toggles.available.label")}
+                      />
                     </TableCell>
                     <TableCell className="text-right pr-6">
                       <div className="flex items-center justify-end gap-2">

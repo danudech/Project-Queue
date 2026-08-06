@@ -57,8 +57,12 @@ public sealed class CreateQueueRequest
 {
     public int BranchId { get; set; }
     public int ServiceId { get; set; }
+    public int? QueueSlotId { get; set; }
     public int? StaffId { get; set; }
+    public int? CustomerId { get; set; }
     public string? CustomerName { get; set; }
+    public string? CustomerPhone { get; set; }
+    public string? CustomerEmail { get; set; }
     public string Type { get; set; } = "WALK_IN";
 }
 

@@ -276,6 +276,9 @@ const SettingShopBranchPage = () => {
   const bookingUrl = selectedBranch && shopData?.publicSlug && origin
     ? `${origin}/${locale}/book/${encodeURIComponent(shopData.publicSlug)}?branch=${encodeURIComponent(selectedBranch.publicBookingId)}`
     : "";
+  const shopUrl = selectedBranch && shopData?.publicSlug && origin
+    ? `${origin}/${locale}/shop/${encodeURIComponent(shopData.publicSlug)}?branch=${encodeURIComponent(selectedBranch.publicBookingId)}`
+    : "";
 
   const downloadQr = () => {
     const canvas = document.getElementById("branch-booking-qr") as HTMLCanvasElement | null;
@@ -685,6 +688,7 @@ const SettingShopBranchPage = () => {
               <div className="flex flex-wrap gap-2">
                 <button type="button" onClick={downloadQr} disabled={!bookingUrl} className="inline-flex h-9 items-center gap-2 rounded-md border px-3 text-sm hover:bg-default-50"><Download className="size-4" />{t("downloadQr")}</button>
                 <a href={bookingUrl || "#"} target="_blank" rel="noreferrer" className={`inline-flex h-9 items-center gap-2 rounded-md border px-3 text-sm hover:bg-default-50 ${!bookingUrl ? "pointer-events-none opacity-50" : ""}`}><ExternalLink className="size-4" />{t("openBookingPage")}</a>
+                <a href={shopUrl || "#"} target="_blank" rel="noreferrer" className={`inline-flex h-9 items-center gap-2 rounded-md border border-primary/40 px-3 text-sm text-primary hover:bg-primary/10 ${!shopUrl ? "pointer-events-none opacity-50" : ""}`}><Store className="size-4" />{t("openShopPage")}</a>
               </div>
             </div>
             <div className={`rounded-xl border bg-white p-3 transition-opacity ${isOnlineBookingEnabled ? "" : "opacity-40 grayscale"}`}>

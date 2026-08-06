@@ -14,6 +14,9 @@ export interface ShopResponse {
   shopBranches: BranchDto[];
   services: SetService[];
   logo : string;
+  logoPosition?: string;
+  cover?: string;
+  coverPosition?: string;
   isActive : boolean;
   description?: string;
   email?: string;

@@ -85,6 +85,10 @@ const getFormSchema = (t: any) =>
       isActive: z.boolean().default(true),
       staffSelectionMode: z.enum(["AUTO", "OPTIONAL", "REQUIRED"]),
       staffIds: z.array(z.number()),
+      useDefaultBookingRules: z.boolean().default(true),
+      slotInterval: z.number().nullable(),
+      advanceBookingWindow: z.number().nullable(),
+      bufferBetweenServices: z.number().nullable(),
     })
     .superRefine((values, context) => {
       if (values.isActive && values.staffIds.length === 0) {
@@ -92,6 +96,22 @@ const getFormSchema = (t: any) =>
           code: z.ZodIssueCode.custom,
           path: ["staffIds"],
           message: t("validation.activeStaffRequired"),
+        });
+      }
+      if (!values.useDefaultBookingRules) {
+        const rules = [
+          ["slotInterval", values.slotInterval, 5, 120],
+          ["advanceBookingWindow", values.advanceBookingWindow, 1, 365],
+          ["bufferBetweenServices", values.bufferBetweenServices, 0, 60],
+        ] as const;
+        rules.forEach(([path, value, minimum, maximum]) => {
+          if (value === null || value < minimum || value > maximum) {
+            context.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: [path],
+              message: t(`bookingRules.validation.${path}`),
+            });
+          }
         });
       }
     });
@@ -105,6 +125,22 @@ type FormValues = {
   isActive: boolean;
   staffSelectionMode: "AUTO" | "OPTIONAL" | "REQUIRED";
   staffIds: number[];
+  useDefaultBookingRules: boolean;
+  slotInterval: number | null;
+  advanceBookingWindow: number | null;
+  bufferBetweenServices: number | null;
+};
+
+type QueueRules = {
+  slotInterval: number;
+  advanceBookingWindow: number;
+  bufferBetweenServices: number;
+};
+
+const defaultQueueRules: QueueRules = {
+  slotInterval: 30,
+  advanceBookingWindow: 14,
+  bufferBetweenServices: 10,
 };
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -125,6 +161,7 @@ const ServicePage = () => {
   const [editTarget, setEditTarget] = React.useState<SetService | null>(null);
   const [btnLoading, setBtnLoading] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(true);
+  const [branchRules, setBranchRules] = React.useState<QueueRules>(defaultQueueRules);
 
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -154,6 +191,10 @@ const ServicePage = () => {
       isActive: true,
       staffSelectionMode: "OPTIONAL",
       staffIds: [],
+      useDefaultBookingRules: true,
+      slotInterval: defaultQueueRules.slotInterval,
+      advanceBookingWindow: defaultQueueRules.advanceBookingWindow,
+      bufferBetweenServices: defaultQueueRules.bufferBetweenServices,
     },
   });
 
@@ -164,7 +205,7 @@ const ServicePage = () => {
       try {
         setIsLoading(true);
         const branch = await resolveActiveBranchId(shopData.shopBranches);
-        const [categories, services, staff] = await Promise.all([
+        const [categories, services, staff, rules] = await Promise.all([
           http.get<ServiceCategoryType[]>("shopcategory", {
             params: {
               shopId: shopData.id,
@@ -178,10 +219,13 @@ const ServicePage = () => {
             },
           }),
           http.get<StaffMember[]>("staff", { params: { branchId: branch } }),
+          http.get<QueueRules>("queuerules", { params: { branchId: branch } })
+            .catch(() => defaultQueueRules),
         ]);
         setCategoryData(Array.isArray(categories) ? categories : []);
         setTableData(Array.isArray(services) ? services : []);
         setStaffData(Array.isArray(staff) ? staff : []);
+        setBranchRules(rules || defaultQueueRules);
       } catch {
         toast.error(tc("error.loadFailed"));
       } finally {
@@ -222,6 +266,9 @@ const ServicePage = () => {
         isActive: newStatus,
         staffSelectionMode: row.staffSelectionMode ?? "OPTIONAL",
         staffIds: validStaffIds,
+        slotInterval: row.slotInterval,
+        advanceBookingWindow: row.advanceBookingWindow,
+        bufferBetweenServices: row.bufferBetweenServices,
       });
       toast.success(
         t("toast.statusChangeSuccess", {
@@ -265,6 +312,9 @@ const ServicePage = () => {
           isActive: values.isActive,
           staffSelectionMode: values.staffSelectionMode,
           staffIds: values.staffIds,
+          slotInterval: values.useDefaultBookingRules ? null : values.slotInterval,
+          advanceBookingWindow: values.useDefaultBookingRules ? null : values.advanceBookingWindow,
+          bufferBetweenServices: values.useDefaultBookingRules ? null : values.bufferBetweenServices,
         });
         if (updated) {
           setTableData(
@@ -280,6 +330,9 @@ const ServicePage = () => {
                       isActive: values.isActive,
                       staffSelectionMode: values.staffSelectionMode,
                       staffIds: values.staffIds,
+                      slotInterval: values.useDefaultBookingRules ? null : values.slotInterval,
+                      advanceBookingWindow: values.useDefaultBookingRules ? null : values.advanceBookingWindow,
+                      bufferBetweenServices: values.useDefaultBookingRules ? null : values.bufferBetweenServices,
                     }
                   : r,
               ) ?? null,
@@ -297,6 +350,9 @@ const ServicePage = () => {
           isActive: values.isActive,
           staffSelectionMode: values.staffSelectionMode,
           staffIds: values.staffIds,
+          slotInterval: values.useDefaultBookingRules ? null : values.slotInterval,
+          advanceBookingWindow: values.useDefaultBookingRules ? null : values.advanceBookingWindow,
+          bufferBetweenServices: values.useDefaultBookingRules ? null : values.bufferBetweenServices,
           branchId: branch,
         });
         if (newService) {
@@ -330,6 +386,10 @@ const ServicePage = () => {
       isActive: hasEligibleStaff,
       staffSelectionMode: "OPTIONAL",
       staffIds: [],
+      useDefaultBookingRules: true,
+      slotInterval: branchRules.slotInterval,
+      advanceBookingWindow: branchRules.advanceBookingWindow,
+      bufferBetweenServices: branchRules.bufferBetweenServices,
     });
     setDialogOpen(true);
   };
@@ -346,6 +406,12 @@ const ServicePage = () => {
       isActive: hasEligibleStaff ? row.isActive : false,
       staffSelectionMode: row.staffSelectionMode ?? "OPTIONAL",
       staffIds: (row.staffIds ?? []).filter((id) => eligibleStaffIds.has(id)),
+      useDefaultBookingRules: row.slotInterval == null
+        && row.advanceBookingWindow == null
+        && row.bufferBetweenServices == null,
+      slotInterval: row.slotInterval ?? branchRules.slotInterval,
+      advanceBookingWindow: row.advanceBookingWindow ?? branchRules.advanceBookingWindow,
+      bufferBetweenServices: row.bufferBetweenServices ?? branchRules.bufferBetweenServices,
     });
     setDialogOpen(true);
   };
@@ -421,7 +487,7 @@ const ServicePage = () => {
 
       {/* 4. Add / Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent size="md" className="max-h-[calc(100dvh-1.5rem)] w-[calc(100%-1.5rem)] overflow-y-auto p-6 sm:p-7">
           <DialogHeader>
             <DialogTitle>
               {editTarget ? t("dialog.edit") : t("dialog.add")}
@@ -429,7 +495,7 @@ const ServicePage = () => {
           </DialogHeader>
 
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               {/* Section */}
               <FormField
                 control={form.control}
@@ -448,8 +514,103 @@ const ServicePage = () => {
                 )}
               />
 
+              <div className="space-y-5 rounded-xl border border-primary/15 bg-primary/[0.025] p-5 shadow-sm">
+                <FormField
+                  control={form.control}
+                  name="useDefaultBookingRules"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col items-start gap-3 space-y-0 md:flex-row md:items-center md:justify-between">
+                      <div>
+                          <FormLabel className="text-base">{t("bookingRules.title")}</FormLabel>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {t("bookingRules.description")}
+                        </p>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2">
+                        <span className="text-xs text-muted-foreground">
+                          {t("bookingRules.useDefaults")}
+                        </span>
+                        <FormControl>
+                          <Switch checked={field.value} onCheckedChange={field.onChange} />
+                        </FormControl>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+
+                {form.watch("useDefaultBookingRules") ? (
+                  <div className="grid gap-2 rounded-lg border border-default-200 bg-background p-3 text-xs text-muted-foreground sm:grid-cols-3">
+                    <span>{t("bookingRules.inheritedInterval", { value: branchRules.slotInterval })}</span>
+                    <span>{t("bookingRules.inheritedAdvance", { value: branchRules.advanceBookingWindow })}</span>
+                    <span>{t("bookingRules.inheritedBuffer", { value: branchRules.bufferBetweenServices })}</span>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-4 border-t border-primary/10 pt-5 md:grid-cols-3">
+                    <FormField
+                      control={form.control}
+                      name="slotInterval"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm leading-5">{t("bookingRules.interval")}</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min={5}
+                              max={120}
+                              value={field.value ?? ""}
+                              onChange={(event) => field.onChange(event.target.value === "" ? null : Number(event.target.value))}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="advanceBookingWindow"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm leading-5">{t("bookingRules.advanceWindow")}</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min={1}
+                              max={365}
+                              value={field.value ?? ""}
+                              onChange={(event) => field.onChange(event.target.value === "" ? null : Number(event.target.value))}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="bufferBetweenServices"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm leading-5">{t("bookingRules.buffer")}</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min={0}
+                              max={60}
+                              value={field.value ?? ""}
+                              onChange={(event) => field.onChange(event.target.value === "" ? null : Number(event.target.value))}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
+              </div>
+
               {/* Section */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="rounded-xl border border-default-200 bg-default-50/50 p-4">
+                <p className="mb-3 text-sm font-semibold text-default-900">{t("form.serviceDetails")}</p>
+                <div className="grid gap-4 sm:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="duration"
@@ -494,6 +655,7 @@ const ServicePage = () => {
                     </FormItem>
                   )}
                 />
+                </div>
               </div>
 
               {/* Section */}
@@ -589,15 +751,15 @@ const ServicePage = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t("providerSelection.staffLabel")}</FormLabel>
-                    <div className="grid max-h-36 grid-cols-1 gap-2 overflow-y-auto rounded-lg border p-3 sm:grid-cols-2">
+                    <div className="grid max-h-52 grid-cols-1 gap-2 overflow-y-auto rounded-xl border border-default-200 bg-default-50/50 p-3 sm:grid-cols-2 lg:grid-cols-3">
                       {eligibleStaff.map((staff) => (
                           <label
                             key={staff.id}
-                            className="flex cursor-pointer items-center gap-2 text-sm"
+                            className="flex cursor-pointer items-center gap-3 rounded-lg border border-default-200 bg-background px-3 py-2.5 text-sm transition-colors hover:border-primary/40 hover:bg-primary/[0.03] has-[:checked]:border-primary has-[:checked]:bg-primary/[0.06]"
                           >
                             <input
                               type="checkbox"
-                              className="size-4 accent-primary"
+                              className="size-4 shrink-0 accent-primary"
                               checked={field.value.includes(staff.id)}
                               onChange={(event) =>
                                 field.onChange(
@@ -609,7 +771,7 @@ const ServicePage = () => {
                                 )
                               }
                             />
-                            <span>{staff.name}</span>
+                            <span className="truncate font-medium">{staff.name}</span>
                           </label>
                         ))}
                       {!hasEligibleStaff && (

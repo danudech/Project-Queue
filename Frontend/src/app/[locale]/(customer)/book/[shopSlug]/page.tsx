@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
-import { Building2, CalendarDays, Check, Clock3, Loader2, Mail, MapPin, Phone, Store, UserRound } from "lucide-react";
+import { Building2, CalendarDays, Check, Clock3, History, Loader2, Mail, MapPin, Phone, Store, UserRound } from "lucide-react";
 import toast from "react-hot-toast";
 import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import { env } from "@/config/env";
 import LocalSwitcher from "@/components/partials/header/locale-switcher";
 import { Link, useRouter } from "@/i18n/routing";
 import { startRouteLoading } from "@/lib/route-loading";
+import { saveRecentBooking } from "@/lib/recent-bookings";
 import type {
   PublicBookingConfirmation,
   PublicBookingPage,
@@ -138,6 +139,18 @@ export default function PublicBookingPageRoute() {
         }));
         window.localStorage.setItem("ezqueue.latestBooking", managementHref);
         window.localStorage.setItem("ezqueue.bookingPage", bookingPageHref);
+        saveRecentBooking({
+          guid: result.guid,
+          managementHref,
+          bookingPageHref,
+          shopName: result.shopName,
+          branchName: result.branchName,
+          serviceName: result.serviceName,
+          date: result.date,
+          startTime: result.startTime,
+          status: result.status,
+          createdAt: new Date().toISOString(),
+        });
       } catch {
         // The booking is already complete; unavailable browser storage must not fail it.
       }
@@ -173,6 +186,7 @@ export default function PublicBookingPageRoute() {
                 {t("manageBooking")}
               </Link>
             </Button>
+            <Button asChild variant="outline" className="w-full"><Link href="/book/my">{t("myBookings")}</Link></Button>
           </CardContent>
         </Card>
       </div>
@@ -191,8 +205,10 @@ export default function PublicBookingPageRoute() {
             <h1 className="truncate text-base font-semibold sm:text-xl">{page.shopName}</h1>
             <p className="mt-0.5 truncate text-xs text-muted-foreground sm:text-sm">{shopType ? `${shopType} · ` : ""}{page.branchName}</p>
           </div>
-          <div className="ml-auto shrink-0 rounded-lg border border-default-200 bg-background">
-            <LocalSwitcher compact />
+          <div className="ml-auto flex shrink-0 items-center gap-2">
+            <Button asChild variant="outline" size="sm" className="hidden sm:inline-flex"><Link href="/book/my"><History className="size-4" />{t("myBookings")}</Link></Button>
+            <Button asChild variant="outline" size="icon" className="sm:hidden"><Link href="/book/my" aria-label={t("myBookings")}><History className="size-4" /></Link></Button>
+            <div className="rounded-lg border border-default-200 bg-background"><LocalSwitcher compact /></div>
           </div>
         </div>
       </div>

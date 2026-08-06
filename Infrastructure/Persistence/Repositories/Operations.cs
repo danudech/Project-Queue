@@ -352,15 +352,18 @@ public sealed class Operations : IOperations
             .SingleOrDefaultAsync(ct);
         if (branch == null) return new();
 
-        int advanceWindow = 14;
-        string? advanceSetting = await _db.ShopSettings.AsNoTracking()
-            .Where(setting => setting.BranchId == branchId
-                && setting.Key == "queue.advance_booking_window")
-            .Select(setting => setting.Value)
-            .SingleOrDefaultAsync(ct);
-        if (int.TryParse(advanceSetting, out int configuredAdvance))
-            advanceWindow = Math.Clamp(configuredAdvance, 0, 365);
-        if (target < localNow.Date || target > localNow.Date.AddDays(advanceWindow))
+        Domain.Entities.Service? service = null;
+        if (serviceId.HasValue)
+        {
+            service = await _db.Services.AsNoTracking()
+                .SingleOrDefaultAsync(item => item.Id == serviceId.Value
+                    && item.BranchId == branchId
+                    && item.IsActive, ct);
+            if (service == null) return new();
+        }
+
+        EffectiveBookingRules rules = await LoadEffectiveBookingRulesAsync(branchId, service, ct);
+        if (target < localNow.Date || target > localNow.Date.AddDays(rules.AdvanceBookingWindow))
             return new();
 
         bool isHoliday = await _db.ShopHolidays.AsNoTracking()
@@ -374,62 +377,15 @@ public sealed class Operations : IOperations
                 && hour.IsActive, ct);
         if (businessHour == null) return new();
 
-        bool hasSlots = await _db.QueueSlots.AnyAsync(
-            slot => slot.BranchId == branchId && slot.Date.Date == target, ct);
-        if (!hasSlots)
-        {
-            int interval = 30;
-            string? intervalSetting = await _db.ShopSettings.AsNoTracking()
-                .Where(setting => setting.BranchId == branchId
-                    && setting.Key == "queue.slot_interval")
-                .Select(setting => setting.Value)
-                .SingleOrDefaultAsync(ct);
-            if (int.TryParse(intervalSetting, out int configuredInterval))
-                interval = Math.Clamp(configuredInterval, 5, 240);
-
-            IQueryable<ShopStaff> capacityQuery = _db.ShopStaffs.AsNoTracking()
-                .Where(staff => staff.BranchId == branchId
-                    && staff.IsActive
-                    && staff.IsAvailable
-                    && staff.CanServeQueues);
-            if (serviceId.HasValue)
-                capacityQuery = capacityQuery.Where(staff =>
-                    staff.ServiceStaffMaps.Any(map => map.ServiceId == serviceId.Value));
-            int capacity = await capacityQuery.CountAsync(ct);
-            if (capacity == 0) return new();
-
-            var generatedSlots = new List<Domain.Entities.QueueSlot>();
-            TimeOnly start = businessHour.OpenTime;
-            while (start.AddMinutes(interval) <= businessHour.CloseTime)
-            {
-                generatedSlots.Add(new Domain.Entities.QueueSlot
-                {
-                    Guid = Guid.NewGuid(),
-                    ShopId = branch.ShopId,
-                    BranchId = branchId,
-                    Date = target,
-                    StartTime = start,
-                    EndTime = start.AddMinutes(interval),
-                    MaxQueue = capacity,
-                    CurrentUsage = 0,
-                    IsActive = true,
-                    CreatedAt = localNow
-                });
-                start = start.AddMinutes(interval);
-            }
-            if (generatedSlots.Count > 0)
-            {
-                _db.QueueSlots.AddRange(generatedSlots);
-                try
-                {
-                    await _db.SaveChangesAsync(ct);
-                }
-                catch (DbUpdateException)
-                {
-                    _db.ChangeTracker.Clear();
-                }
-            }
-        }
+        if (!await EnsureSlotsForIntervalAsync(
+                branch.ShopId,
+                branchId,
+                target,
+                businessHour,
+                rules.SlotInterval,
+                localNow,
+                ct))
+            return new();
 
         TimeOnly now = TimeOnly.FromDateTime(localNow);
         List<Domain.Entities.QueueSlot> availableSlots = await _db.QueueSlots.AsNoTracking()
@@ -441,28 +397,28 @@ public sealed class Operations : IOperations
             .OrderBy(s => s.StartTime)
             .ToListAsync(ct);
 
-        if (!serviceId.HasValue)
+        if (service == null)
             return availableSlots.Select(slot => ToAvailableSlot(slot, slot.MaxQueue - slot.CurrentUsage)).ToList();
 
-        Domain.Entities.Service? service = await _db.Services.AsNoTracking()
-            .SingleOrDefaultAsync(item => item.Id == serviceId.Value
-                && item.BranchId == branchId
-                && item.IsActive, ct);
-        if (service == null) return new();
-
-        SchedulingContext scheduling = await LoadSchedulingContextAsync(service, target, ct);
+        SchedulingContext scheduling = await LoadSchedulingContextAsync(
+            service,
+            target,
+            rules.BufferBetweenServices,
+            rules.BranchDefaultBuffer,
+            ct);
         return availableSlots
-            .Where(slot => slot.StartTime.AddMinutes(service.Duration) <= businessHour.CloseTime)
+            .Where(slot => IsValidServiceStart(slot.StartTime, businessHour, service.Duration, rules))
             .Select(slot => new
             {
                 Slot = slot,
-                Remaining = GetAvailableStaffIds(scheduling, service, slot).Count
+                AvailableStaffIds = GetAvailableStaffIds(scheduling, service, slot)
             })
-            .Where(item => item.Remaining > 0)
+            .Where(item => item.AvailableStaffIds.Count > 0)
             .Select(item => ToAvailableSlot(
                 item.Slot,
-                item.Remaining,
-                item.Slot.StartTime.AddMinutes(service.Duration)))
+                item.AvailableStaffIds.Count,
+                item.Slot.StartTime.AddMinutes(service.Duration),
+                item.AvailableStaffIds))
             .ToList();
     }
 
@@ -485,6 +441,7 @@ public sealed class Operations : IOperations
         if (slot.Date.Date < localNow.Date) throw new InvalidOperationException("This time slot is in the past.");
         if (slot.Date.Date == localNow.Date && slot.StartTime <= TimeOnly.FromDateTime(localNow))
             throw new InvalidOperationException("This time slot has already started.");
+        await ValidateBookingSlotAsync(service, slot, localNow, ct);
         if (slot.CurrentUsage >= slot.MaxQueue) throw new InvalidOperationException("This time slot is full.");
 
         int? staffId = await ResolveStaffAsync(service, request.StaffId, ct, slot.Id);
@@ -519,6 +476,7 @@ public sealed class Operations : IOperations
 
     public async Task<List<BookingResponse>> GetBookingsAsync(int userId, int branchId, CancellationToken ct)
     {
+        await CancelOverdueBookingsAsync(branchId == 0 ? null : branchId, ct);
         if (branchId == 0)
         {
             var ownBookings = await BookingQuery().Where(b => b.UserId == userId)
@@ -531,6 +489,40 @@ public sealed class Operations : IOperations
             .OrderBy(b => b.QueueSlot.Date).ThenBy(b => b.QueueSlot.StartTime)
             .ToListAsync(ct);
         return bookings.Select(ToBookingResponse).ToList();
+    }
+
+    private async Task CancelOverdueBookingsAsync(int? branchId, CancellationToken ct)
+    {
+        DateTime localNow = _dateTime.LocalNow();
+        List<Booking> overdue = await _db.Bookings
+            .Include(booking => booking.QueueSlot)
+            .Include(booking => booking.Status)
+            .Include(booking => booking.Queue).ThenInclude(queue => queue!.Status)
+            .Where(booking => (!branchId.HasValue || booking.BranchId == branchId.Value)
+                && (booking.Status.Code == "WAITING" || booking.Status.Code == "CONFIRMED"))
+            .ToListAsync(ct);
+        if (overdue.Count == 0) return;
+
+        MasterStatus cancelledBooking = await GetStatusAsync("BOOKING_STATUS", "CANCELLED", ct);
+        MasterStatus cancelledQueue = await GetStatusAsync("QUEUE_STATUS", "CANCELLED", ct);
+        bool changed = false;
+        foreach (Booking booking in overdue)
+        {
+            DateTime scheduledStart = booking.QueueSlot.Date.Date.Add(booking.QueueSlot.StartTime.ToTimeSpan());
+            if (localNow < scheduledStart.AddMinutes(10)) continue;
+
+            booking.StatusId = cancelledBooking.Id;
+            booking.UpdatedAt = localNow;
+            if (booking.Queue != null)
+            {
+                booking.Queue.StatusId = cancelledQueue.Id;
+                booking.Queue.UpdatedAt = localNow;
+            }
+            if (booking.QueueSlot.Date.Date >= localNow.Date && booking.QueueSlot.CurrentUsage > 0)
+                booking.QueueSlot.CurrentUsage--;
+            changed = true;
+        }
+        if (changed) await _db.SaveChangesAsync(ct);
     }
 
     public async Task<BookingResponse> UpdateBookingAsync(int userId, int bookingId, UpdateOperationStatusRequest request, CancellationToken ct)
@@ -586,20 +578,41 @@ public sealed class Operations : IOperations
 
     public async Task<QueueResponse> CreateQueueAsync(int userId, CreateQueueRequest request, CancellationToken ct)
     {
-        if (request.CustomerName?.Trim().Length > 150) throw new InvalidOperationException("Customer name must not exceed 150 characters.");
+        if (!request.QueueSlotId.HasValue || request.QueueSlotId.Value <= 0)
+            throw new InvalidOperationException("Please select an available time slot.");
         await using var transaction = await _db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
         await EnsureBranchPermissionAsync(userId, request.BranchId, "queue.manage", ct);
         var service = await GetServiceAsync(request.ServiceId, request.BranchId, ct);
-        int? staffId = await ResolveStaffAsync(service, request.StaffId, ct);
-        int number = (await _db.Queues.Where(q => q.BranchId == request.BranchId && q.CreatedAt.Date == DateTime.Today)
+        DateTime localNow = _dateTime.LocalNow();
+        WalkInCustomer customer = await ResolveWalkInCustomerAsync(service.ShopId, userId, request, localNow, ct);
+        Domain.Entities.QueueSlot slot = await ResolveWalkInSlotAsync(request.BranchId, request.QueueSlotId, service, localNow, ct);
+        int? staffId = await ResolveStaffAsync(service, request.StaffId, ct, slot.Id);
+        int number = (await _db.Queues.Where(q => q.BranchId == request.BranchId && q.CreatedAt.Date == localNow.Date)
             .MaxAsync(q => (int?)q.QueueNumber, ct) ?? 0) + 1;
         var waiting = await GetStatusAsync("QUEUE_STATUS", "WAITING", ct);
+        var checkedIn = await GetStatusAsync("BOOKING_STATUS", "CHECKED_IN", ct);
+        var booking = new Booking
+        {
+            Guid = Guid.NewGuid(), BranchId = request.BranchId, QueueSlotId = slot.Id,
+            AssignedStaffId = staffId, GuestName = customer.Name,
+            GuestPhone = customer.Phone, GuestEmail = customer.Email,
+            StatusId = checkedIn.Id, CreatedAt = localNow, CreatedBy = userId,
+            QueueNumber = number
+        };
+        _db.Bookings.Add(booking);
+        await _db.SaveChangesAsync(ct);
+        _db.BookingServices.Add(new BookingService
+        {
+            BookingId = booking.Id, ServiceId = service.Id, CreatedAt = localNow, CreatedBy = userId
+        });
+        slot.CurrentUsage++;
         var queue = new Domain.Entities.Queue
         {
-            BranchId = request.BranchId, QueueNumber = number, ServiceId = service.Id, AssignedStaffId = staffId,
-            CustomerName = request.CustomerName?.Trim(), StatusId = waiting.Id,
+            Guid = Guid.NewGuid(), BranchId = request.BranchId, BookingId = booking.Id,
+            QueueNumber = number, ServiceId = service.Id, AssignedStaffId = staffId,
+            CustomerName = customer.Name, StatusId = waiting.Id,
             Type = string.IsNullOrWhiteSpace(request.Type) ? "WALK_IN" : request.Type.Trim().ToUpperInvariant(),
-            CreatedAt = DateTime.Now, CreatedBy = userId
+            CreatedAt = localNow, CreatedBy = userId
         };
         _db.Queues.Add(queue);
         await _db.SaveChangesAsync(ct);
@@ -607,12 +620,128 @@ public sealed class Operations : IOperations
         return await GetQueueByIdAsync(queue.Id, ct);
     }
 
+    private async Task<WalkInCustomer> ResolveWalkInCustomerAsync(
+        int shopId,
+        int userId,
+        CreateQueueRequest request,
+        DateTime localNow,
+        CancellationToken ct)
+    {
+        if (request.CustomerId.HasValue)
+        {
+            Customer selected = await _db.Customers.AsNoTracking()
+                .SingleOrDefaultAsync(customer => customer.Id == request.CustomerId.Value
+                    && customer.ShopId == shopId
+                    && customer.IsActive, ct)
+                ?? throw new InvalidOperationException("Please select a valid customer.");
+            return new WalkInCustomer(selected.Name, selected.Phone, selected.Email);
+        }
+
+        string name = request.CustomerName?.Trim() ?? string.Empty;
+        string phone = request.CustomerPhone?.Trim() ?? string.Empty;
+        string email = request.CustomerEmail?.Trim() ?? string.Empty;
+        if (name.Length is < 2 or > 150)
+            throw new InvalidOperationException("New customer name must contain 2 to 150 characters.");
+        if (phone.Length is < 8 or > 20 || phone.Any(character =>
+            !char.IsDigit(character) && character is not '+' and not '-' and not ' ' and not '(' and not ')'))
+            throw new InvalidOperationException("Please enter a valid customer phone number.");
+        if (email.Length > 254 || (email.Length > 0 && !System.Net.Mail.MailAddress.TryCreate(email, out _)))
+            throw new InvalidOperationException("Please enter a valid customer email address.");
+
+        string normalizedPhone = NormalizePhone(phone);
+        Customer? customer = (await _db.Customers
+                .Where(item => item.ShopId == shopId && item.UserId == null)
+                .ToListAsync(ct))
+            .FirstOrDefault(item => NormalizePhone(item.Phone) == normalizedPhone);
+        if (customer == null)
+        {
+            customer = new Customer
+            {
+                Guid = Guid.NewGuid(),
+                ShopId = shopId,
+                Name = name,
+                Phone = phone,
+                Email = string.IsNullOrWhiteSpace(email) ? null : email,
+                IsActive = true,
+                CreatedAt = localNow,
+                CreatedBy = userId
+            };
+            _db.Customers.Add(customer);
+        }
+        else
+        {
+            customer.Name = name;
+            customer.Phone = phone;
+            customer.Email = string.IsNullOrWhiteSpace(email) ? customer.Email : email;
+            customer.IsActive = true;
+            customer.UpdatedAt = localNow;
+            customer.UpdatedBy = userId;
+        }
+        return new WalkInCustomer(customer.Name, customer.Phone, customer.Email);
+    }
+
+    private async Task<Domain.Entities.QueueSlot> ResolveWalkInSlotAsync(
+        int branchId,
+        int? requestedSlotId,
+        Domain.Entities.Service service,
+        DateTime localNow,
+        CancellationToken ct)
+    {
+        IQueryable<Domain.Entities.QueueSlot> query = _db.QueueSlots
+            .Where(slot => slot.BranchId == branchId && slot.IsActive
+                && slot.CurrentUsage < slot.MaxQueue
+                && (slot.Date.Date > localNow.Date
+                    || (slot.Date.Date == localNow.Date && slot.StartTime > TimeOnly.FromDateTime(localNow))));
+        Domain.Entities.QueueSlot? slot = requestedSlotId.HasValue
+            ? await query.SingleOrDefaultAsync(item => item.Id == requestedSlotId.Value, ct)
+            : null;
+        if (slot == null) throw new InvalidOperationException("Please select an available time slot.");
+        await ValidateBookingSlotAsync(service, slot, localNow, ct);
+        return slot;
+    }
+
     public async Task<List<QueueResponse>> GetQueuesAsync(int userId, int branchId, CancellationToken ct)
     {
         await EnsureBranchPermissionAsync(userId, branchId, "queue.view", ct);
+        await CancelOverdueBookingQueuesAsync(branchId, userId, ct);
         var queues = await QueueQuery().Where(q => q.BranchId == branchId)
             .OrderByDescending(q => q.CreatedAt).ToListAsync(ct);
         return queues.Select(ToQueueResponse).ToList();
+    }
+
+    private async Task CancelOverdueBookingQueuesAsync(int branchId, int userId, CancellationToken ct)
+    {
+        DateTime localNow = _dateTime.LocalNow();
+        List<Domain.Entities.Queue> queues = await _db.Queues
+            .Include(queue => queue.Status)
+            .Include(queue => queue.Booking).ThenInclude(booking => booking!.QueueSlot)
+            .Where(queue => queue.BranchId == branchId
+                && queue.Status.Code == "WAITING"
+                && queue.Booking != null)
+            .ToListAsync(ct);
+        if (queues.Count == 0) return;
+
+        MasterStatus cancelledQueue = await GetStatusAsync("QUEUE_STATUS", "CANCELLED", ct);
+        MasterStatus cancelledBooking = await GetStatusAsync("BOOKING_STATUS", "CANCELLED", ct);
+        bool changed = false;
+        foreach (Domain.Entities.Queue queue in queues)
+        {
+            Booking booking = queue.Booking!;
+            DateTime scheduledStart = booking.QueueSlot.Date.Date.Add(booking.QueueSlot.StartTime.ToTimeSpan());
+            if (localNow < scheduledStart.AddMinutes(10)) continue;
+
+            queue.StatusId = cancelledQueue.Id;
+            queue.UpdatedAt = localNow;
+            queue.UpdatedBy = userId;
+            if (booking.StatusId != cancelledBooking.Id)
+            {
+                booking.StatusId = cancelledBooking.Id;
+                booking.UpdatedAt = localNow;
+                booking.UpdatedBy = userId;
+            }
+            changed = true;
+        }
+        if (changed) await _db.SaveChangesAsync(ct);
     }
 
     public async Task<QueueResponse> UpdateQueueAsync(int userId, int queueId, UpdateOperationStatusRequest request, CancellationToken ct)
@@ -738,7 +867,13 @@ public sealed class Operations : IOperations
         {
             Domain.Entities.QueueSlot slot = await _db.QueueSlots.AsNoTracking()
                 .SingleAsync(item => item.Id == queueSlotId.Value, ct);
-            SchedulingContext scheduling = await LoadSchedulingContextAsync(service, slot.Date, ct);
+            EffectiveBookingRules rules = await LoadEffectiveBookingRulesAsync(service.BranchId, service, ct);
+            SchedulingContext scheduling = await LoadSchedulingContextAsync(
+                service,
+                slot.Date,
+                rules.BufferBetweenServices,
+                rules.BranchDefaultBuffer,
+                ct);
             availableStaffIds = GetAvailableStaffIds(scheduling, service, slot);
             eligible = eligible.Where(staff => availableStaffIds.Contains(staff.Id));
         }
@@ -760,9 +895,152 @@ public sealed class Operations : IOperations
         return candidates.FirstOrDefault()?.Id;
     }
 
+    private async Task<EffectiveBookingRules> LoadEffectiveBookingRulesAsync(
+        int branchId,
+        Domain.Entities.Service? service,
+        CancellationToken ct)
+    {
+        Dictionary<string, string> settings = await _db.ShopSettings.AsNoTracking()
+            .Where(setting => setting.BranchId == branchId
+                && (setting.Key == "queue.slot_interval"
+                    || setting.Key == "queue.advance_booking_window"
+                    || setting.Key == "queue.buffer_between_services"))
+            .ToDictionaryAsync(setting => setting.Key, setting => setting.Value, ct);
+
+        int branchInterval = ParseRule(settings, "queue.slot_interval", 30, 5, 120);
+        int branchAdvanceWindow = ParseRule(settings, "queue.advance_booking_window", 14, 1, 365);
+        int branchBuffer = ParseRule(settings, "queue.buffer_between_services", 10, 0, 60);
+
+        return new EffectiveBookingRules(
+            Math.Clamp(service?.SlotInterval ?? branchInterval, 5, 120),
+            Math.Clamp(service?.AdvanceBookingWindow ?? branchAdvanceWindow, 1, 365),
+            Math.Clamp(service?.BufferBetweenServices ?? branchBuffer, 0, 60),
+            branchBuffer);
+    }
+
+    private static int ParseRule(
+        IReadOnlyDictionary<string, string> settings,
+        string key,
+        int fallback,
+        int minimum,
+        int maximum) =>
+        settings.TryGetValue(key, out string? value) && int.TryParse(value, out int parsed)
+            ? Math.Clamp(parsed, minimum, maximum)
+            : fallback;
+
+    private async Task<bool> EnsureSlotsForIntervalAsync(
+        int shopId,
+        int branchId,
+        DateTime date,
+        ShopBusinessHour businessHour,
+        int interval,
+        DateTime localNow,
+        CancellationToken ct)
+    {
+        int branchCapacity = await _db.ShopStaffs.AsNoTracking()
+            .CountAsync(staff => staff.BranchId == branchId
+                && staff.IsActive
+                && staff.IsAvailable
+                && staff.CanServeQueues, ct);
+        if (branchCapacity == 0) return false;
+
+        List<Domain.Entities.QueueSlot> existing = await _db.QueueSlots
+            .Where(slot => slot.BranchId == branchId && slot.Date.Date == date.Date)
+            .ToListAsync(ct);
+        Dictionary<TimeOnly, Domain.Entities.QueueSlot> byStart = existing
+            .GroupBy(slot => slot.StartTime)
+            .ToDictionary(group => group.Key, group => group.First());
+        bool changed = false;
+
+        foreach (Domain.Entities.QueueSlot slot in existing)
+        {
+            int safeCapacity = Math.Max(branchCapacity, slot.CurrentUsage);
+            if (slot.MaxQueue == safeCapacity) continue;
+            slot.MaxQueue = safeCapacity;
+            slot.UpdatedAt = localNow;
+            changed = true;
+        }
+
+        TimeOnly start = businessHour.OpenTime;
+        while (start < businessHour.CloseTime)
+        {
+            if (!byStart.ContainsKey(start))
+            {
+                var slot = new Domain.Entities.QueueSlot
+                {
+                    Guid = Guid.NewGuid(),
+                    ShopId = shopId,
+                    BranchId = branchId,
+                    Date = date,
+                    StartTime = start,
+                    EndTime = start.AddMinutes(interval),
+                    MaxQueue = branchCapacity,
+                    CurrentUsage = 0,
+                    IsActive = true,
+                    CreatedAt = localNow
+                };
+                _db.QueueSlots.Add(slot);
+                byStart[start] = slot;
+                changed = true;
+            }
+            start = start.AddMinutes(interval);
+        }
+
+        if (!changed) return true;
+        try
+        {
+            await _db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException)
+        {
+            // Another request may have generated the same unique branch/date/start slot.
+            _db.ChangeTracker.Clear();
+        }
+        return true;
+    }
+
+    private static bool IsValidServiceStart(
+        TimeOnly start,
+        ShopBusinessHour businessHour,
+        int duration,
+        EffectiveBookingRules rules)
+    {
+        int minutesFromOpen = (int)(start - businessHour.OpenTime).TotalMinutes;
+        int availableMinutes = (int)(businessHour.CloseTime - businessHour.OpenTime).TotalMinutes;
+        return minutesFromOpen >= 0
+            && minutesFromOpen % rules.SlotInterval == 0
+            && minutesFromOpen + duration + rules.BufferBetweenServices <= availableMinutes;
+    }
+
+    private async Task ValidateBookingSlotAsync(
+        Domain.Entities.Service service,
+        Domain.Entities.QueueSlot slot,
+        DateTime localNow,
+        CancellationToken ct)
+    {
+        EffectiveBookingRules rules = await LoadEffectiveBookingRulesAsync(service.BranchId, service, ct);
+        if (slot.Date.Date > localNow.Date.AddDays(rules.AdvanceBookingWindow))
+            throw new InvalidOperationException("This service cannot be booked that far in advance.");
+
+        bool isHoliday = await _db.ShopHolidays.AsNoTracking()
+            .AnyAsync(holiday => holiday.BranchId == service.BranchId
+                && holiday.HolidayDate == DateOnly.FromDateTime(slot.Date), ct);
+        if (isHoliday)
+            throw new InvalidOperationException("This branch is closed on the selected date.");
+
+        ShopBusinessHour? businessHour = await _db.ShopBusinessHours.AsNoTracking()
+            .SingleOrDefaultAsync(hour => hour.BranchId == service.BranchId
+                && hour.DayOfWeek == (int)slot.Date.DayOfWeek
+                && hour.IsActive, ct);
+        if (businessHour == null || !IsValidServiceStart(slot.StartTime, businessHour, service.Duration, rules))
+            throw new InvalidOperationException("This time slot is not valid for the selected service.");
+    }
+
     private async Task<SchedulingContext> LoadSchedulingContextAsync(
         Domain.Entities.Service service,
         DateTime date,
+        int requestedBufferMinutes,
+        int branchDefaultBufferMinutes,
         CancellationToken ct)
     {
         List<int> staffIds = await _db.ShopStaffs.AsNoTracking()
@@ -773,15 +1051,6 @@ public sealed class Operations : IOperations
                 && staff.ServiceStaffMaps.Any(map => map.ServiceId == service.Id))
             .Select(staff => staff.Id)
             .ToListAsync(ct);
-
-        int bufferMinutes = 0;
-        string? bufferSetting = await _db.ShopSettings.AsNoTracking()
-            .Where(setting => setting.BranchId == service.BranchId
-                && setting.Key == "queue.buffer_between_services")
-            .Select(setting => setting.Value)
-            .SingleOrDefaultAsync(ct);
-        if (int.TryParse(bufferSetting, out int configuredBuffer))
-            bufferMinutes = Math.Clamp(configuredBuffer, 0, 240);
 
         List<Booking> bookings = staffIds.Count == 0
             ? new()
@@ -798,7 +1067,11 @@ public sealed class Operations : IOperations
                     && booking.Status.Code != "NO_SHOW")
                 .ToListAsync(ct);
 
-        return new SchedulingContext(staffIds, bookings, bufferMinutes);
+        return new SchedulingContext(
+            staffIds,
+            bookings,
+            requestedBufferMinutes,
+            branchDefaultBufferMinutes);
     }
 
     private static List<int> GetAvailableStaffIds(
@@ -807,14 +1080,18 @@ public sealed class Operations : IOperations
         Domain.Entities.QueueSlot slot)
     {
         TimeOnly requestedStart = slot.StartTime;
-        TimeOnly requestedEnd = requestedStart.AddMinutes(service.Duration + scheduling.BufferMinutes);
+        TimeOnly requestedEnd = requestedStart.AddMinutes(service.Duration + scheduling.RequestedBufferMinutes);
         return scheduling.StaffIds.Where(staffId =>
             !scheduling.Bookings.Any(booking =>
             {
                 if (booking.AssignedStaffId != staffId) return false;
                 TimeOnly existingStart = booking.QueueSlot.StartTime;
                 int existingDuration = booking.BookingServices.Sum(map => map.Service.Duration);
-                TimeOnly existingEnd = existingStart.AddMinutes(existingDuration + scheduling.BufferMinutes);
+                int existingBuffer = booking.BookingServices
+                    .Select(map => map.Service.BufferBetweenServices ?? scheduling.BranchDefaultBufferMinutes)
+                    .DefaultIfEmpty(0)
+                    .Max();
+                TimeOnly existingEnd = existingStart.AddMinutes(existingDuration + existingBuffer);
                 return requestedStart < existingEnd && existingStart < requestedEnd;
             })).ToList();
     }
@@ -822,19 +1099,30 @@ public sealed class Operations : IOperations
     private static AvailableSlotResponse ToAvailableSlot(
         Domain.Entities.QueueSlot slot,
         int remaining,
-        TimeOnly? endTime = null) => new()
+        TimeOnly? endTime = null,
+        List<int>? availableStaffIds = null) => new()
         {
             Id = slot.Id,
             Date = slot.Date,
             StartTime = slot.StartTime.ToString("HH:mm"),
             EndTime = (endTime ?? slot.EndTime).ToString("HH:mm"),
-            Remaining = remaining
+            Remaining = remaining,
+            AvailableStaffIds = availableStaffIds ?? new()
         };
 
     private sealed record SchedulingContext(
         List<int> StaffIds,
         List<Booking> Bookings,
-        int BufferMinutes);
+        int RequestedBufferMinutes,
+        int BranchDefaultBufferMinutes);
+
+    private sealed record WalkInCustomer(string Name, string Phone, string? Email);
+
+    private sealed record EffectiveBookingRules(
+        int SlotInterval,
+        int AdvanceBookingWindow,
+        int BufferBetweenServices,
+        int BranchDefaultBuffer);
 
     private async Task<ShopStaff> GetOwnedStaffForPhotoAsync(
         int userId,
@@ -982,7 +1270,8 @@ public sealed class Operations : IOperations
 
     private IQueryable<Domain.Entities.Queue> QueueQuery() => _db.Queues.AsNoTracking()
         .Include(q => q.Service).Include(q => q.AssignedStaff).ThenInclude(s => s!.User)
-        .Include(q => q.Status).Include(q => q.Booking);
+        .Include(q => q.Status).Include(q => q.Booking).ThenInclude(b => b!.QueueSlot)
+        .Include(q => q.Booking).ThenInclude(b => b!.User);
 
     private async Task<QueueResponse> GetQueueByIdAsync(int id, CancellationToken ct) =>
         ToQueueResponse(await QueueQuery().SingleAsync(q => q.Id == id, ct));
@@ -1008,7 +1297,8 @@ public sealed class Operations : IOperations
         ServiceId = b.BookingServices.Select(m => m.ServiceId).FirstOrDefault(),
         ServiceName = b.BookingServices.Select(m => m.Service.Name).FirstOrDefault() ?? string.Empty,
         QueueSlotId = b.QueueSlotId, Date = b.QueueSlot.Date, StartTime = b.QueueSlot.StartTime.ToString("HH:mm"),
-        CustomerName = b.User?.Name ?? b.User?.Email ?? b.GuestName ?? "Customer", StaffId = b.AssignedStaffId,
+        CustomerName = b.User?.Name ?? b.User?.Email ?? b.GuestName ?? "Customer",
+        CustomerPhone = b.User?.Phone ?? b.GuestPhone, StaffId = b.AssignedStaffId,
         StaffName = b.AssignedStaff == null ? null : (string.IsNullOrWhiteSpace(b.AssignedStaff.Name) ? b.AssignedStaff.User?.Name : b.AssignedStaff.Name),
         QueueId = b.Queue?.Id, Status = b.Status.Code, Remark = b.Remark
     };
@@ -1139,7 +1429,11 @@ public sealed class Operations : IOperations
     {
         Id = q.Id, Guid = q.Guid, BranchId = q.BranchId, BookingId = q.BookingId, QueueNumber = q.QueueNumber,
         ServiceId = q.ServiceId, ServiceName = q.Service == null ? null : q.Service.Name,
-        CustomerName = q.CustomerName, StaffId = q.AssignedStaffId,
+        CustomerName = q.CustomerName,
+        CustomerPhone = q.Booking?.User?.Phone ?? q.Booking?.GuestPhone,
+        QueueDate = q.Booking?.QueueSlot.Date,
+        QueueStartTime = q.Booking?.QueueSlot.StartTime.ToString("HH:mm"),
+        StaffId = q.AssignedStaffId,
         StaffName = q.AssignedStaff == null ? null : (string.IsNullOrWhiteSpace(q.AssignedStaff.Name) ? q.AssignedStaff.User?.Name : q.AssignedStaff.Name),
         Status = q.Status.Code, Type = q.Type, CreatedAt = q.CreatedAt
     };

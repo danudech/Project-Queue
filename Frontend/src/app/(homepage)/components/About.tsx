@@ -1,15 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { localePath, type HomepageCopy, type HomepageLocale } from "../i18n";
+import type { HomepageCopy } from "../i18n";
 
 type AboutProps = {
-  locale: HomepageLocale;
   copy: HomepageCopy["about"];
   actions: HomepageCopy["actions"];
 };
 
-const About = ({ locale, copy, actions }: AboutProps) => {
+const About = ({ copy, actions }: AboutProps) => {
   return (
     <section className="section bg-about pb-0" id="about">
       <div className="ez-container">
@@ -32,7 +31,7 @@ const About = ({ locale, copy, actions }: AboutProps) => {
             <p className="ez-section-copy">
               {copy.description}
             </p>
-            <Link href={localePath(locale, "/dashboard")} className="ez-btn ez-btn-primary mt-4">
+            <Link href="#how-it-works" className="ez-btn ez-btn-primary mt-4">
               {actions.readMore}
               <ArrowRight className="h-4 w-4" />
             </Link>

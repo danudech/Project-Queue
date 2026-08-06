@@ -5,6 +5,9 @@ namespace Queue.Application.DTO.Request;
 public sealed class UpdateShopRequest
 {
     public IFormFile? Logo { get; set; }
+    public string? LogoPosition { get; set; }
+    public IFormFile? Cover { get; set; }
+    public string? CoverPosition { get; set; }
     public bool? IsActive { get; set; }
     public int? BranchId { get; set; }
     public string? Description { get; set; }

@@ -53,6 +53,12 @@ public sealed class PublicBooking : IPublicBooking
             .Where(setting => setting.BranchId == null || setting.BranchId == branch.Id)
             .OrderByDescending(setting => setting.BranchId == branch.Id)
             .FirstOrDefault(setting => setting.Key == "Logo")?.Value;
+        string logoPosition = GetSetting(branch, "LogoPosition") ?? "50% 50%";
+        string? cover = branch.Shop.ShopSettings
+            .Where(setting => setting.BranchId == null || setting.BranchId == branch.Id)
+            .OrderByDescending(setting => setting.BranchId == branch.Id)
+            .FirstOrDefault(setting => setting.Key == "Cover")?.Value;
+        string coverPosition = GetSetting(branch, "CoverPosition") ?? "50% 50%";
         string? description = GetSetting(branch, "Description");
         string? email = GetSetting(branch, "Email");
 
@@ -61,6 +67,9 @@ public sealed class PublicBooking : IPublicBooking
             ShopSlug = branch.Shop.PublicSlug,
             ShopName = branch.Shop.Name,
             LogoUrl = logo,
+            LogoPosition = logoPosition,
+            CoverUrl = cover,
+            CoverPosition = coverPosition,
             ShopDescription = description,
             ShopEmail = email,
             ShopTypeNameTh = branch.Shop.Type?.NameTh,
@@ -261,6 +270,8 @@ public sealed class PublicBooking : IPublicBooking
         return new PublicBookingManagementResponse
         {
             Guid = booking.Guid,
+            ShopSlug = booking.Branch.Shop.PublicSlug,
+            BranchPublicId = booking.Branch.PublicBookingId,
             ShopName = booking.Branch.Shop.Name,
             LogoUrl = booking.Branch.Shop.ShopSettings
                 .Where(setting => setting.BranchId == null || setting.BranchId == booking.BranchId)

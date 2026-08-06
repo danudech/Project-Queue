@@ -1084,7 +1084,13 @@ namespace Queue.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("AdvanceBookingWindow")
+                        .HasColumnType("int");
+
                     b.Property<int>("BranchId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("BufferBetweenServices")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
@@ -1117,6 +1123,9 @@ namespace Queue.Infrastructure.Migrations
                         .HasColumnType("decimal(10, 2)");
 
                     b.Property<int>("ShopId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SlotInterval")
                         .HasColumnType("int");
 
                     b.Property<string>("StaffSelectionMode")

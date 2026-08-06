@@ -8,6 +8,7 @@ export interface BookingDto {
   date: string;
   startTime: string;
   customerName: string;
+  customerPhone?: string | null;
   staffId?: number | null;
   staffName?: string | null;
   queueId?: number | null;

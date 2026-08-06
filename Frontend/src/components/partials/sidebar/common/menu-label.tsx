@@ -6,7 +6,7 @@ import React from 'react'
 const MenuLabel = ({ label, className }: { label: string, className?: string }) => {
     const [config] = useConfig()
     if (config.sidebar === 'compact') return null
-    return (
+        return (
         <p className={cn('text-xs font-semibold text-default-800  py-4 max-w-[248px] truncate uppercase', className)}>
             {label}
         </p>

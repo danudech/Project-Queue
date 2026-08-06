@@ -10,4 +10,7 @@ public sealed class ShopServiceRequest
     public bool IsActive { get; set; } = false;
     public string StaffSelectionMode { get; set; } = "OPTIONAL";
     public List<int> StaffIds { get; set; } = new();
+    public int? SlotInterval { get; set; }
+    public int? AdvanceBookingWindow { get; set; }
+    public int? BufferBetweenServices { get; set; }
 }

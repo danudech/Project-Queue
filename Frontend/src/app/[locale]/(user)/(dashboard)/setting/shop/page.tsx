@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { Icon } from "@/components/ui/icon";
@@ -21,7 +21,17 @@ const SettingShopPage = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedCover, setSelectedCover] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [coverPreviewUrl, setCoverPreviewUrl] = useState<string | null>(null);
+  const [coverPositionY, setCoverPositionY] = useState(50);
+  const [coverPositionX, setCoverPositionX] = useState(50);
+  const coverDrag = useRef<{ x: number; y: number; startX: number; startY: number } | null>(null);
+  const [logoPositionX, setLogoPositionX] = useState(50);
+  const [logoPositionY, setLogoPositionY] = useState(50);
+  const logoDrag = useRef<{ x: number; y: number; startX: number; startY: number } | null>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
   const [shopTypes, setShopTypes] = useState<ShopType[]>([]);
   const [selectedShopType, setSelectedShopType] = useState("");
   const [isLoadingShopTypes, setIsLoadingShopTypes] = useState(true);
@@ -42,12 +52,29 @@ const SettingShopPage = () => {
     }
   };
 
+  const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setSelectedCover(file);
+    setCoverPreviewUrl(URL.createObjectURL(file));
+  };
+
   // Note
   useEffect(() => {
     if (shopData?.isActive !== undefined) {
       setIsOpen(shopData.isActive);
     }
   }, [shopData?.isActive]);
+
+  useEffect(() => {
+    const match = shopData?.coverPosition?.match(/(\d+)%\s+(\d+)%/);
+    if (match) { setCoverPositionX(Number(match[1])); setCoverPositionY(Number(match[2])); }
+  }, [shopData?.coverPosition]);
+
+  useEffect(() => {
+    const match = shopData?.logoPosition?.match(/(\d+)%\s+(\d+)%/);
+    if (match) { setLogoPositionX(Number(match[1])); setLogoPositionY(Number(match[2])); }
+  }, [shopData?.logoPosition]);
 
   useEffect(() => {
     setIsLoadingShopTypes(true);
@@ -67,6 +94,9 @@ const SettingShopPage = () => {
     try {
       const formData = new FormData();
       if (selectedFile) formData.append("Logo", selectedFile);
+      if (selectedCover) formData.append("Cover", selectedCover);
+      formData.append("CoverPosition", `${coverPositionX}% ${coverPositionY}%`);
+      formData.append("LogoPosition", `${logoPositionX}% ${logoPositionY}%`);
       formData.append("IsActive", String(isOpen));
       
       const branchId = shopData?.shopBranches?.[0]?.id;
@@ -103,29 +133,37 @@ const SettingShopPage = () => {
     <div className="space-y-5">
 
       {/* Section */}
-      <Card className="p-6 pb-10 md:pt-[84px] pt-10 rounded-lg lg:flex lg:space-y-0 space-y-6 justify-between items-end relative z-[1]">
-        <div className="bg-default-900 dark:bg-default-400 absolute left-0 top-0 md:h-1/2 h-[150px] w-full z-[-1] rounded-t-lg" />
+      <Card className="p-6 pb-10 md:pt-[84px] pt-10 rounded-lg lg:flex lg:space-y-0 space-y-6 justify-between items-end relative z-[1] text-white">
+        <div className="pointer-events-none absolute inset-0 z-[-1] h-full w-full rounded-lg bg-cover bg-no-repeat" style={{ backgroundPosition: `${coverPositionX}% ${coverPositionY}%`, backgroundSize: "cover", backgroundImage: `linear-gradient(90deg, rgba(15,23,42,.82), rgba(15,23,42,.42)), url(${coverPreviewUrl || getLogoUrl(shopData.cover)})` }} />
+        <button type="button" onClick={() => coverInputRef.current?.click()} className="absolute right-5 top-5 z-30 inline-flex cursor-pointer items-center gap-2 rounded-md bg-white/95 px-3 py-2 text-xs font-medium text-slate-700 shadow-sm hover:bg-white"><Icon icon="heroicons:pencil-square" className="size-4" />{t("changeCover")}</button>
+        <input id="shop-cover-upload" ref={coverInputRef} type="file" accept="image/*" className="hidden" onChange={handleCoverChange} />
 
-        <div className="profile-box flex-none md:text-start text-center">
+        <div className="profile-box relative z-10 flex-none md:text-start text-center">
           <div className="md:flex items-end md:space-x-6 rtl:space-x-reverse">
             {/* Avatar */}
             <div className="flex-none">
-              <div className="md:h-[186px] md:w-[186px] h-[140px] w-[140px] md:ml-0 md:mr-0 ml-auto mr-auto md:mb-0 mb-4 rounded-full ring-4 dark:ring-default-700 ring-default-50 relative">
+              <div className="relative md:h-[186px] md:w-[186px] h-[140px] w-[140px] md:ml-0 md:mr-0 ml-auto mr-auto md:mb-0 mb-4 cursor-grab rounded-full ring-4 active:cursor-grabbing dark:ring-default-700 ring-default-50" onPointerDown={(event) => { event.currentTarget.setPointerCapture(event.pointerId); logoDrag.current = { x: event.clientX, y: event.clientY, startX: logoPositionX, startY: logoPositionY }; }} onPointerMove={(event) => { const start = logoDrag.current; if (!start) return; const rect = event.currentTarget.getBoundingClientRect(); setLogoPositionX(Math.max(0, Math.min(100, start.startX - ((event.clientX - start.x) / rect.width) * 100))); setLogoPositionY(Math.max(0, Math.min(100, start.startY - ((event.clientY - start.y) / rect.height) * 100))); }} onPointerUp={() => { logoDrag.current = null; }} onPointerCancel={() => { logoDrag.current = null; }}>
+                <div className="absolute inset-0 overflow-hidden rounded-full pointer-events-none">
                 <Image
                   width={300}
                   height={300}
                   src={previewUrl || getLogoUrl(shopData.logo)}
                   alt={shopData.name}
-                  className="w-full h-full object-cover rounded-full"
+                  className="h-full w-full touch-none rounded-full object-cover"
+                  style={{ objectPosition: `${logoPositionX}% ${logoPositionY}%` }}
                 />
-                <label
-                  htmlFor="shop-logo-upload"
-                  className="absolute right-2 cursor-pointer h-8 w-8 bg-default-50 text-default-600 rounded-full shadow-sm flex flex-col items-center justify-center md:top-[140px] top-[100px] hover:bg-default-100 transition-colors"
+                </div>
+                <button
+                  type="button"
+                  onPointerDown={(event) => event.stopPropagation()}
+                  onClick={() => logoInputRef.current?.click()}
+                  className="absolute right-0 z-20 cursor-pointer h-8 w-8 bg-default-50 text-default-600 rounded-full shadow-sm flex flex-col items-center justify-center md:top-[140px] top-[100px] hover:bg-default-100 transition-colors"
                 >
                   <Icon icon="heroicons:pencil-square" />
-                </label>
+                </button>
                 <input
                   id="shop-logo-upload"
+                  ref={logoInputRef}
                   type="file"
                   accept="image/*"
                   className="hidden"
@@ -136,17 +174,17 @@ const SettingShopPage = () => {
 
             {/* Section */}
             <div className="flex-1">
-              <div className="text-2xl font-medium text-default-900 mb-[3px]">
+              <div className="text-2xl font-medium text-white mb-[3px]">
                 {shopData.name}
               </div>
-              <div className="text-sm font-light text-default-600">{t("shopType")}</div>
+              <div className="text-sm font-light text-white/75">{t("shopType")}</div>
             </div>
           </div>
         </div>
 
         {/* Section */}
-        <div className="flex items-center gap-3">
-          <span className="text-sm text-default-600">
+        <div className="relative z-10 flex items-center gap-3">
+          <span className="text-sm text-white/85">
             {isOpen ? t("open") : t("closed")}
           </span>
           <button

@@ -24,11 +24,11 @@ const Hero = ({ locale, copy, actions }: HeroProps) => {
                 </div>
 
                 <div className="ez-hero-actions">
-                  <Link href={localePath(locale, "/dashboard")} className="ez-btn ez-btn-primary ez-btn-lg">
+                  <Link href={localePath(locale, "/auth/register")} className="ez-btn ez-btn-primary ez-btn-lg">
                     {actions.tryFree}
                     <ArrowRight className="h-5 w-5" />
                   </Link>
-                  <Link href={localePath(locale, "/book")} className="ez-btn ez-btn-outline ez-btn-lg">
+                  <Link href="#features" className="ez-btn ez-btn-outline ez-btn-lg">
                     {actions.learnMore}
                   </Link>
                 </div>
