@@ -160,6 +160,7 @@ const ServicePage = () => {
     React.useState(false);
   const [editTarget, setEditTarget] = React.useState<SetService | null>(null);
   const [btnLoading, setBtnLoading] = React.useState(false);
+  const [servicePhoto, setServicePhoto] = React.useState<File | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [branchRules, setBranchRules] = React.useState<QueueRules>(defaultQueueRules);
 
@@ -317,6 +318,11 @@ const ServicePage = () => {
           bufferBetweenServices: values.useDefaultBookingRules ? null : values.bufferBetweenServices,
         });
         if (updated) {
+          if (servicePhoto) {
+            const photoData = new FormData();
+            photoData.append("Image", servicePhoto);
+            await http.upload<SetService>("servicephoto", photoData, { params: { serviceId: updated.id } });
+          }
           setTableData(
             (prev) =>
               prev?.map((r) =>
@@ -356,6 +362,12 @@ const ServicePage = () => {
           branchId: branch,
         });
         if (newService) {
+          if (servicePhoto) {
+            const photoData = new FormData();
+            photoData.append("Image", servicePhoto);
+            const uploaded = await http.upload<SetService>("servicephoto", photoData, { params: { serviceId: newService.id } });
+            if (uploaded) Object.assign(newService, uploaded);
+          }
           setTableData((prev) => [...(prev ?? []), newService]);
           toast.success(t("toast.addSuccess"));
         }
@@ -391,6 +403,7 @@ const ServicePage = () => {
       advanceBookingWindow: branchRules.advanceBookingWindow,
       bufferBetweenServices: branchRules.bufferBetweenServices,
     });
+    setServicePhoto(null);
     setDialogOpen(true);
   };
 
@@ -413,6 +426,7 @@ const ServicePage = () => {
       advanceBookingWindow: row.advanceBookingWindow ?? branchRules.advanceBookingWindow,
       bufferBetweenServices: row.bufferBetweenServices ?? branchRules.bufferBetweenServices,
     });
+    setServicePhoto(null);
     setDialogOpen(true);
   };
 
@@ -513,6 +527,14 @@ const ServicePage = () => {
                   </FormItem>
                 )}
               />
+
+              <FormItem>
+                <FormLabel>{t("form.image")}</FormLabel>
+                <FormControl>
+                  <Input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => setServicePhoto(event.target.files?.[0] ?? null)} />
+                </FormControl>
+                <p className="text-xs text-muted-foreground">{servicePhoto?.name ?? t("form.imageHint")}</p>
+              </FormItem>
 
               <div className="space-y-5 rounded-xl border border-primary/15 bg-primary/[0.025] p-5 shadow-sm">
                 <FormField

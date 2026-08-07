@@ -32,7 +32,7 @@ function encodeQuery(params?: Record<string, unknown>) {
 type RefreshResponse = {
   status?: boolean;
   message?: string;
-  data?: TokenType | null;
+  data?: unknown;
 };
 
 function setAuthHeaders(
@@ -52,9 +52,9 @@ export function createHttp<K extends string>(
   getDefaultHeaders?: () => Record<string, string>,
   baseUrl?: string,
 ) {
-  let refreshPromise: Promise<TokenType | null> | null = null;
+  let refreshPromise: Promise<boolean> | null = null;
 
-  async function tryRefresh(): Promise<TokenType | null> {
+  async function tryRefresh(): Promise<boolean> {
     if (refreshPromise) return refreshPromise;
 
     refreshPromise = (async () => {
@@ -73,13 +73,15 @@ export function createHttp<K extends string>(
         const json =
           (await res.json().catch(() => null)) as RefreshResponse | null;
 
-        if (!res.ok || !json?.status || !json.data || !json.data.accessToken || !json.data.refreshToken || !json.data.session) {
-          return null;
+        if (!res.ok || !json?.status) {
+          return false;
         }
 
-        return json.data;
+        // Tokens are kept in HttpOnly cookies by the Next.js route. Do not
+        // return them to browser JavaScript or expose them in the response.
+        return true;
       } catch {
-        return null;
+        return false;
       } finally {
         refreshPromise = null;
       }
@@ -127,7 +129,7 @@ export function createHttp<K extends string>(
           body,
           { ...opts, skipRefresh: true },
           true,
-          token,
+          null,
         );
       } else {
         await fetch(

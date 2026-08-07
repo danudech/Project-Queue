@@ -20,6 +20,7 @@ public interface IManageShop
     Task<List<ShopServiceResponse>?> GetShopServicesById(int shopId, int? branchId, int userId, string ip, string userAgent, CancellationToken ct);
     Task<ShopServiceResponse> AddShopService(int userId, ShopServiceRequest request, string ip, string userAgent, CancellationToken ct);
     Task<ShopServiceResponse> UpdateShopService(int userId, ShopServiceRequest request, string ip, string userAgent, CancellationToken ct);
+    Task<ShopServiceResponse> SaveServiceImageAsync(int userId, int serviceId, ServicePhotoRequest request, CancellationToken ct);
     Task<bool> DeleteShopService(int userId, int serviceId, string ip, string userAgent, CancellationToken ct);
     Task<List<BusinessHourResponse>> GetBusinessHours(int userId, int branchId, CancellationToken ct);
     Task<List<BusinessHourResponse>> UpdateBusinessHours(int userId, UpdateBusinessHoursRequest request, string ip, string userAgent, CancellationToken ct);

@@ -613,6 +613,12 @@ export default function StaffPage() {
                     {t("columns.role")}
                   </TableHead>
                   <TableHead className="text-xs font-semibold uppercase tracking-wide">
+                    {t("columns.serviceCapability")}
+                  </TableHead>
+                  <TableHead className="text-xs font-semibold uppercase tracking-wide">
+                    {t("columns.systemAccess")}
+                  </TableHead>
+                  <TableHead className="text-xs font-semibold uppercase tracking-wide">
                     {t("columns.email")}
                   </TableHead>
                   <TableHead className="text-xs font-semibold uppercase tracking-wide">
@@ -675,24 +681,33 @@ export default function StaffPage() {
                       <span className="text-sm">
                         {getPositionLabel(item.role)}
                       </span>
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {item.canServeQueues && (
-                          <Badge
-                            rounded="full"
-                            className="border-emerald-200 bg-emerald-50 text-emerald-700"
-                          >
-                            {t("serviceStaff")}
-                          </Badge>
-                        )}
-                        {item.canLogin && (
-                          <Badge
-                            rounded="full"
-                            className="border-sky-200 bg-sky-50 text-sky-700"
-                          >
-                            {t("systemAccess")}
-                          </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col items-start gap-1">
+                        <Badge
+                          rounded="full"
+                          className={item.canServeQueues
+                            ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                            : "border-default-200 bg-default-50 text-default-500"}
+                        >
+                          {item.canServeQueues ? t("serviceStaff") : t("notServiceStaff")}
+                        </Badge>
+                        {item.canServeQueues && item.serviceIds.length > 0 && (
+                          <span className="text-xs text-muted-foreground">
+                            {t("servicesAssigned", { count: item.serviceIds.length })}
+                          </span>
                         )}
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        rounded="full"
+                        className={item.canLogin
+                          ? "border-sky-200 bg-sky-50 text-sky-700"
+                          : "border-default-200 bg-default-50 text-default-500"}
+                      >
+                        {item.canLogin ? t("systemAccess") : t("noLoginAccount")}
+                      </Badge>
                     </TableCell>
                     <TableCell className="text-sm">
                       {item.email || (

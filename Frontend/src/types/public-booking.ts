@@ -1,6 +1,7 @@
 export interface PublicBookingService {
   id: number;
   name: string;
+  imageUrl?: string | null;
   duration: number;
   price: number;
   staffSelectionMode: "AUTO" | "OPTIONAL" | "REQUIRED" | string;

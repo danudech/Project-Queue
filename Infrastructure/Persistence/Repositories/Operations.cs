@@ -355,10 +355,29 @@ public sealed class Operations : IOperations
         Domain.Entities.Service? service = null;
         if (serviceId.HasValue)
         {
+            // Project only the columns required for slot calculation. This keeps public booking
+            // compatible with databases that have not yet applied optional service-rule columns.
             service = await _db.Services.AsNoTracking()
-                .SingleOrDefaultAsync(item => item.Id == serviceId.Value
+                .Where(item => item.Id == serviceId.Value
                     && item.BranchId == branchId
-                    && item.IsActive, ct);
+                    && item.IsActive)
+                .Select(item => new Domain.Entities.Service
+                {
+                    Id = item.Id,
+                    Guid = item.Guid,
+                    ShopId = item.ShopId,
+                    BranchId = item.BranchId,
+                    Name = item.Name,
+                    Duration = item.Duration,
+                    Price = item.Price,
+                    StaffSelectionMode = item.StaffSelectionMode,
+                    IsActive = item.IsActive,
+                    CreatedAt = item.CreatedAt,
+                    CreatedBy = item.CreatedBy,
+                    UpdatedAt = item.UpdatedAt,
+                    UpdatedBy = item.UpdatedBy
+                })
+                .SingleOrDefaultAsync(ct);
             if (service == null) return new();
         }
 
@@ -1052,19 +1071,19 @@ public sealed class Operations : IOperations
             .Select(staff => staff.Id)
             .ToListAsync(ct);
 
-        List<Booking> bookings = staffIds.Count == 0
+        List<ScheduledBooking> bookings = staffIds.Count == 0
             ? new()
             : await _db.Bookings.AsNoTracking()
-                .Include(booking => booking.QueueSlot)
-                .Include(booking => booking.Status)
-                .Include(booking => booking.BookingServices)
-                    .ThenInclude(map => map.Service)
                 .Where(booking => booking.AssignedStaffId.HasValue
                     && staffIds.Contains(booking.AssignedStaffId.Value)
                     && booking.QueueSlot.Date.Date == date.Date
                     && booking.Status.Code != "DONE"
                     && booking.Status.Code != "CANCELLED"
                     && booking.Status.Code != "NO_SHOW")
+                .Select(booking => new ScheduledBooking(
+                    booking.AssignedStaffId!.Value,
+                    booking.QueueSlot.StartTime,
+                    booking.BookingServices.Sum(map => map.Service.Duration)))
                 .ToListAsync(ct);
 
         return new SchedulingContext(
@@ -1084,13 +1103,10 @@ public sealed class Operations : IOperations
         return scheduling.StaffIds.Where(staffId =>
             !scheduling.Bookings.Any(booking =>
             {
-                if (booking.AssignedStaffId != staffId) return false;
-                TimeOnly existingStart = booking.QueueSlot.StartTime;
-                int existingDuration = booking.BookingServices.Sum(map => map.Service.Duration);
-                int existingBuffer = booking.BookingServices
-                    .Select(map => map.Service.BufferBetweenServices ?? scheduling.BranchDefaultBufferMinutes)
-                    .DefaultIfEmpty(0)
-                    .Max();
+                if (booking.StaffId != staffId) return false;
+                TimeOnly existingStart = booking.StartTime;
+                int existingDuration = booking.Duration;
+                int existingBuffer = scheduling.BranchDefaultBufferMinutes;
                 TimeOnly existingEnd = existingStart.AddMinutes(existingDuration + existingBuffer);
                 return requestedStart < existingEnd && existingStart < requestedEnd;
             })).ToList();
@@ -1112,9 +1128,11 @@ public sealed class Operations : IOperations
 
     private sealed record SchedulingContext(
         List<int> StaffIds,
-        List<Booking> Bookings,
+        List<ScheduledBooking> Bookings,
         int RequestedBufferMinutes,
         int BranchDefaultBufferMinutes);
+
+    private sealed record ScheduledBooking(int StaffId, TimeOnly StartTime, int Duration);
 
     private sealed record WalkInCustomer(string Name, string Phone, string? Email);
 

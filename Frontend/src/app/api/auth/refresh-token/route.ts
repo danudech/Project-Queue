@@ -17,8 +17,11 @@ export async function GET(req: NextRequest) {
     const res = NextResponse.json({
       status: true,
       message: "ok",
-      data: resrefresh,
+      // Refresh tokens are written to HttpOnly cookies below. Never return
+      // access/refresh tokens to browser JavaScript or expose them in JSON.
+      data: null,
     });
+    res.headers.set("Cache-Control", "no-store");
 
     const isProd = process.env.NODE_ENV === "production";
 

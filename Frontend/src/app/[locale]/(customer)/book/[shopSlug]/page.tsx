@@ -27,10 +27,11 @@ export default function PublicBookingPageRoute() {
   const router = useRouter();
   const params = useParams<{ shopSlug: string }>();
   const query = useSearchParams();
-  const branchPublicId = query.get("branch") ?? "";
+  const branchPublicId = query.get("branch") ?? query.get("branchId") ?? query.get("branchPublicId") ?? "";
   const startNewBooking = query.get("new") === "1";
   const [page, setPage] = useState<PublicBookingPage | null>(null);
-  const [serviceId, setServiceId] = useState(0);
+  const requestedServiceId = Number(query.get("service") ?? 0);
+  const [serviceId, setServiceId] = useState(requestedServiceId > 0 ? requestedServiceId : 0);
   const [date, setDate] = useState(today);
   const [slotId, setSlotId] = useState(0);
   const [staffId, setStaffId] = useState(0);
@@ -76,7 +77,7 @@ export default function PublicBookingPageRoute() {
       if (startNewBooking) {
         window.localStorage.removeItem("ezqueue.latestBooking");
         setLatestBookingHref("");
-      } else if (latest && (!latestBookingPage || latestBookingPage === bookingPageHref)) {
+      } else if (!requestedServiceId && latest && (!latestBookingPage || latestBookingPage === bookingPageHref)) {
         setLatestBookingHref(latest);
         startRouteLoading();
         router.replace(latest);
@@ -92,7 +93,7 @@ export default function PublicBookingPageRoute() {
     } catch {
       // Ignore unavailable or invalid browser storage.
     }
-  }, [bookingPageHref, router, startNewBooking]);
+  }, [bookingPageHref, requestedServiceId, router, startNewBooking]);
 
   useEffect(() => {
     if (!path) {

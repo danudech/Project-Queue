@@ -1,6 +1,7 @@
 export type SetService = {
     id?: number;
     name: string;
+    imageUrl?: string | null;
     shopId: string;
     branchId?: string;
     shopName?: string;

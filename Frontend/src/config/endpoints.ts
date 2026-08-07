@@ -23,6 +23,7 @@ export const internalEndpoints = {
 
   shopcategory: "/api/shop-category",
   shopservices: "/api/shop-services",
+  servicephoto: "/api/shop-services/image",
 
   customer: "/api/customer",
   booking: "/api/booking",

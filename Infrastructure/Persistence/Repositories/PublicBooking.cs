@@ -45,6 +45,18 @@ public sealed class PublicBooking : IPublicBooking
         List<StaffResponse> staff = serviceId.HasValue
             ? await _operations.GetEligibleStaffAsync(branch.Id, serviceId.Value, ct)
             : new();
+        List<PublicBookingStaffResponse> branchStaff = serviceId.HasValue
+            ? new()
+            : await _db.ShopStaffs.AsNoTracking()
+                .Where(item => item.BranchId == branch.Id && item.IsActive && item.CanServeQueues)
+                .OrderBy(item => item.Name)
+                .Select(item => new PublicBookingStaffResponse
+                {
+                    Id = item.Id,
+                    Name = item.Name,
+                    ProfilePictureUrl = item.ProfilePictureUrl
+                })
+                .ToListAsync(ct);
         List<AvailableSlotResponse> slots = serviceId.HasValue
             ? await _operations.GetSlotsAsync(branch.Id, date, serviceId, ct)
             : new();
@@ -83,16 +95,19 @@ public sealed class PublicBooking : IPublicBooking
             {
                 Id = service.Id,
                 Name = service.Name,
+                ImageUrl = service.ImageUrl,
                 Duration = service.Duration,
                 Price = service.Price,
                 StaffSelectionMode = service.StaffSelectionMode
             }).ToList(),
-            Staff = staff.Select(item => new PublicBookingStaffResponse
-            {
-                Id = item.Id,
-                Name = item.Name,
-                ProfilePictureUrl = item.ProfilePictureUrl
-            }).ToList(),
+            Staff = serviceId.HasValue
+                ? staff.Select(item => new PublicBookingStaffResponse
+                {
+                    Id = item.Id,
+                    Name = item.Name,
+                    ProfilePictureUrl = item.ProfilePictureUrl
+                }).ToList()
+                : branchStaff,
             Slots = slots,
             BusinessHours = branch.ShopBusinessHours
                 .OrderBy(hour => hour.DayOfWeek)

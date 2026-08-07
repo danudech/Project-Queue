@@ -38,6 +38,7 @@ export async function POST(req: NextRequest) {
       message: "ok",
       data: loginres.userData,
     });
+    res.headers.set("Cache-Control", "no-store");
 
     const isProd = process.env.NODE_ENV === "production";
 

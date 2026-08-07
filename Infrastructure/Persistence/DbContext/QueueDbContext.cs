@@ -545,6 +545,7 @@ public partial class QueueDbContext : DbContext
             entity.Property(e => e.Guid).HasDefaultValueSql("(newid())");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Name).HasMaxLength(150);
+            entity.Property(e => e.ImageUrl).HasMaxLength(500);
             entity.Property(e => e.Price).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.StaffSelectionMode)
                 .HasMaxLength(20)

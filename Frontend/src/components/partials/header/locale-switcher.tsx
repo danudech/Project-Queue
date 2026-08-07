@@ -36,7 +36,7 @@ export default function LocalSwitcher({ compact = false }: { compact?: boolean }
             <SelectTrigger
                 aria-label="Language"
                 className={compact
-                    ? 'w-[62px] border-none px-2 read-only:bg-transparent [&>span>div>span]:hidden'
+                    ? 'h-9 w-[78px] rounded-lg border-slate-200 bg-white px-2 shadow-sm [&>span>div>span]:hidden'
                     : 'w-[94px] border-none read-only:bg-transparent'}
             >
                 <SelectValue placeholder="Select a language" />

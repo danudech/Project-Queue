@@ -15,6 +15,8 @@ public partial class Service
 
     public string Name { get; set; } = null!;
 
+    public string? ImageUrl { get; set; }
+
     public int Duration { get; set; }
 
     public decimal Price { get; set; }

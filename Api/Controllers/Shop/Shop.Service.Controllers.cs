@@ -110,6 +110,23 @@ public class ShopServiceController : QueueControllerBase
     }
 
     [Authorize]
+    [RequirePermission("service.edit")]
+    [HttpPost("{serviceId:int}/image")]
+    [Consumes("multipart/form-data")]
+    public async Task<ActionResult<ApiResponse<ShopServiceResponse>>> SaveServiceImage(int serviceId, [FromForm] ServicePhotoRequest request, CancellationToken ct)
+    {
+        try
+        {
+            var result = await _shop.SaveServiceImageAsync(int.Parse(User.FindFirst("uid")?.Value ?? "0"), serviceId, request, ct);
+            return Ok(ApiResponse<ShopServiceResponse>.Ok(result));
+        }
+        catch (Exception ex)
+        {
+            return Failure<ShopServiceResponse>(ex);
+        }
+    }
+
+    [Authorize]
     [RequirePermission("service.delete")]
     [HttpDelete("delete-service")]
     public async Task<ActionResult<ApiResponse<string>>> DeleteShopService([FromQuery] int serviceId, CancellationToken ct)

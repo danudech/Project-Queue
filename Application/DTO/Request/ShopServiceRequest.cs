@@ -2,6 +2,7 @@ public sealed class ShopServiceRequest
 {
     public int? Id { get; set; } = 0;
     public string Name { get; set; } = string.Empty;
+    public string? ImageUrl { get; set; }
     public int ShopId { get; set; } = 0;
     public int? BranchId { get; set; } = 0;
     public int Duration { get; set; } = 0;

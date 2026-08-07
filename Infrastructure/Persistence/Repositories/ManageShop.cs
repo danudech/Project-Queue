@@ -466,6 +466,7 @@ public sealed class ManageShop : IManageShop
             {
                 Id = s.Id,
                 Name = s.Name,
+                ImageUrl = s.ImageUrl,
                 ShopId = s.ShopId,
                 ShopName = s.Shop?.Name ?? string.Empty,
                 Duration = s.Duration,
@@ -556,6 +557,7 @@ public sealed class ManageShop : IManageShop
             {
                 Id = newService.Id,
                 Name = newService.Name,
+                ImageUrl = newService.ImageUrl,
                 ShopId = newService.ShopId,
                 BranchId = newService.BranchId,
                 ShopName = shop.Name ?? string.Empty,
@@ -613,6 +615,7 @@ public sealed class ManageShop : IManageShop
             ValidateBookingRuleOverrides(request);
 
             if (service.Name != request.Name) service.Name = request.Name;
+            if (service.ImageUrl != request.ImageUrl) service.ImageUrl = request.ImageUrl;
             if (service.Duration != request.Duration) service.Duration = request.Duration;
             if (service.Price != request.Price) service.Price = request.Price;
             if (service.StaffSelectionMode != staffSelectionMode) service.StaffSelectionMode = staffSelectionMode;
@@ -660,6 +663,7 @@ public sealed class ManageShop : IManageShop
             {
                 Id = service.Id,
                 Name = service.Name,
+                ImageUrl = service.ImageUrl,
                 ShopId = service.ShopId,
                 BranchId = service.BranchId,
                 ShopName = service.Shop?.Name ?? string.Empty,
@@ -735,6 +739,37 @@ public sealed class ManageShop : IManageShop
             throw new InvalidOperationException("An active service must have at least one staff member who can provide it.");
 
         return validStaffIds;
+    }
+
+    public async Task<ShopServiceResponse> SaveServiceImageAsync(int userId, int serviceId, ServicePhotoRequest request, CancellationToken ct)
+    {
+        const long maxFileSize = 5 * 1024 * 1024;
+        var image = request.Image;
+        if (image is null || image.Length == 0) throw new InvalidOperationException("Please select an image to upload.");
+        if (image.Length > maxFileSize) throw new InvalidOperationException("The service image must not exceed 5 MB.");
+        if (image.ContentType is not ("image/jpeg" or "image/png" or "image/webp")) throw new InvalidOperationException("Only JPEG, PNG, and WebP images are supported.");
+
+        var service = await _db.Services.Include(s => s.Shop).Include(s => s.ServiceCategoryMaps).Include(s => s.ServiceStaffMaps).FirstOrDefaultAsync(s => s.Id == serviceId, ct);
+        if (service is null) throw new KeyNotFoundException("Service not found.");
+        await _permissions.EnsureBranchAsync(userId, service.BranchId, "service.edit", ct);
+
+        string extension = image.ContentType switch { "image/png" => ".png", "image/webp" => ".webp", _ => ".jpg" };
+        string folder = Path.Combine(_env.ContentRootPath, "wwwroot", "uploads", "services");
+        Directory.CreateDirectory(folder);
+        string fileName = $"{Guid.NewGuid():N}{extension}";
+        string filePath = Path.Combine(folder, fileName);
+        string? oldUrl = service.ImageUrl;
+        await using (var stream = new FileStream(filePath, FileMode.CreateNew, FileAccess.Write, FileShare.None, 81920, useAsync: true)) await image.CopyToAsync(stream, ct);
+        service.ImageUrl = $"/uploads/services/{fileName}";
+        service.UpdatedAt = _dateTime.LocalNow();
+        service.UpdatedBy = userId;
+        await _db.SaveChangesAsync(ct);
+        if (!string.IsNullOrWhiteSpace(oldUrl))
+        {
+            string oldPath = Path.Combine(_env.ContentRootPath, "wwwroot", oldUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+            if (File.Exists(oldPath)) File.Delete(oldPath);
+        }
+        return new ShopServiceResponse { Id = service.Id, Name = service.Name, ImageUrl = service.ImageUrl, ShopId = service.ShopId, BranchId = service.BranchId, ShopName = service.Shop?.Name ?? string.Empty, Duration = service.Duration, Price = service.Price, CategoryId = service.ServiceCategoryMaps.FirstOrDefault()?.CategoryId ?? 0, IsActive = service.IsActive, StaffSelectionMode = service.StaffSelectionMode, StaffIds = service.ServiceStaffMaps.Select(m => m.StaffId).ToList(), SlotInterval = service.SlotInterval, AdvanceBookingWindow = service.AdvanceBookingWindow, BufferBetweenServices = service.BufferBetweenServices, CreatedAt = service.CreatedAt };
     }
 
     public async Task<bool> DeleteShopService(int userId, int serviceId, string ip, string userAgent, CancellationToken ct)
