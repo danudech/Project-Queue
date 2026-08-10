@@ -58,6 +58,7 @@ export interface PublicBookingConfirmation {
   date: string;
   startTime: string;
   customerName: string;
+  customerEmail?: string | null;
   staffName?: string | null;
   status: string;
   canCancel: boolean;
@@ -80,6 +81,7 @@ export interface PublicBookingManagement {
   date: string;
   startTime: string;
   customerName: string;
+  customerEmail?: string | null;
   staffName?: string | null;
   status: string;
   canCancel: boolean;

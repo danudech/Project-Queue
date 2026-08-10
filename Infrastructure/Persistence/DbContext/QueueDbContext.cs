@@ -24,6 +24,10 @@ public partial class QueueDbContext : DbContext
 
     public virtual DbSet<BookingService> BookingServices { get; set; }
 
+    public virtual DbSet<ChatConversation> ChatConversations { get; set; }
+
+    public virtual DbSet<ChatMessage> ChatMessages { get; set; }
+
     public virtual DbSet<BranchUserRoleMap> BranchUserRoleMaps { get; set; }
 
     public virtual DbSet<Customer> Customers { get; set; }
@@ -187,6 +191,33 @@ public partial class QueueDbContext : DbContext
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Bookings_User");
+        });
+
+        modelBuilder.Entity<ChatConversation>(entity =>
+        {
+            entity.HasIndex(e => e.Guid, "IX_ChatConversations_Guid").IsUnique();
+            entity.HasIndex(e => new { e.BranchId, e.LastMessageAt }, "IX_ChatConversations_Branch_LastMessage");
+            entity.Property(e => e.Guid).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.CustomerName).HasMaxLength(150);
+            entity.Property(e => e.CustomerEmail).HasMaxLength(254);
+            entity.Property(e => e.CustomerAvatarUrl).HasMaxLength(500);
+            entity.Property(e => e.Status).HasMaxLength(20).HasDefaultValue("PENDING");
+            entity.Property(e => e.CustomerTokenHash).HasMaxLength(128);
+            entity.Property(e => e.LastMessageAt).HasDefaultValueSql("(getdate())");
+            entity.HasOne(e => e.Branch).WithMany().HasForeignKey(e => e.BranchId).OnDelete(DeleteBehavior.ClientSetNull);
+            entity.HasOne(e => e.Booking).WithMany().HasForeignKey(e => e.BookingId).OnDelete(DeleteBehavior.SetNull);
+            entity.HasOne(e => e.CustomerUser).WithMany().HasForeignKey(e => e.CustomerUserId).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<ChatMessage>(entity =>
+        {
+            entity.HasIndex(e => new { e.ConversationId, e.SentAt }, "IX_ChatMessages_Conversation_SentAt");
+            entity.Property(e => e.Guid).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.SenderType).HasMaxLength(20);
+            entity.Property(e => e.Body).HasMaxLength(4000);
+            entity.Property(e => e.SentAt).HasDefaultValueSql("(getdate())");
+            entity.HasOne(e => e.Conversation).WithMany(e => e.Messages).HasForeignKey(e => e.ConversationId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.SenderUser).WithMany().HasForeignKey(e => e.SenderUserId).OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<BookingService>(entity =>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
-import { CalendarDays, CheckCircle2, Clock3, History, Loader2, Mail, MapPin, Phone, Store, UserRound, XCircle } from "lucide-react";
+import { CalendarDays, CheckCircle2, Clock3, History, Loader2, Mail, MapPin, MessageCircle, Phone, Send, Store, UserRound, XCircle } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import toast from "react-hot-toast";
 import LocalSwitcher from "@/components/partials/header/locale-switcher";
@@ -25,6 +25,7 @@ import { http } from "@/lib/http/client";
 import { startRouteLoading } from "@/lib/route-loading";
 import { readRecentBookings, saveRecentBooking, updateRecentBookingStatus } from "@/lib/recent-bookings";
 import type { PublicBookingManagement } from "@/types/public-booking";
+import { CustomerChatWidget } from "@/components/customer/customer-chat-widget";
 
 export default function ManagePublicBookingPage() {
   const t = useTranslations("CustomerBooking.manage");
@@ -36,6 +37,12 @@ export default function ManagePublicBookingPage() {
   const [booking, setBooking] = useState<PublicBookingManagement | null>(null);
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
+  const [chatGuid, setChatGuid] = useState<string>();
+  const [chatToken, setChatToken] = useState(token);
+  const [chatName, setChatName] = useState("");
+  const [chatText, setChatText] = useState("");
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatOpen, setChatOpen] = useState(false);
   const path = `/api/public/booking/manage/${encodeURIComponent(params.bookingGuid)}`;
 
   useEffect(() => {
@@ -92,6 +99,18 @@ export default function ManagePublicBookingPage() {
       setCancelling(false);
     }
   };
+
+  const startChat = async () => {
+    if (!booking || (!token && !chatName.trim())) return;
+    const result = await http.post<ChatConversation>("/api/public/chat/conversations", {
+      shopSlug: booking.shopSlug, branchPublicId: booking.branchPublicId, bookingGuid: booking.guid,
+      token: token || undefined, customerName: token ? booking.customerName : chatName.trim(),
+    });
+    setChatGuid(result.guid); setChatToken(result.accessToken || token); setChatOpen(true);
+  };
+  const loadChat = async () => { if (!chatGuid || !chatToken) return; setChatMessages(await http.get<ChatMessage[]>(`/api/public/chat/conversations/${chatGuid}/messages`, { params: { token: chatToken } })); };
+  useEffect(() => { if (!chatOpen || !chatGuid) return; void loadChat(); const id = window.setInterval(() => void loadChat(), 4000); return () => window.clearInterval(id); }, [chatOpen, chatGuid, chatToken]);
+  const sendChat = async (event: React.FormEvent) => { event.preventDefault(); const body = chatText.trim(); if (!body || !chatGuid || !chatToken) return; setChatText(""); await http.post(`/api/public/chat/conversations/${chatGuid}/messages`, { body, token: chatToken }); await loadChat(); };
 
   if (loading) {
     return <div className="grid min-h-screen place-items-center bg-default-50"><Loader2 className="size-7 animate-spin text-primary" /></div>;
@@ -218,11 +237,15 @@ export default function ManagePublicBookingPage() {
             <Button variant="outline" className="w-full" onClick={bookAgain}>{t("bookAgain")}</Button>
           </CardContent>
         </Card>
+        <CustomerChatWidget shopSlug={booking.shopSlug} branchPublicId={booking.branchPublicId} bookingGuid={booking.guid} bookingToken={token} defaultName={booking.customerName} defaultEmail={booking.customerEmail} shopLogoUrl={logoUrl} />
         <p className="text-center text-xs text-muted-foreground">{t("reference", { reference: booking.guid })}</p>
       </div>
     </main>
   );
 }
+
+type ChatConversation = { guid: string; accessToken?: string | null };
+type ChatMessage = { id: number; body: string; isMine: boolean; sentAt: string };
 
 function InfoRow({ icon: Icon, label, value }: { icon: typeof Clock3; label: string; value: string }) {
   return <div className="flex items-center gap-3 border-b pb-4 last:border-0"><span className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"><Icon className="size-4" /></span><div className="min-w-0"><p className="text-xs text-muted-foreground">{label}</p><p className="truncate font-medium">{value}</p></div></div>;

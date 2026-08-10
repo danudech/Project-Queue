@@ -226,6 +226,14 @@ export function getMenuList(
           submenus: [],
         },
         {
+          id: "chat",
+          href: "/chat",
+          label: t("chat"),
+          active: pathname.startsWith("/chat"),
+          icon: "heroicons-outline:chat-bubble-left-right",
+          submenus: [],
+        },
+        {
           id: "shop-management",
           href: "/setting/shop",
           label: t("shopSettings"),

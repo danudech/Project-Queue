@@ -36,6 +36,8 @@ export const internalEndpoints = {
   catalog: "/api/operations/catalog",
   publicBooking: "/api/public/booking",
   notifications: "/api/notifications",
+  chat: "/api/chat",
+  publicChat: "/api/public/chat",
 
   businesshours: "/api/shop/business-hours",
   holidays: "/api/shop/holidays",
@@ -89,6 +91,8 @@ export const externalEndpoints = {
   catalog: "/api/v1/operations/catalog",
   publicBooking: "/api/v1/public/booking",
   notifications: "/api/v1/notifications",
+  chat: "/api/v1/chat",
+  publicChat: "/api/v1/public/chat",
 
   customer: "/api/v1/customer/get-customer",
   newcustomer: "/api/v1/customer/add-customer",

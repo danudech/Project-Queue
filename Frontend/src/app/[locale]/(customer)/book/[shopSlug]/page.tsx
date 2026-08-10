@@ -18,6 +18,7 @@ import type {
   PublicBookingConfirmation,
   PublicBookingPage,
 } from "@/types/public-booking";
+import { CustomerChatWidget } from "@/components/customer/customer-chat-widget";
 
 const today = () => new Date().toLocaleDateString("en-CA");
 
@@ -268,6 +269,7 @@ export default function PublicBookingPageRoute() {
               <Button className="w-full" disabled={submitting || !serviceId || !slotId || !guestName || !guestPhone} onClick={submit}>{submitting && <Loader2 className="mr-2 size-4 animate-spin" />}{t("confirm")}</Button>
             </CardContent>
           </Card>
+          {branchPublicId && <CustomerChatWidget shopSlug={params.shopSlug} branchPublicId={branchPublicId} defaultName={guestName} shopLogoUrl={logoUrl} />}
         </div>
       </div>
     </main>

@@ -305,6 +305,7 @@ public sealed class PublicBooking : IPublicBooking
             Date = booking.QueueSlot.Date,
             StartTime = booking.QueueSlot.StartTime.ToString("HH:mm"),
             CustomerName = booking.User?.Name ?? booking.GuestName ?? "Customer",
+            CustomerEmail = booking.GuestEmail ?? booking.User?.Email,
             StaffName = booking.AssignedStaff == null
                 ? null
                 : string.IsNullOrWhiteSpace(booking.AssignedStaff.Name)

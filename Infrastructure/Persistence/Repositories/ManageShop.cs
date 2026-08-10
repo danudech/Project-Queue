@@ -87,7 +87,6 @@ public sealed class ManageShop : IManageShop
                 .AsNoTracking()
                 .Include(s => s.ShopSettings)
                 .Include(s => s.Status)
-                .Include(s => s.Services)
                 .Include(s => s.ShopBranches.Where(b => b.IsActive && (b.Shop.OwnerId == userId || b.ShopStaffs.Any(ss => ss.UserId == userId && ss.IsActive && ss.CanLogin))))
                     .ThenInclude(b => b.Address)
                         .ThenInclude(a => a.Subdistrict)
@@ -104,6 +103,22 @@ public sealed class ManageShop : IManageShop
                 _actionLog.Warning("Shop not found (UserId={UserId}, IP={IP}, UserAgent={UserAgent})", userId, ip, userAgent);
                 return null;
             }
+
+            // Keep the shop summary endpoint compatible while older databases are
+            // waiting for the service booking-rules migration. The dashboard only
+            // needs these legacy service fields, so avoid materializing newly added
+            // columns that may not exist yet.
+            shop.Services = await _db.Services.AsNoTracking()
+                .Where(service => service.ShopId == shop.Id)
+                .Select(service => new Domain.Entities.Service
+                {
+                    Id = service.Id,
+                    Name = service.Name,
+                    Duration = service.Duration,
+                    Price = service.Price,
+                    IsActive = service.IsActive
+                })
+                .ToListAsync(ct);
 
             return MapToResponse(shop, BranchId);
         }

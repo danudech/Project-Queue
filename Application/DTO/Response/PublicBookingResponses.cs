@@ -65,6 +65,7 @@ public class PublicBookingManagementResponse
     public DateTime Date { get; set; }
     public string StartTime { get; set; } = string.Empty;
     public string CustomerName { get; set; } = string.Empty;
+    public string? CustomerEmail { get; set; }
     public string? StaffName { get; set; }
     public string Status { get; set; } = string.Empty;
     public bool CanCancel { get; set; }

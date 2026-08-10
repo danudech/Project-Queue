@@ -12,6 +12,7 @@ import { http } from "@/lib/http/client";
 import { env } from "@/config/env";
 import type { PublicBookingPage } from "@/types/public-booking";
 import LocalSwitcher from "@/components/partials/header/locale-switcher";
+import { CustomerChatWidget } from "@/components/customer/customer-chat-widget";
 
 export default function PublicShopPage() {
   const t = useTranslations("CustomerBooking.shopPage");
@@ -75,6 +76,7 @@ export default function PublicShopPage() {
       </div>
     </div>
     <div className="fixed inset-x-0 bottom-0 z-20 border-t bg-white/95 p-3 shadow-lg backdrop-blur sm:hidden"><Button asChild className="w-full rounded-lg bg-[#1b1b1b]"><Link href={bookingHref}><CalendarDays className="mr-2 size-5" />{t("bookNow")}</Link></Button></div>
+    <CustomerChatWidget shopSlug={params.shopSlug} branchPublicId={branchId} shopLogoUrl={logoUrl} />
   </main>;
 }
 

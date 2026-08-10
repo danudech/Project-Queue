@@ -333,6 +333,7 @@
     "billingHistory": "ประวัติใบแจ้งหนี้",
     "administration": "การตั้งค่าและระบบ",
     "notification": "การแจ้งเตือน",
+    "chat": "แชทลูกค้า",
     "shopSettings": "ตั้งค่าร้านค้า",
     "shopInfo": "ข้อมูลร้าน",
     "branches": "สาขา",
@@ -1537,30 +1538,33 @@
   },
   "Dashboard": {
     "eyebrow": "ภาพรวมวันนี้",
-    "description": "ติดตามคิว รายได้ และรายการนัดหมายที่กำลังจะมาถึง",
+      "description": "ติดตามคิววันนี้และรายการนัดหมายที่กำลังจะมาถึง",
     "fallbackShop": "ร้าน EZQueue",
-    "export": "ส่งออกรายงาน",
-    "newBooking": "เพิ่มรายการจอง",
-    "upcomingQueue": "คิวที่กำลังจะมาถึง",
-    "live": "ข้อมูลสด",
-    "revenueToday": "รายได้วันนี้",
-    "revenueHint": "ประมาณการจากคิวที่ให้บริการเสร็จแล้ว",
-    "utilization": "อัตราการให้บริการของสาขา",
-    "popularServices": "บริการยอดนิยม",
-    "bookingCount": "{count} รายการจอง",
-    "walkInCustomer": "ลูกค้า Walk-in",
-    "serviceFallback": "บริการ",
-    "stats": {
-      "bookings": "รายการจองวันนี้",
-      "waiting": "คิวที่กำลังรอ",
-      "completed": "ให้บริการแล้ว",
-      "customers": "ลูกค้า"
-    },
-    "status": {
-      "waiting": "กำลังรอ",
-      "in_progress": "กำลังให้บริการ",
-      "completed": "เสร็จสิ้น"
-    }
+      "newBooking": "เพิ่มรายการจอง",
+      "upcomingQueue": "คิวที่กำลังจะมาถึง",
+      "live": "ข้อมูลสด",
+      "todayStatus": "สถานะวันนี้",
+      "cancelled": "ยกเลิก",
+      "noShow": "ไม่มาตามนัด",
+      "completionRate": "อัตราคิวที่เสร็จสิ้น",
+      "popularServices": "บริการยอดนิยม",
+      "bookingCount": "{count} รายการจอง",
+      "walkInCustomer": "ลูกค้า Walk-in",
+      "serviceFallback": "บริการ",
+      "staffFallback": "ยังไม่ระบุพนักงาน",
+      "noUpcoming": "วันนี้ไม่มีคิวถัดไป",
+      "noServiceData": "วันนี้ยังไม่มีข้อมูลการใช้บริการ",
+      "stats": {
+        "bookings": "รายการจองวันนี้",
+        "waiting": "คิวที่กำลังรอ",
+        "serving": "กำลังให้บริการ",
+        "completed": "ให้บริการแล้ว",
+        "customers": "ลูกค้า"
+      },
+      "status": {
+        "waiting": "กำลังรอ",
+        "serving": "กำลังให้บริการ"
+      }
   },
   "BusinessHoursSettings": {
     "eyebrow": "การตั้งค่าร้าน",

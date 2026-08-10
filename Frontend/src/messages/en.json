@@ -333,6 +333,7 @@
     "billingHistory": "Billing History",
     "administration": "Administration",
     "notification": "Notifications",
+    "chat": "Customer Chat",
     "shopSettings": "Shop Settings",
     "shopInfo": "Shop Info",
     "branches": "Branches",
@@ -1532,30 +1533,33 @@
   },
   "Dashboard": {
     "eyebrow": "Today overview",
-    "description": "Queue activity, revenue, and upcoming appointments.",
+      "description": "Today’s queue activity and upcoming appointments.",
     "fallbackShop": "EZQueue Shop",
-    "export": "Export report",
-    "newBooking": "New booking",
-    "upcomingQueue": "Upcoming queue",
-    "live": "Live",
-    "revenueToday": "Revenue today",
-    "revenueHint": "Estimated from completed queues",
-    "utilization": "Branch utilization",
-    "popularServices": "Popular services",
-    "bookingCount": "{count} bookings",
-    "walkInCustomer": "Walk-in customer",
-    "serviceFallback": "Service",
-    "stats": {
-      "bookings": "Bookings today",
-      "waiting": "Waiting queue",
-      "completed": "Completed",
-      "customers": "Customers"
-    },
-    "status": {
-      "waiting": "Waiting",
-      "in_progress": "In progress",
-      "completed": "Completed"
-    }
+      "newBooking": "New booking",
+      "upcomingQueue": "Upcoming queue",
+      "live": "Live",
+      "todayStatus": "Today’s status",
+      "cancelled": "Cancelled",
+      "noShow": "No-show",
+      "completionRate": "Completion rate",
+      "popularServices": "Popular services",
+      "bookingCount": "{count} bookings",
+      "walkInCustomer": "Walk-in customer",
+      "serviceFallback": "Service",
+      "staffFallback": "Staff not assigned",
+      "noUpcoming": "No upcoming queues today",
+      "noServiceData": "No service activity today",
+      "stats": {
+        "bookings": "Bookings today",
+        "waiting": "Waiting queue",
+        "serving": "Now serving",
+        "completed": "Completed",
+        "customers": "Customers"
+      },
+      "status": {
+        "waiting": "Waiting",
+        "serving": "Serving"
+      }
   },
   "BusinessHoursSettings": {
     "eyebrow": "Shop settings",

@@ -32,6 +32,7 @@ export const dashboardRoutePermissions: Array<{
   { prefix: "/booking", permission: "booking.view" },
   { prefix: "/dashboard", permission: "shop.view|branch.view|queue.view" },
   { prefix: "/notification" },
+  { prefix: "/chat", permission: "branch.view" },
   { prefix: "/account" },
 ];
 
