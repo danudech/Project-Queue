@@ -181,64 +181,6 @@ builder.Services.AddScoped<IRoleManagement, RoleManagement>();
 
 var app = builder.Build();
 
-// Keep local/legacy databases usable while additive migrations are being rolled
-// out. This is idempotent and only creates the chat tables when they are absent.
-// The matching EF migration remains the source of truth for new environments.
-await using (var schemaScope = app.Services.CreateAsyncScope())
-{
-    var db = schemaScope.ServiceProvider.GetRequiredService<QueueDbContext>();
-    await db.Database.ExecuteSqlRawAsync(@"
-IF OBJECT_ID(N'dbo.ChatConversations', N'U') IS NULL
-BEGIN
-    CREATE TABLE dbo.ChatConversations (
-        Id int IDENTITY(1,1) NOT NULL CONSTRAINT PK_ChatConversations PRIMARY KEY,
-        Guid uniqueidentifier NOT NULL CONSTRAINT DF_ChatConversations_Guid DEFAULT NEWID(),
-        BranchId int NOT NULL,
-        BookingId int NULL,
-        CustomerUserId int NULL,
-        CustomerName nvarchar(150) NOT NULL,
-        CustomerEmail nvarchar(254) NULL,
-        CustomerEmailVerified bit NOT NULL CONSTRAINT DF_ChatConversations_CustomerEmailVerified DEFAULT 0,
-        CustomerAvatarUrl nvarchar(500) NULL,
-        Status nvarchar(20) NOT NULL CONSTRAINT DF_ChatConversations_Status DEFAULT 'PENDING',
-        AssignedStaffUserId int NULL,
-        AcceptedAt datetime2 NULL,
-        CustomerTokenHash nvarchar(128) NULL,
-        LastMessageAt datetime2 NOT NULL CONSTRAINT DF_ChatConversations_LastMessageAt DEFAULT GETDATE(),
-        IsClosed bit NOT NULL CONSTRAINT DF_ChatConversations_IsClosed DEFAULT 0,
-        CONSTRAINT FK_ChatConversations_ShopBranches_BranchId FOREIGN KEY (BranchId) REFERENCES dbo.ShopBranches(Id),
-        CONSTRAINT FK_ChatConversations_Bookings_BookingId FOREIGN KEY (BookingId) REFERENCES dbo.Bookings(Id) ON DELETE SET NULL,
-        CONSTRAINT FK_ChatConversations_Users_CustomerUserId FOREIGN KEY (CustomerUserId) REFERENCES dbo.Users(Id) ON DELETE SET NULL
-    );
-    CREATE UNIQUE INDEX IX_ChatConversations_Guid ON dbo.ChatConversations(Guid);
-    CREATE INDEX IX_ChatConversations_BranchId_LastMessageAt ON dbo.ChatConversations(BranchId, LastMessageAt);
-END;
-IF COL_LENGTH(N'dbo.ChatConversations', N'CustomerEmail') IS NULL ALTER TABLE dbo.ChatConversations ADD CustomerEmail nvarchar(254) NULL;
-IF COL_LENGTH(N'dbo.ChatConversations', N'CustomerEmailVerified') IS NULL ALTER TABLE dbo.ChatConversations ADD CustomerEmailVerified bit NOT NULL CONSTRAINT DF_ChatConversations_CustomerEmailVerified DEFAULT 0;
-IF COL_LENGTH(N'dbo.ChatConversations', N'CustomerAvatarUrl') IS NULL ALTER TABLE dbo.ChatConversations ADD CustomerAvatarUrl nvarchar(500) NULL;
-IF COL_LENGTH(N'dbo.ChatConversations', N'Status') IS NULL ALTER TABLE dbo.ChatConversations ADD Status nvarchar(20) NOT NULL CONSTRAINT DF_ChatConversations_Status DEFAULT 'PENDING';
-IF COL_LENGTH(N'dbo.ChatConversations', N'AssignedStaffUserId') IS NULL ALTER TABLE dbo.ChatConversations ADD AssignedStaffUserId int NULL;
-IF COL_LENGTH(N'dbo.ChatConversations', N'AcceptedAt') IS NULL ALTER TABLE dbo.ChatConversations ADD AcceptedAt datetime2 NULL;
-IF OBJECT_ID(N'dbo.ChatMessages', N'U') IS NOT NULL EXEC(N'UPDATE c SET Status = ''ACTIVE'' FROM dbo.ChatConversations c WHERE c.Status = ''PENDING'' AND EXISTS (SELECT 1 FROM dbo.ChatMessages m WHERE m.ConversationId = c.Id)');
-IF OBJECT_ID(N'dbo.ChatMessages', N'U') IS NULL
-BEGIN
-    CREATE TABLE dbo.ChatMessages (
-        Id int IDENTITY(1,1) NOT NULL CONSTRAINT PK_ChatMessages PRIMARY KEY,
-        Guid uniqueidentifier NOT NULL CONSTRAINT DF_ChatMessages_Guid DEFAULT NEWID(),
-        ConversationId int NOT NULL,
-        SenderUserId int NULL,
-        SenderType nvarchar(20) NOT NULL,
-        Body nvarchar(4000) NOT NULL,
-        SentAt datetime2 NOT NULL CONSTRAINT DF_ChatMessages_SentAt DEFAULT GETDATE(),
-        IsRead bit NOT NULL CONSTRAINT DF_ChatMessages_IsRead DEFAULT 0,
-        CONSTRAINT FK_ChatMessages_ChatConversations_ConversationId FOREIGN KEY (ConversationId) REFERENCES dbo.ChatConversations(Id) ON DELETE CASCADE,
-        CONSTRAINT FK_ChatMessages_Users_SenderUserId FOREIGN KEY (SenderUserId) REFERENCES dbo.Users(Id) ON DELETE SET NULL
-    );
-    CREATE UNIQUE INDEX IX_ChatMessages_Guid ON dbo.ChatMessages(Guid);
-    CREATE INDEX IX_ChatMessages_ConversationId_SentAt ON dbo.ChatMessages(ConversationId, SentAt);
-END");
-}
-
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
