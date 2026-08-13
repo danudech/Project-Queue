@@ -72,8 +72,20 @@ public sealed class ChatService : IChatService
             }).ToListAsync(ct);
     }
 
-    public async Task<List<ChatMessageResponse>> GetShopMessagesAsync(int userId, int conversationId, CancellationToken ct)
+    private async Task<int> ResolveConversationIdAsync(string conversationIdOrGuid, CancellationToken ct)
     {
+        if (int.TryParse(conversationIdOrGuid, out int id)) return id;
+        if (Guid.TryParse(conversationIdOrGuid, out Guid guid))
+        {
+            var conv = await _db.ChatConversations.AsNoTracking().FirstOrDefaultAsync(c => c.Guid == guid, ct);
+            if (conv != null) return conv.Id;
+        }
+        throw new KeyNotFoundException("Conversation not found.");
+    }
+
+    public async Task<List<ChatMessageResponse>> GetShopMessagesAsync(int userId, string conversationIdOrGuid, CancellationToken ct)
+    {
+        int conversationId = await ResolveConversationIdAsync(conversationIdOrGuid, ct);
         ChatConversation conversation = await _db.ChatConversations.SingleOrDefaultAsync(item => item.Id == conversationId, ct)
             ?? throw new KeyNotFoundException("Conversation not found.");
         await _permissions.EnsureBranchAsync(userId, conversation.BranchId, "branch.view", ct);
@@ -84,8 +96,9 @@ public sealed class ChatService : IChatService
             .Select(item => new ChatMessageResponse { Id = item.Id, SenderType = item.SenderType, Body = item.Body, SentAt = item.SentAt, IsMine = item.SenderType == "SHOP" }).ToListAsync(ct);
     }
 
-    public async Task<ChatMessageResponse> SendShopMessageAsync(int userId, int conversationId, SendChatMessageRequest request, CancellationToken ct)
+    public async Task<ChatMessageResponse> SendShopMessageAsync(int userId, string conversationIdOrGuid, SendChatMessageRequest request, CancellationToken ct)
     {
+        int conversationId = await ResolveConversationIdAsync(conversationIdOrGuid, ct);
         ChatConversation conversation = await _db.ChatConversations.SingleOrDefaultAsync(item => item.Id == conversationId && !item.IsClosed, ct)
             ?? throw new KeyNotFoundException("Conversation not found or closed.");
         await _permissions.EnsureBranchAsync(userId, conversation.BranchId, "branch.view", ct);
@@ -118,9 +131,54 @@ public sealed class ChatService : IChatService
         bool emailVerified = booking != null && !string.IsNullOrWhiteSpace(normalizedEmail);
         var conversation = new ChatConversation { Guid = Guid.NewGuid(), BranchId = branch.Id, BookingId = booking?.Id, CustomerName = request.CustomerName.Trim(), CustomerEmail = normalizedEmail, CustomerEmailVerified = emailVerified, Status = "PENDING", CustomerTokenHash = accessToken == null ? null : Hash(accessToken), LastMessageAt = DateTime.UtcNow };
         _db.ChatConversations.Add(conversation); await _db.SaveChangesAsync(ct);
+        await CreateChatNotificationsAsync(branch.Id, conversation.Id, conversation.CustomerName, ct);
         var result = await ToConversationAsync(conversation.Id, ct);
         result.AccessToken = accessToken;
         return result;
+    }
+
+    private async Task CreateChatNotificationsAsync(int branchId, int conversationId, string customerName, CancellationToken ct)
+    {
+        var staffUserIds = await _db.ShopStaffs.AsNoTracking()
+            .Where(s => s.BranchId == branchId && s.IsActive && s.UserId.HasValue)
+            .Select(s => s.UserId!.Value)
+            .Distinct()
+            .ToListAsync(ct);
+
+        int shopId = await _db.ShopBranches.AsNoTracking()
+            .Where(b => b.Id == branchId)
+            .Select(b => b.ShopId)
+            .FirstOrDefaultAsync(ct);
+        if (shopId > 0)
+        {
+            int? ownerUserId = await _db.Shops.AsNoTracking()
+                .Where(s => s.Id == shopId)
+                .Select(s => s.OwnerId)
+                .FirstOrDefaultAsync(ct);
+            if (ownerUserId.HasValue && !staffUserIds.Contains(ownerUserId.Value))
+            {
+                staffUserIds.Add(ownerUserId.Value);
+            }
+        }
+
+        var unreadStatus = await _db.MasterStatuses.AsNoTracking()
+            .FirstOrDefaultAsync(s => s.Type == "NOTIFICATION_STATUS" && s.Code == "UNREAD", ct);
+        if (unreadStatus == null) return;
+
+        foreach (int userId in staffUserIds)
+        {
+            _db.Notifications.Add(new Notification
+            {
+                Guid = Guid.NewGuid(),
+                UserId = userId,
+                Type = "CHAT_REQUEST",
+                Title = "คำขอสนทนาใหม่จากลูกค้า",
+                Message = $"ลูกค้า '{customerName}' ต้องการเปิดห้องแชทสอบถามข้อมูล (ห้องแชท #{conversationId})",
+                StatusId = unreadStatus.Id,
+                CreatedAt = DateTime.UtcNow
+            });
+        }
+        await _db.SaveChangesAsync(ct);
     }
 
     public async Task<List<ChatMessageResponse>> GetPublicMessagesAsync(Guid conversationGuid, string? token, CancellationToken ct)
@@ -143,8 +201,80 @@ public sealed class ChatService : IChatService
 
     public async Task ClosePublicConversationAsync(Guid conversationGuid, string? token, CancellationToken ct)
     {
-        ChatConversation conversation = await AuthorizePublicConversationAsync(conversationGuid, token, ct);
+        // Query directly WITHOUT the auto-close guard so we can still close
+        // and notify even if the 30-minute timeout already fired.
+        ChatConversation? conversation = await _db.ChatConversations
+            .Include(item => item.Booking)
+            .SingleOrDefaultAsync(item => item.Guid == conversationGuid, ct)
+            ?? throw new KeyNotFoundException("Conversation not found.");
+
+        // Validate token the same way as AuthorizePublicConversationAsync
+        if (conversation.Booking != null)
+        {
+            if (string.IsNullOrWhiteSpace(token)) throw new UnauthorizedAccessException("A booking token is required.");
+            ValidateManagementToken(conversation.Booking.Guid, token);
+        }
+        else if (string.IsNullOrWhiteSpace(token) ||
+                 !CryptographicOperations.FixedTimeEquals(
+                     Convert.FromHexString(conversation.CustomerTokenHash!),
+                     Convert.FromHexString(Hash(token))))
+        {
+            throw new UnauthorizedAccessException("Invalid chat access token.");
+        }
+
+        bool wasAlreadyClosed = conversation.IsClosed;
         conversation.IsClosed = true;
+        await _db.SaveChangesAsync(ct);
+
+        // Always notify — even if it was auto-closed (customer may not have seen the close)
+        if (!wasAlreadyClosed || conversation.Status == "ACTIVE")
+            await CreateChatClosedNotificationsAsync(conversation.BranchId, conversation.Id, conversation.CustomerName, conversation.AssignedStaffUserId, ct);
+    }
+
+    private async Task CreateChatClosedNotificationsAsync(int branchId, int conversationId, string customerName, int? assignedUserId, CancellationToken ct)
+    {
+        var staffUserIds = await _db.ShopStaffs.AsNoTracking()
+            .Where(s => s.BranchId == branchId && s.IsActive && s.UserId.HasValue)
+            .Select(s => s.UserId!.Value)
+            .Distinct()
+            .ToListAsync(ct);
+
+        int shopId = await _db.ShopBranches.AsNoTracking()
+            .Where(b => b.Id == branchId)
+            .Select(b => b.ShopId)
+            .FirstOrDefaultAsync(ct);
+        if (shopId > 0)
+        {
+            int? ownerUserId = await _db.Shops.AsNoTracking()
+                .Where(s => s.Id == shopId)
+                .Select(s => s.OwnerId)
+                .FirstOrDefaultAsync(ct);
+            if (ownerUserId.HasValue && !staffUserIds.Contains(ownerUserId.Value))
+                staffUserIds.Add(ownerUserId.Value);
+        }
+
+        var unreadStatus = await _db.MasterStatuses.AsNoTracking()
+            .FirstOrDefaultAsync(s => s.Type == "NOTIFICATION_STATUS" && s.Code == "UNREAD", ct);
+        if (unreadStatus == null) return;
+
+        // Prioritise assigned staff, include all branch staff as well
+        var notifyUserIds = assignedUserId.HasValue && !staffUserIds.Contains(assignedUserId.Value)
+            ? staffUserIds.Prepend(assignedUserId.Value).ToList()
+            : staffUserIds;
+
+        foreach (int userId in notifyUserIds)
+        {
+            _db.Notifications.Add(new Notification
+            {
+                Guid = Guid.NewGuid(),
+                UserId = userId,
+                Type = "CHAT_CLOSED",
+                Title = "ลูกค้าจบการสนทนาแล้ว",
+                Message = $"ลูกค้า '{customerName}' ได้จบการสนทนา (ห้องแชท #{conversationId}) แล้ว",
+                StatusId = unreadStatus.Id,
+                CreatedAt = DateTime.UtcNow
+            });
+        }
         await _db.SaveChangesAsync(ct);
     }
 
@@ -177,8 +307,9 @@ public sealed class ChatService : IChatService
         return await ToConversationAsync(conversation.Id, ct);
     }
 
-    public async Task<ChatConversationResponse> AcceptConversationAsync(int userId, int conversationId, CancellationToken ct)
+    public async Task<ChatConversationResponse> AcceptConversationAsync(int userId, string conversationIdOrGuid, CancellationToken ct)
     {
+        int conversationId = await ResolveConversationIdAsync(conversationIdOrGuid, ct);
         ChatConversation conversation = await _db.ChatConversations.SingleOrDefaultAsync(item => item.Id == conversationId && !item.IsClosed, ct)
             ?? throw new KeyNotFoundException("Conversation not found or closed.");
         await _permissions.EnsureBranchAsync(userId, conversation.BranchId, "branch.view", ct);

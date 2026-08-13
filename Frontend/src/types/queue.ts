@@ -14,6 +14,7 @@ export interface QueueDto {
   staffName?: string | null;
   status: string;
   type: string;
+  remark?: string | null;
   createdAt: string;
 }
 
@@ -35,5 +36,6 @@ export interface CreateQueueDto {
   customerName?: string;
   customerPhone?: string;
   customerEmail?: string;
+  remark?: string;
   type?: string;
 }

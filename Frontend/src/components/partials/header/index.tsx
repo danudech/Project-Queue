@@ -7,6 +7,7 @@ import { SidebarToggle } from '../sidebar/sidebar-toggle';
 import HeaderSearch from './header-search';
 import LocalSwitcher from './locale-switcher';
 import ThemeSwitcher from './theme-switcher';
+import MessagesDropdown from './messages-dropdown';
 import Notifications from './notifications';
 import ProfileInfo from './profile-info';
 import { SheetMenu } from '../sidebar/menu/sheet-menu';
@@ -23,6 +24,7 @@ const DashCodeHeader = () => {
                 <div className="nav-tools flex items-center  md:gap-4 gap-3">
                     <LocalSwitcher />
                     <ThemeSwitcher />
+                    <MessagesDropdown />
                     <Notifications />
                     <ProfileInfo />
                     <SheetMenu />

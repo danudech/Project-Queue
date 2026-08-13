@@ -451,7 +451,10 @@ public sealed class Operations : IOperations
             .Select(branch => branch.ShopId)
             .SingleOrDefaultAsync(ct);
         if (shopId == 0) throw new KeyNotFoundException("Branch not found.");
-        if (userId.HasValue)
+        bool isGuestBooking = !string.IsNullOrWhiteSpace(request.GuestName);
+        if (isGuestBooking)
+            ValidateGuest(request);
+        else if (userId.HasValue)
             await _accountShopGuard.EnsureCanJoinAsync(userId.Value, shopId, ct);
         else
             ValidateGuest(request);
@@ -470,10 +473,10 @@ public sealed class Operations : IOperations
         var waiting = await GetStatusAsync("BOOKING_STATUS", "WAITING", ct);
         var booking = new Booking
         {
-            UserId = userId, BranchId = request.BranchId, QueueSlotId = slot.Id, AssignedStaffId = staffId,
-            GuestName = userId.HasValue ? null : request.GuestName?.Trim(),
-            GuestPhone = userId.HasValue ? null : request.GuestPhone?.Trim(),
-            GuestEmail = userId.HasValue ? null : request.GuestEmail?.Trim(),
+            UserId = isGuestBooking ? null : userId, BranchId = request.BranchId, QueueSlotId = slot.Id, AssignedStaffId = staffId,
+            GuestName = request.GuestName?.Trim(),
+            GuestPhone = request.GuestPhone?.Trim(),
+            GuestEmail = request.GuestEmail?.Trim(),
             Remark = request.Remark?.Trim(), StatusId = waiting.Id, CreatedAt = localNow, CreatedBy = userId
         };
         _db.Bookings.Add(booking);
@@ -1363,7 +1366,7 @@ public sealed class Operations : IOperations
 
         if (customer == null)
         {
-            _db.Customers.Add(new Customer
+            customer = new Customer
             {
                 Guid = Guid.NewGuid(),
                 ShopId = shopId,
@@ -1374,16 +1377,29 @@ public sealed class Operations : IOperations
                 IsActive = true,
                 CreatedAt = localNow,
                 CreatedBy = userId
-            });
-            return;
+            };
+            _db.Customers.Add(customer);
+        }
+        else
+        {
+            customer.Name = name;
+            customer.Phone = phone;
+            customer.Email = string.IsNullOrWhiteSpace(email) ? customer.Email : email;
+            customer.IsActive = true;
+            customer.UpdatedAt = localNow;
+            customer.UpdatedBy = userId;
         }
 
-        customer.Name = name;
-        customer.Phone = phone;
-        customer.Email = string.IsNullOrWhiteSpace(email) ? customer.Email : email;
-        customer.IsActive = true;
-        customer.UpdatedAt = localNow;
-        customer.UpdatedBy = userId;
+        if (!string.IsNullOrWhiteSpace(request.Remark))
+        {
+            _db.CustomerNotes.Add(new CustomerNote
+            {
+                Customer = customer,
+                Note = request.Remark.Trim(),
+                CreatedAt = localNow,
+                CreatedBy = userId
+            });
+        }
     }
 
     private async Task CreateBookingNotificationsAsync(
@@ -1456,6 +1472,6 @@ public sealed class Operations : IOperations
         QueueStartTime = q.Booking?.QueueSlot.StartTime.ToString("HH:mm"),
         StaffId = q.AssignedStaffId,
         StaffName = q.AssignedStaff == null ? null : (string.IsNullOrWhiteSpace(q.AssignedStaff.Name) ? q.AssignedStaff.User?.Name : q.AssignedStaff.Name),
-        Status = q.Status.Code, Type = q.Type, CreatedAt = q.CreatedAt
+        Status = q.Status.Code, Type = q.Type, Remark = q.Booking?.Remark, CreatedAt = q.CreatedAt
     };
 }

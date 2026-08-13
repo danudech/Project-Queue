@@ -8,13 +8,21 @@ export type CustomerTag = {
     updatedBy?: number
 }
 
+export type CustomerNoteType = {
+    id?: number
+    note: string
+    createdAt?: string
+    createdBy?: number | string
+}
+
 export type CustomerType = {
     id: number
     shopId: number
     name: string
     phone: string
     isActive: boolean
-    tags: CustomerTag[]
+    tags?: CustomerTag[]
+    notes?: CustomerNoteType[]
     createdAt: string
     createdBy: string
 }

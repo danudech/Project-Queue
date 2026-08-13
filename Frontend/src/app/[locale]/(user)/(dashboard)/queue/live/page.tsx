@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { CheckCircle2, Clock3, Loader2, Play, Plus } from "lucide-react";
+import { CheckCircle2, Clock3, FileText, Loader2, Play, Plus } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import {
@@ -318,6 +318,12 @@ export default function QueueLivePage() {
                   <p className="mt-1 text-sm text-muted-foreground">
                     {row.serviceName || t("service")}
                   </p>
+                  {row.remark && (
+                    <div className="mt-1.5 flex items-center gap-1.5 text-xs text-amber-700 dark:text-amber-300 font-medium bg-amber-500/10 dark:bg-amber-500/20 px-2.5 py-1 rounded-md max-w-md">
+                      <FileText className="size-3.5 shrink-0" />
+                      <span>{row.remark}</span>
+                    </div>
+                  )}
                   <p className="mt-1 text-sm">
                     {row.staffName
                       ? t("assignedTo", { name: row.staffName })

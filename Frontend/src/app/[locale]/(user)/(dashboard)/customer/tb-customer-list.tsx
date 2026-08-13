@@ -14,7 +14,7 @@ import { format } from "date-fns"
 import { th } from "date-fns/locale"
 import {
     CalendarIcon, Clock, User, Phone, CalendarDays,
-    Scissors, ChevronRight, CheckCircle2,
+    Scissors, ChevronRight, CheckCircle2, FileText,
 } from "lucide-react"
 
 // UI Components
@@ -262,17 +262,19 @@ const CustomerPage = () => {
         try {
             if (editTarget) {
                 // ── Edit customer ──
+                const notesPayload = values.note?.trim() ? [{ note: values.note.trim() }] : []
                 const updated = await http.put<CustomerType>("customer", {
                     id: editTarget.id,
                     name: values.name,
                     phone: values.phone,
                     isActive: values.isActive,
+                    notes: notesPayload,
                 })
                 if (updated) {
                     setTableData((prev) =>
                         prev?.map((r) =>
                             r.id === editTarget.id
-                                ? { ...r, name: values.name, phone: values.phone, isActive: values.isActive }
+                                ? { ...r, name: values.name, phone: values.phone, isActive: values.isActive, notes: updated.notes ?? r.notes }
                                 : r
                         ) ?? null
                     )
@@ -280,11 +282,13 @@ const CustomerPage = () => {
                 }
             } else {
                 // ── Create customer ──
+                const notesPayload = values.note?.trim() ? [{ note: values.note.trim() }] : []
                 const newCustomer = await http.post<CustomerType>("customer", {
                     name: values.name,
                     phone: values.phone,
                     shopId: shopData.id,
                     isActive: values.isActive,
+                    notes: notesPayload,
                 })
                 if (newCustomer) {
                     setTableData((prev) => [...(prev ?? []), newCustomer])
@@ -340,7 +344,8 @@ const CustomerPage = () => {
         setEditTarget(row)
         setStep("info")
         setWithBooking(false)
-        form.reset({ name: row.name, phone: row.phone, isActive: row.isActive })
+        const noteText = row.notes && row.notes.length > 0 ? row.notes.map((n) => n.note).join("; ") : ""
+        form.reset({ name: row.name, phone: row.phone, isActive: row.isActive, note: noteText })
         setDialogOpen(true)
     }
 
@@ -433,6 +438,24 @@ const CustomerPage = () => {
                                                     <Phone className="w-3.5 h-3.5 text-muted-foreground" />{t("form.phone")}</FormLabel>
                                                 <FormControl>
                                                     <Input placeholder={t("form.phonePlaceholder")} {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    {/* Note Section */}
+                                    <FormField
+                                        control={form.control}
+                                        name="note"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="flex items-center gap-1.5">
+                                                    <FileText className="w-3.5 h-3.5 text-muted-foreground" />
+                                                    {t("form.note")}
+                                                </FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder={t("form.notePlaceholder")} {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>

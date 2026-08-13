@@ -58,6 +58,7 @@ public sealed class QueueResponse
     public string? StaffName { get; set; }
     public string Status { get; set; } = string.Empty;
     public string Type { get; set; } = string.Empty;
+    public string? Remark { get; set; }
     public DateTime CreatedAt { get; set; }
 }
 

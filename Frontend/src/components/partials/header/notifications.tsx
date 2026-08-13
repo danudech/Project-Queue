@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Bell } from "lucide-react";
+import { Bell, MessageSquare } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,7 +54,27 @@ const Notifications = () => {
   const openNotification = (item: NotificationDto) => {
     void markRead(item.id);
     startRouteLoading();
-    router.push(item.type.startsWith("BOOKING") ? "/booking/list" : "/notification");
+    if (item.type.startsWith("BOOKING")) {
+      router.push("/booking/list");
+    } else if (item.type.includes("CHAT") || item.title.includes("สนทนา") || item.title.includes("แชท")) {
+      router.push("/chat");
+    } else {
+      router.push("/notification");
+    }
+  };
+
+  const openChatNotification = async (item: NotificationDto) => {
+    void markRead(item.id);
+    const match = item.message.match(/#(\d+)/);
+    if (match && match[1]) {
+      try {
+        await http.post(`/api/chat/conversations/${match[1]}/accept`, {});
+      } catch {
+        // Ignored if already accepted
+      }
+    }
+    startRouteLoading();
+    router.push("/chat");
   };
 
   const markAllRead = async () => {
@@ -77,7 +98,7 @@ const Notifications = () => {
           )}
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="z-[999] mx-3 w-[min(340px,calc(100vw-24px))] p-0">
+      <DropdownMenuContent align="end" className="z-[999] mx-3 w-[min(360px,calc(100vw-24px))] p-0">
         <DropdownMenuLabel className="p-0">
           <div className="flex items-center justify-between border-b px-4 py-3">
             <div>
@@ -87,21 +108,49 @@ const Notifications = () => {
             {unreadCount > 0 && <button type="button" onClick={markAllRead} className="text-xs font-normal text-primary hover:underline">{t("markAllAsRead")}</button>}
           </div>
         </DropdownMenuLabel>
-        <ScrollArea className="h-[min(360px,60vh)]">
-          {notifications.map((item) => (
-            <DropdownMenuItem
-              key={item.id}
-              onSelect={() => openNotification(item)}
-              className={`cursor-pointer gap-3 rounded-none border-b px-4 py-3 last:border-0 ${item.isRead ? "" : "bg-primary/5"}`}
-            >
-              <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary/10 text-primary"><Bell className="size-4" /></span>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2"><p className="truncate text-sm font-medium">{item.title}</p>{!item.isRead && <span className="size-2 shrink-0 rounded-full bg-primary" />}</div>
-                <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{item.message}</p>
-                <p className="mt-1 text-[11px] text-muted-foreground">{new Date(item.createdAt).toLocaleString(locale)}</p>
-              </div>
-            </DropdownMenuItem>
-          ))}
+        <ScrollArea className="h-[min(380px,65vh)]">
+          {notifications.map((item) => {
+            const isChatRequest = item.type === "CHAT_REQUEST" || (item.type.includes("CHAT") && !item.type.includes("CLOSED"));
+            const isChatClosed = item.type === "CHAT_CLOSED";
+            const isChat = isChatRequest || isChatClosed;
+            return (
+              <DropdownMenuItem
+                key={item.id}
+                onSelect={() => openNotification(item)}
+                className={`cursor-pointer gap-3 rounded-none border-b px-4 py-3 last:border-0 ${item.isRead ? "" : "bg-primary/5"}`}
+              >
+                <span className={`grid size-9 shrink-0 place-items-center rounded-full ${isChatClosed ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary"}`}>
+                  {isChatClosed ? (
+                    <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  ) : isChat ? <MessageSquare className="size-4" /> : <Bell className="size-4" />}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="truncate text-sm font-medium">{item.title}</p>
+                    {!item.isRead && <span className={`size-2 shrink-0 rounded-full ${isChatClosed ? "bg-destructive" : "bg-primary"}`} />}
+                  </div>
+                  <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{item.message}</p>
+                  {isChatRequest && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      className="mt-2 h-7 gap-1.5 text-xs font-medium"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        void openChatNotification(item);
+                      }}
+                    >
+                      <MessageSquare className="size-3.5" />
+                      {t("joinChat")}
+                    </Button>
+                  )}
+                  <p className="mt-1 text-[11px] text-muted-foreground">{new Date(item.createdAt).toLocaleString(locale)}</p>
+                </div>
+              </DropdownMenuItem>
+            );
+          })}
           {!notifications.length && <div className="grid min-h-36 place-items-center px-4 text-sm text-muted-foreground">{t("empty")}</div>}
         </ScrollArea>
         <div className="border-t px-4 py-3 text-center"><Link href="/notification" className="text-xs font-medium text-primary hover:underline">{t("viewAll")}</Link></div>

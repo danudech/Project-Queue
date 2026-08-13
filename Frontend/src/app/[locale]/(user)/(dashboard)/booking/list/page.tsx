@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   CalendarCheck2,
+  CalendarDays,
   Check,
   CheckCircle2,
   ChevronLeft,
@@ -40,6 +41,8 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { http } from "@/lib/http/client";
 import { resolveActiveBranchId } from "@/lib/active-branch";
 import type { BookingDto } from "@/types/booking";
+import { CreateBookingModal } from "./create-booking-modal";
+import { Plus } from "lucide-react";
 
 const PAGE_SIZE = 10;
 
@@ -51,16 +54,29 @@ export default function BookingListPage() {
   const canManageBookings = can("booking.manage");
   const [rows, setRows] = useState<BookingDto[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [updating, setUpdating] = useState<number | null>(null);
-  const [search, setSearch] = useState("");
+  const [activeBranchId, setActiveBranchId] = useState<number>(0);
+  const [openCreateModal, setOpenCreateModal] = useState(false);
+
+  // Filters state (matching queue/history pattern)
   const [selectedDate, setSelectedDate] = useState(getTodayDateKey);
+  const [customerQuery, setCustomerQuery] = useState("");
+  const [staffFilter, setStaffFilter] = useState("all");
+
+  // Active filter state applied on search/loadAll
+  const [activeCustomerQuery, setActiveCustomerQuery] = useState("");
+  const [activeStaffFilter, setActiveStaffFilter] = useState("all");
+  const [activeDate, setActiveDate] = useState(getTodayDateKey);
+  const [showAllBookings, setShowAllBookings] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (isRefresh = false) => {
     if (!shop) return;
-    setLoading(true);
+    if (isRefresh) setRefreshing(true);
     try {
       const branchId = await resolveActiveBranchId(shop.shopBranches);
+      setActiveBranchId(branchId ?? 0);
       if (!branchId) {
         setRows([]);
         return;
@@ -72,6 +88,7 @@ export default function BookingListPage() {
     } catch (error) {
       toast.error(error instanceof Error ? error.message : t("loadError"));
     } finally {
+      if (isRefresh) setRefreshing(false);
       setLoading(false);
     }
   }, [shop, t]);
@@ -79,6 +96,22 @@ export default function BookingListPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  const handleLoadAll = async () => {
+    setCustomerQuery("");
+    setStaffFilter("all");
+    setActiveCustomerQuery("");
+    setActiveStaffFilter("all");
+    setShowAllBookings(true);
+    await load(true);
+  };
+
+  const handleSearch = () => {
+    setActiveCustomerQuery(customerQuery.trim());
+    setActiveStaffFilter(staffFilter);
+    setActiveDate(selectedDate);
+    setShowAllBookings(false);
+  };
 
   const counts = useMemo(
     () => ({
@@ -90,20 +123,40 @@ export default function BookingListPage() {
     [rows],
   );
 
+  const staffOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          rows
+            .map((row) => row.staffName)
+            .filter((value): value is string => Boolean(value && value.trim())),
+        ),
+      ).sort((a, b) => a.localeCompare(b)),
+    [rows],
+  );
+
   const filteredRows = useMemo(() => {
-    const keyword = search.trim().toLocaleLowerCase();
+    const query = activeCustomerQuery.toLocaleLowerCase();
     return rows.filter((row) => {
-      if (selectedDate && toDateKey(row.date) !== selectedDate) return false;
-      if (!keyword) return true;
-      return [
+      const searchable = [
         row.customerName,
         row.serviceName,
         row.staffName ?? "",
         row.status,
         row.guid,
-      ].some((value) => value.toLocaleLowerCase().includes(keyword));
+        row.remark ?? "",
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLocaleLowerCase();
+
+      return (
+        (!query || searchable.includes(query)) &&
+        (activeStaffFilter === "all" || row.staffName === activeStaffFilter) &&
+        (showAllBookings || toDateKey(row.date) === activeDate)
+      );
     });
-  }, [rows, search, selectedDate]);
+  }, [activeCustomerQuery, activeDate, activeStaffFilter, rows, showAllBookings]);
 
   const totalPages = Math.max(1, Math.ceil(filteredRows.length / PAGE_SIZE));
   const paginatedRows = useMemo(
@@ -121,7 +174,7 @@ export default function BookingListPage() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [search, selectedDate]);
+  }, [activeCustomerQuery, activeDate, activeStaffFilter, showAllBookings]);
 
   useEffect(() => {
     if (currentPage > totalPages) setCurrentPage(totalPages);
@@ -159,6 +212,18 @@ export default function BookingListPage() {
         eyebrow={t("eyebrow")}
         title={t("title")}
         description={t("description")}
+        actions={
+          canManageBookings ? (
+            <Button
+              type="button"
+              onClick={() => setOpenCreateModal(true)}
+              className="shadow-sm"
+            >
+              <Plus className="mr-2 size-4" />
+              {t("createBooking")}
+            </Button>
+          ) : null
+        }
       />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -187,23 +252,69 @@ export default function BookingListPage() {
         />
       </div>
 
-      <Card className="overflow-hidden">
-        <CardHeader className="gap-4 border-b px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <CardTitle>{t("appointments")}</CardTitle>
-            <CardDescription className="mt-1">
-              {t("appointmentsDescription")}
-            </CardDescription>
-          </div>
-          <div className="flex w-full flex-col gap-2 sm:max-w-xl sm:flex-row">
-            <label className="flex items-center gap-2 text-sm text-muted-foreground">
-              {t("dateFilter")}
-              <Input type="date" value={selectedDate} onChange={(event) => setSelectedDate(event.target.value)} className="w-auto" />
-            </label>
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t("search")} className="pl-9" />
+      <Card className="overflow-hidden border-slate-200 shadow-sm">
+        <CardHeader className="border-b bg-white pb-5 dark:bg-card">
+          <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
+            <div>
+              <CardTitle>{t("appointments")}</CardTitle>
+              <CardDescription className="mt-1">
+                {t("recordCount", { count: filteredRows.length })}
+              </CardDescription>
             </div>
+            {showAllBookings ? (
+              <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                {t("allHistoryActive")}
+              </span>
+            ) : null}
+          </div>
+          <div className="grid gap-3 pt-2 sm:grid-cols-5">
+            <div className="relative min-w-0">
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={customerQuery}
+                onChange={(event) => setCustomerQuery(event.target.value)}
+                placeholder={t("search")}
+                className="h-10 w-full pl-9"
+              />
+            </div>
+            <select
+              value={staffFilter}
+              onChange={(event) => setStaffFilter(event.target.value)}
+              className="h-10 w-full min-w-0 rounded-md border border-input bg-background px-3 text-sm"
+            >
+              <option value="all">{t("allStaff")}</option>
+              {staffOptions.map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+            <div className="relative min-w-0">
+              <CalendarDays className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                type="date"
+                value={selectedDate}
+                onChange={(event) => setSelectedDate(event.target.value)}
+                className="h-10 w-full pl-9"
+              />
+            </div>
+            <Button
+              type="button"
+              className="h-10 w-full"
+              onClick={handleSearch}
+            >
+              {t("searchBtn")}
+            </Button>
+            <Button
+              type="button"
+              variant={showAllBookings ? "default" : "outline"}
+              className="h-10 w-full"
+              disabled={refreshing}
+              onClick={handleLoadAll}
+            >
+              {refreshing ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
+              {t("loadAll")}
+            </Button>
           </div>
         </CardHeader>
 
@@ -220,6 +331,9 @@ export default function BookingListPage() {
                   </TableHead>
                   <TableHead className="min-w-48 text-xs font-semibold uppercase tracking-wide">
                     {t("columns.service")}
+                  </TableHead>
+                  <TableHead className="min-w-48 text-xs font-semibold uppercase tracking-wide">
+                    {t("columns.remark")}
                   </TableHead>
                   <TableHead className="min-w-40 text-xs font-semibold uppercase tracking-wide">
                     {t("columns.dateTime")}
@@ -253,10 +367,14 @@ export default function BookingListPage() {
                       </TableCell>
                       <TableCell>
                         <p className="font-medium">{row.serviceName}</p>
-                        {row.remark && (
-                          <p className="mt-1 max-w-44 truncate text-xs text-muted-foreground">
-                            {row.remark}
-                          </p>
+                      </TableCell>
+                      <TableCell>
+                        {row.remark ? (
+                          <div className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/20 bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-700 dark:text-amber-300 max-w-56">
+                            <span>{row.remark}</span>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-muted-foreground/60 italic">-</span>
                         )}
                       </TableCell>
                       <TableCell>
@@ -362,7 +480,7 @@ export default function BookingListPage() {
                 {!paginatedRows.length && (
                   <TableRow>
                     <TableCell
-                      colSpan={7}
+                      colSpan={8}
                       className="h-40 text-center text-sm text-muted-foreground"
                     >
                       {t("empty")}
@@ -409,6 +527,13 @@ export default function BookingListPage() {
           </div>
         </CardContent>
       </Card>
+
+      <CreateBookingModal
+        open={openCreateModal}
+        onOpenChange={setOpenCreateModal}
+        branchId={activeBranchId}
+        onSuccess={() => void load(true)}
+      />
     </div>
   );
 }

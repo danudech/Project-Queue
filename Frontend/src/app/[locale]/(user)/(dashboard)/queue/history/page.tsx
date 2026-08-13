@@ -109,6 +109,7 @@ export default function QueueHistoryPage() {
                   <TableHead className="w-24">{t("columns.number")}</TableHead>
                   <TableHead>{t("columns.customer")}</TableHead>
                   <TableHead>{t("columns.service")}</TableHead>
+                  <TableHead>{t("columns.remark")}</TableHead>
                   <TableHead>{t("columns.dateTime")}</TableHead>
                   <TableHead>{t("columns.staff")}</TableHead>
                   <TableHead>{t("columns.source")}</TableHead>
@@ -125,6 +126,15 @@ export default function QueueHistoryPage() {
                     </TableCell>
                     <TableCell>{row.serviceName || "-"}</TableCell>
                     <TableCell>
+                      {row.remark ? (
+                        <div className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/20 bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-700 dark:text-amber-300 max-w-56">
+                          <span>{row.remark}</span>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-muted-foreground/60 italic">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
                       <div>{new Date(row.queueDate || row.createdAt).toLocaleDateString(locale)}</div>
                       <div className="text-xs text-muted-foreground">{row.queueStartTime || new Date(row.createdAt).toLocaleTimeString(locale)}</div>
                     </TableCell>
@@ -136,7 +146,7 @@ export default function QueueHistoryPage() {
                     <TableCell><span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium">{t(`status.${row.status.toLowerCase()}`)}</span></TableCell>
                   </TableRow>
                 ))}
-                {!history.length ? <TableRow><TableCell colSpan={7} className="h-48 text-center"><div className="flex flex-col items-center justify-center gap-2 text-sm text-muted-foreground"><History className="size-8 text-slate-300" /><span>{t("empty")}</span></div></TableCell></TableRow> : null}
+                {!history.length ? <TableRow><TableCell colSpan={8} className="h-48 text-center"><div className="flex flex-col items-center justify-center gap-2 text-sm text-muted-foreground"><History className="size-8 text-slate-300" /><span>{t("empty")}</span></div></TableCell></TableRow> : null}
               </TableBody>
             </Table>
           </div>

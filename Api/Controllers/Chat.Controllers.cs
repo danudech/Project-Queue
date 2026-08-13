@@ -18,12 +18,12 @@ public sealed class ChatController : ControllerBase
 
     [HttpGet("conversations")]
     public Task<ActionResult<ApiResponse<List<ChatConversationResponse>>>> Conversations([FromQuery] int branchId = 0, CancellationToken ct = default) => Execute(() => _chat.GetShopConversationsAsync(UserId, branchId, ct));
-    [HttpGet("conversations/{conversationId:int}/messages")]
-    public Task<ActionResult<ApiResponse<List<ChatMessageResponse>>>> Messages(int conversationId, CancellationToken ct) => Execute(() => _chat.GetShopMessagesAsync(UserId, conversationId, ct));
-    [HttpPost("conversations/{conversationId:int}/messages")]
-    public Task<ActionResult<ApiResponse<ChatMessageResponse>>> Send(int conversationId, [FromBody] SendChatMessageRequest request, CancellationToken ct) => Execute(() => _chat.SendShopMessageAsync(UserId, conversationId, request, ct));
-    [HttpPost("conversations/{conversationId:int}/accept")]
-    public Task<ActionResult<ApiResponse<ChatConversationResponse>>> Accept(int conversationId, CancellationToken ct) => Execute(() => _chat.AcceptConversationAsync(UserId, conversationId, ct));
+    [HttpGet("conversations/{id}/messages")]
+    public Task<ActionResult<ApiResponse<List<ChatMessageResponse>>>> Messages(string id, CancellationToken ct) => Execute(() => _chat.GetShopMessagesAsync(UserId, id, ct));
+    [HttpPost("conversations/{id}/messages")]
+    public Task<ActionResult<ApiResponse<ChatMessageResponse>>> Send(string id, [FromBody] SendChatMessageRequest request, CancellationToken ct) => Execute(() => _chat.SendShopMessageAsync(UserId, id, request, ct));
+    [HttpPost("conversations/{id}/accept")]
+    public Task<ActionResult<ApiResponse<ChatConversationResponse>>> Accept(string id, CancellationToken ct) => Execute(() => _chat.AcceptConversationAsync(UserId, id, ct));
     private static async Task<ActionResult<ApiResponse<T>>> Execute<T>(Func<Task<T>> action) { try { return new OkObjectResult(ApiResponse<T>.Ok(await action())); } catch (UnauthorizedAccessException ex) { return new ObjectResult(ApiResponse<T>.Fail(ex.Message)) { StatusCode = 403 }; } catch (KeyNotFoundException ex) { return new NotFoundObjectResult(ApiResponse<T>.Fail(ex.Message)); } catch (InvalidOperationException ex) { return new BadRequestObjectResult(ApiResponse<T>.Fail(ex.Message)); } }
 }
 

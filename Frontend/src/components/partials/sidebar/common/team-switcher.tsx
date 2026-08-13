@@ -45,6 +45,7 @@ import { ShopResponse } from "@/types/shop/shop-responsd"
 import toast from "react-hot-toast"
 import { storage } from "@/services/localstorage"
 import { resolveActiveBranchId } from "@/lib/active-branch"
+import { env } from "@/config/env"
 
 // ─────────────────────────────────────────────────────────
 // Constants
@@ -532,6 +533,11 @@ export default function TeamSwitcher({ className }: { className?: string }) {
 
     const selectedShop = shopData
     const selectedBranch = shopData?.shopBranches?.find((b) => b.id === selectedBranchId)
+    const shopLogoUrl = shopData?.logo
+        ? shopData.logo.startsWith("http")
+            ? shopData.logo
+            : `${env.apiBaseUrl.replace("/api/v1", "")}${shopData.logo}`
+        : null
 
     const handleClose = (val: boolean) => {
         setShowDialog(val)
@@ -653,14 +659,20 @@ export default function TeamSwitcher({ className }: { className?: string }) {
                                 aria-expanded={open}
                                 aria-label="Select a team"
                                 className={cn(
-                                    "h-12 w-12 mx-auto p-0 md:p-0 ring-offset-sidebar flex items-center justify-center transition-colors",
+                                    "h-12 w-12 mx-auto p-0 md:p-0 ring-offset-sidebar flex items-center justify-center transition-colors overflow-hidden",
                                     shopData 
                                         ? "bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary" 
                                         : "bg-muted/50 text-muted-foreground hover:bg-muted/80 hover:text-muted-foreground",
                                     className
                                 )}
                             >
-                                {shopData ? <Store className="h-6 w-6" /> : <Ban className="h-6 w-6 opacity-70" />}
+                                {shopLogoUrl ? (
+                                    <img src={shopLogoUrl} alt={selectedShop?.name ?? "Shop Logo"} className="h-8 w-8 object-cover rounded-md" />
+                                ) : shopData ? (
+                                    <Store className="h-6 w-6" />
+                                ) : (
+                                    <Ban className="h-6 w-6 opacity-70" />
+                                )}
                             </Button>
                         ) : (
                             <Button
@@ -673,10 +685,16 @@ export default function TeamSwitcher({ className }: { className?: string }) {
                             >
                                 <div className="flex gap-2 flex-1 items-center">
                                     <div className={cn(
-                                        "flex-none h-7 w-7 rounded-md flex items-center justify-center",
+                                        "flex-none h-8 w-8 rounded-md flex items-center justify-center overflow-hidden border border-default-200 bg-background",
                                         shopData ? "bg-primary/10 text-primary" : "bg-muted/50 text-muted-foreground"
                                     )}>
-                                        {shopData ? <Store className="h-4 w-4" /> : <Ban className="h-4 w-4 opacity-70" />}
+                                        {shopLogoUrl ? (
+                                            <img src={shopLogoUrl} alt={selectedShop?.name ?? "Shop Logo"} className="h-full w-full object-cover" />
+                                        ) : shopData ? (
+                                            <Store className="h-4 w-4" />
+                                        ) : (
+                                            <Ban className="h-4 w-4 opacity-70" />
+                                        )}
                                     </div>
                                     <div className="flex-1 text-start w-[100px]">
                                         <div className="text-sm font-semibold text-default-900 truncate">
@@ -700,8 +718,12 @@ export default function TeamSwitcher({ className }: { className?: string }) {
                         {shopData && (
                             <div className="flex items-center gap-3 px-3 py-3 border-b bg-muted/30">
                                 <div className="h-9 w-9 flex items-center justify-center flex-shrink-0">
-                                    <div className="h-9 w-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-                                        <Store className="h-5 w-5" />
+                                    <div className="h-9 w-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center overflow-hidden border border-default-200 bg-background">
+                                        {shopLogoUrl ? (
+                                            <img src={shopLogoUrl} alt={shopData.name} className="h-full w-full object-cover" />
+                                        ) : (
+                                            <Store className="h-5 w-5" />
+                                        )}
                                     </div>
                                 </div>
                                 <div className="flex-1 min-w-0">

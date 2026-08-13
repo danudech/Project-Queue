@@ -25,9 +25,20 @@ export const getColumns = (t: any, tc: any): ColumnDef<CustomerType>[] => [
   {
     accessorKey: "name",
     header: t("columns.name"),
-    cell: ({ row }) => (
-      <span className="font-medium text-default-900">{row.getValue("name")}</span>
-    ),
+    cell: ({ row }) => {
+      const notes = row.original.notes
+      const latestNote = notes && notes.length > 0 ? notes[notes.length - 1].note : null
+      return (
+        <div>
+          <span className="font-medium text-default-900">{row.getValue("name")}</span>
+          {latestNote && (
+            <div className="mt-1 max-w-56 truncate text-xs text-amber-700 dark:text-amber-300 font-medium">
+              📝 {latestNote}
+            </div>
+          )}
+        </div>
+      )
+    },
   },
   {
     accessorKey: "phone",
