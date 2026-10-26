@@ -36,7 +36,7 @@ const HomePage = async () => {
       <Workflow copy={workflow} />
       <Service copy={copy.service} />
       <CTA locale={locale} copy={copy.cta} actions={copy.actions} />
-      <Footer copy={copy.footer} />
+      <Footer copy={copy.footer} locale={locale} />
     </>
   );
 };

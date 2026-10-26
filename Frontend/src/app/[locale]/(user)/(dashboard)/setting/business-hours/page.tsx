@@ -12,7 +12,7 @@ import { http } from "@/lib/http/client";
 import { useShop } from "@/hooks/use-me";
 import { usePermissions } from "@/hooks/use-permissions";
 import { toast } from "sonner";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 
 type BusinessHour = {
   dayOfWeek: number;
@@ -40,18 +40,19 @@ const defaultQueueRules: QueueRules = {
   bufferBetweenServices: 10
 };
 
-const SettingBusinessHoursPage = () => {
+const SettingBusinessHoursPage = ({ branchId }: { branchId: number }) => {
   const t = useTranslations("BusinessHoursSettings");
   const dayNames = t.raw("days") as string[];
   const shortDayNames = t.raw("shortDays") as string[];
-  const { data: shopData } = useShop();
+
   const { can } = usePermissions();
   const canEditSettings = can("setting.edit");
-  const branchId = shopData?.shopBranches?.[0]?.id;
+
 
   const [hours, setHours] = useState<BusinessHour[]>(defaultHours);
   const [queueRules, setQueueRules] = useState<QueueRules>(defaultQueueRules);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isSavingRules, setIsSavingRules] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -81,6 +82,7 @@ const SettingBusinessHoursPage = () => {
           }
         }
       })
+      .catch(() => { if (mounted) setLoadError(true); })
       .finally(() => {
         if (mounted) setIsLoading(false);
       });
@@ -160,6 +162,8 @@ const SettingBusinessHoursPage = () => {
   };
 
   const openDays = hours.filter((item) => item.isOpen).length;
+
+  if (loadError) return <p role="alert" className="text-destructive">{t("messages.hoursError")}</p>;
 
   if (isLoading) {
     return (
@@ -291,4 +295,13 @@ const SettingBusinessHoursPage = () => {
   );
 };
 
-export default SettingBusinessHoursPage;
+export default function BusinessHoursPage() {
+  const shop = useShop();
+  const th = useLocale() === "th";
+  const [selected, setSelected] = useState(0);
+  const branchId = selected || shop.data?.shopBranches[0]?.id;
+  if (shop.isLoading) return <p role="status">{th ? "กำลังโหลด…" : "Loading…"}</p>;
+  if (shop.isError) return <p role="alert">{th ? "โหลดข้อมูลร้านไม่สำเร็จ" : "Unable to load shop."}</p>;
+  if (!branchId) return <p>{th ? "กรุณาเพิ่มสาขาก่อนตั้งค่า" : "Add a branch before configuring business hours."}</p>;
+  return <div className="space-y-6"><div className="space-y-1"><label htmlFor="hours-branch" className="block text-sm font-medium">{th ? "สาขา" : "Branch"}</label><select id="hours-branch" className="h-10 rounded-md border bg-background px-3" value={branchId} onChange={event => setSelected(Number(event.target.value))}>{shop.data?.shopBranches.map(branch => <option key={branch.id} value={branch.id}>{branch.name}</option>)}</select></div><SettingBusinessHoursPage key={branchId} branchId={branchId} /></div>;
+}

@@ -42,12 +42,12 @@ export const homepageCopy = {
       subscribe: "Subscribe",
     },
     hero: {
-      badge: "Queue, booking, staff, customer, payment",
-      title: "A calmer way to run bookings, queues, staff, and payments",
+      badge: "Made for better service days",
+      title: "A little less waiting. A lot more caring.",
       description:
-        "EZQueue helps service businesses manage public booking, live queues, staff workload, customer records, invoices, payments, and shop settings from one API-ready frontend.",
-      imageAlt: "EZQueue dashboard preview for queue and booking operations",
-      eyebrow: "API-ready frontend for service operations",
+        "Bring your bookings, queues, and team together. Give your customers a smooth experience, and your day a little more breathing room.",
+      imageAlt: "A welcoming reception in a contemporary service studio",
+      eyebrow: "Thoughtful tools for service businesses",
       metrics: [
         { value: "38", label: "Bookings today" },
         { value: "12m", label: "Average wait" },
@@ -67,13 +67,13 @@ export const homepageCopy = {
       titleHighlight: "faster queues and cleaner bookings",
       description:
         "EZQueue connects public booking, branch hours, live queue operations, staff assignment, customer records, and shop settings in one workflow built for service businesses.",
-      imageAlt: "EZQueue service operation overview illustration",
+      imageAlt: "A stylist consulting with a customer in a bright, welcoming studio",
     },
     features: {
       badge: "CORE FEATURES",
-      title: "The workflows already available in EZQueue",
+      title: "Everything your service day needs",
       description:
-        "Each capability below maps to a working customer or dashboard route in this project.",
+        "From the first booking to the last customer, keep the details connected and your team in sync.",
       items: [
         {
           question: "Public booking and queue intake",
@@ -94,7 +94,7 @@ export const homepageCopy = {
           variant: "success",
         },
       ],
-      imageAlt: "Feature dashboard and analytics illustration",
+      imageAlt: "A customer arranging an appointment from a peaceful café",
     },
     pricing: {
       badge: "PRICING",
@@ -127,9 +127,9 @@ export const homepageCopy = {
     },
     service: {
       badge: "SOLUTIONS",
-      title: "A complete frontend for queue-heavy service operations",
+      title: "One place. A smoother day.",
       description:
-        "EZQueue covers the flow from a customer booking a service to staff serving the queue, collecting payment, and reviewing performance.",
+        "Thoughtful tools for your customers, your team, and the everyday details of running a service business.",
       items: [
         {
           title: "Online Booking",
@@ -144,8 +144,8 @@ export const homepageCopy = {
           description: "Keep customer profiles, booking history, tags, and follow-up context together.",
         },
         {
-          title: "Payment & Billing",
-          description: "Prepare invoice, subscription, and payment screens for gateway integration.",
+          title: "Team & Branches",
+          description: "Keep staff, services, opening hours, and branch permissions organized in one place.",
         },
       ],
     },
@@ -177,13 +177,13 @@ export const homepageCopy = {
         {
           image: "/images/homepage/blog/ezqueue-usecase-api.png",
           title: "Prepare API contracts screen by screen",
-          description: "Use the mocked frontend to define backend data shapes for booking, queue, customer, invoice, and system modules.",
+          description: "Manage bookings, queues, customers, and shop settings through connected APIs.",
         },
       ],
     },
     cta: {
       title: "Ready to turn your service queue into a smoother customer experience?",
-      imageAlt: "EZQueue dashboard preview",
+      imageAlt: "A welcoming reception for a well organized service day",
     },
     footer: {
       title: "Need help planning your queue workflow?",
@@ -191,10 +191,10 @@ export const homepageCopy = {
       emailPlaceholder: "Enter email",
       groups: [
         { title: "Platform", links: ["Dashboard", "Booking", "Queue", "Customers"] },
-        { title: "Operations", links: ["Services", "Staff roles", "Payments", "Invoices"] },
-        { title: "Resources", links: ["Use cases", "Pricing", "Settings"] },
+        { title: "Operations", links: ["Services", "Staff roles", "Branch hours", "Shop management"] },
+        { title: "Resources", links: ["Use cases", "Features", "Settings"] },
       ],
-      contactTitle: "Contact us",
+      contactTitle: "Start here",
       location: "Bangkok, Thailand",
       copyright: "© 2026 EZQueue - Queue and booking platform",
     },
@@ -226,12 +226,12 @@ export const homepageCopy = {
       subscribe: "ติดตาม",
     },
     hero: {
-      badge: "คิว จองบริการ พนักงาน ลูกค้า และชำระเงิน",
-      title: "จัดการการจอง คิว พนักงาน และชำระเงินให้ลื่นไหลกว่าเดิม",
+      badge: "ให้ทุกวันของการบริการเป็นวันที่ดี",
+      title: "จัดคิวให้ง่าย มีเวลาใส่ใจลูกค้ามากขึ้น",
       description:
-        "EZQueue ช่วยธุรกิจบริการจัดการหน้าจองออนไลน์ คิวสด ภาระงานพนักงาน ข้อมูลลูกค้า ใบแจ้งหนี้ การชำระเงิน และตั้งค่าร้าน ผ่าน Frontend ที่พร้อมเชื่อมต่อ API จริง",
-      imageAlt: "ตัวอย่าง Dashboard ของ EZQueue สำหรับจัดการคิวและการจอง",
-      eyebrow: "Frontend พร้อมเชื่อม API สำหรับธุรกิจบริการ",
+        "เชื่อมการจอง คิว และทีมงานไว้ในที่เดียว ให้ลูกค้าได้รับประสบการณ์ที่ราบรื่น และให้คุณมีเวลาดูแลร้านได้อย่างเต็มที่",
+      imageAlt: "บรรยากาศการต้อนรับลูกค้าที่เคาน์เตอร์ร้านบริการ",
+      eyebrow: "เครื่องมือที่เข้าใจธุรกิจบริการ",
       metrics: [
         { value: "38", label: "จองวันนี้" },
         { value: "12m", label: "เวลารอเฉลี่ย" },
@@ -250,14 +250,14 @@ export const homepageCopy = {
       titlePrefix: "สร้างมาเพื่อธุรกิจบริการที่ต้องการ",
       titleHighlight: "คิวเร็วขึ้นและการจองเป็นระบบขึ้น",
       description:
-        "ระบบออกแบบจากงานหน้าร้านจริง ลูกค้าจองบริการออนไลน์ พนักงานเรียกคิวและให้บริการ เจ้าของร้านดูประสิทธิภาพสาขา และผู้ดูแลจัดการบริการ สิทธิ์ใช้งาน แพ็กเกจ และบิลได้ครบ ทุกส่วนในหน้า Homepage เชื่อมโยงกับโมดูล Dashboard ที่ทำ mockup ไว้แล้ว",
-      imageAlt: "ภาพรวมการทำงานของระบบบริการ EZQueue",
+        "ลูกค้าจองบริการออนไลน์ พนักงานเรียกคิวและให้บริการ เจ้าของร้านดูรายงานการดำเนินงานและจัดการบริการ พนักงาน สาขา และสิทธิ์ใช้งานจากข้อมูลจริง",
+      imageAlt: "พนักงานให้คำปรึกษาลูกค้าในร้านที่สว่างและอบอุ่น",
     },
     features: {
       badge: "ฟีเจอร์หลัก",
-      title: "ครบทุกหน้าที่ร้านต้องใช้ก่อนเชื่อม API จริง",
+      title: "ครบทุกจังหวะของงานบริการ",
       description:
-        "Frontend ถูกวางเป็นฐานผลิตภัณฑ์เต็มรูปแบบ ทีม Backend จึงสามารถเชื่อมข้อมูลจริงทีละโมดูล โดยไม่ต้องออกแบบ flow ลูกค้าใหม่",
+        "ตั้งแต่การจองครั้งแรกจนถึงลูกค้าคนสุดท้าย ให้ข้อมูลเชื่อมถึงกัน และให้ทีมของคุณทำงานได้อย่างลงตัว",
       items: [
         {
           question: "หน้าจองบริการและรับคิวออนไลน์",
@@ -268,17 +268,17 @@ export const homepageCopy = {
         {
           question: "คิวสดและรายงานภาพรวม",
           answer:
-            "Dashboard ครอบคลุมสถานะคิว ยอดจองวันนี้ เวลารอ งานที่เสร็จแล้ว ความสำเร็จการชำระเงิน กิจกรรมลูกค้า และรายงานแยกสาขา",
+            "ติดตามการจอง คิวรอ งานที่กำลังให้บริการ และงานที่เสร็จแล้ว พร้อมดูภาพรวมแยกตามสาขา",
           variant: "primary",
         },
         {
           question: "จัดการร้านพร้อมใช้งานจริง",
           answer:
-            "มี route สำหรับพนักงาน สิทธิ์ บริการ ลูกค้า แท็ก ใบแจ้งหนี้ แพ็กเกจ ตั้งค่าระบบ และ audit log แยกชัดเจน พร้อมทำ API contract",
+            "จัดการบริการ พนักงาน สิทธิ์ ลูกค้า เวลาทำการ และวันหยุดของแต่ละสาขาได้จากที่เดียว",
           variant: "success",
         },
       ],
-      imageAlt: "ภาพฟีเจอร์ Dashboard และรายงานของ EZQueue",
+      imageAlt: "ลูกค้าเลือกนัดหมายจากโทรศัพท์ในบรรยากาศผ่อนคลาย",
     },
     pricing: {
       badge: "แพ็กเกจ",
@@ -311,9 +311,9 @@ export const homepageCopy = {
     },
     service: {
       badge: "โซลูชัน",
-      title: "Frontend ครบชุดสำหรับธุรกิจบริการที่มีคิวหน้างาน",
+      title: "ที่เดียว ดูแลได้ทั้งวัน",
       description:
-        "EZQueue ครอบคลุมตั้งแต่ลูกค้าจองบริการ พนักงานเรียกคิว รับชำระเงิน ไปจนถึงการดูรายงานหลังให้บริการ",
+        "เครื่องมือที่ช่วยดูแลลูกค้า ทีมงาน และรายละเอียดเล็ก ๆ ในทุกวันของธุรกิจบริการ",
       items: [
         {
           title: "จองบริการออนไลน์",
@@ -328,8 +328,8 @@ export const homepageCopy = {
           description: "รวมข้อมูลลูกค้า ประวัติการจอง แท็ก และบริบทการติดตามไว้ด้วยกัน",
         },
         {
-          title: "ชำระเงินและวางบิล",
-          description: "เตรียมหน้าจอใบแจ้งหนี้ แพ็กเกจ และการชำระเงินก่อนเชื่อม Payment gateway",
+          title: "ทีมงานและสาขา",
+          description: "จัดการพนักงาน บริการ เวลาทำการ และสิทธิ์ของแต่ละสาขาอย่างเป็นระบบ",
         },
       ],
     },
@@ -350,13 +350,13 @@ export const homepageCopy = {
         {
           image: "/images/homepage/blog/ezqueue-usecase-api.png",
           title: "เตรียม API contract จากหน้าจอจริง",
-          description: "ใช้ Frontend mockup เพื่อกำหนดโครงข้อมูลสำหรับ booking, queue, customer, invoice และ system modules",
+          description: "จัดการการจอง คิว ลูกค้า และการตั้งค่าร้านผ่าน API ที่เชื่อมต่อข้อมูลจริง",
         },
       ],
     },
     cta: {
       title: "พร้อมเปลี่ยนคิวหน้าร้านให้เป็นประสบการณ์ที่ลื่นไหลขึ้นหรือยัง?",
-      imageAlt: "ตัวอย่าง Dashboard ของ EZQueue",
+      imageAlt: "เคาน์เตอร์ต้อนรับสำหรับวันทำงานที่ราบรื่น",
     },
     footer: {
       title: "ต้องการช่วยวาง workflow ระบบคิวไหม?",
@@ -364,10 +364,10 @@ export const homepageCopy = {
       emailPlaceholder: "กรอกอีเมล",
       groups: [
         { title: "แพลตฟอร์ม", links: ["Dashboard", "การจอง", "คิว", "ลูกค้า"] },
-        { title: "การปฏิบัติงาน", links: ["บริการ", "สิทธิ์พนักงาน", "ชำระเงิน", "ใบแจ้งหนี้"] },
-        { title: "แหล่งข้อมูล", links: ["ตัวอย่างใช้งาน", "ราคา", "ตั้งค่า"] },
+        { title: "การปฏิบัติงาน", links: ["บริการ", "สิทธิ์พนักงาน", "เวลาทำการ", "จัดการร้าน"] },
+        { title: "แหล่งข้อมูล", links: ["ตัวอย่างใช้งาน", "ฟีเจอร์", "ตั้งค่า"] },
       ],
-      contactTitle: "ติดต่อเรา",
+      contactTitle: "เริ่มต้นที่นี่",
       location: "กรุงเทพฯ ประเทศไทย",
       copyright: "© 2026 EZQueue - แพลตฟอร์มจัดการคิวและการจองบริการ",
     },

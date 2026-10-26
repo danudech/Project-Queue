@@ -1,9 +1,13 @@
 using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Queue.Infrastructure.Persistence;
 
 #nullable disable
 
 namespace Queue.Infrastructure.Migrations;
 
+[DbContext(typeof(QueueDbContext))]
+[Migration("20260807170000_AddChatTables")]
 public partial class AddChatTables : Migration
 {
     protected override void Up(MigrationBuilder migrationBuilder)

@@ -15,11 +15,12 @@ const About = ({ copy, actions }: AboutProps) => {
         <div className="ez-section-grid ez-section-grid-about">
           <div className="about-img text-center">
             <Image
-              src="/images/homepage/ezqueue-about-generated.png"
+              src="/images/editorial/studio.webp"
               alt={copy.imageAlt}
-              width={550}
-              height={550}
-              className="ez-section-image"
+              width={768}
+              height={640}
+              sizes="(max-width: 991px) 100vw, 45vw"
+              className="ez-section-image ez-editorial-photo"
             />
           </div>
 

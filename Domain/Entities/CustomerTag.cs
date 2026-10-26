@@ -5,6 +5,7 @@ namespace Queue.Domain.Entities;
 
 public partial class CustomerTag
 {
+    public int? ShopId { get; set; }
     public int Id { get; set; }
 
     public string Name { get; set; } = null!;

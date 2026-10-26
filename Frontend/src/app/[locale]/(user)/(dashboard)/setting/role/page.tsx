@@ -102,7 +102,7 @@ export default function RolePage() {
     } finally {
       setLoading(false);
     }
-  }, [shop?.id, t]);
+  }, [shop, t]);
 
   useEffect(() => {
     void load();

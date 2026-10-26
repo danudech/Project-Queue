@@ -67,7 +67,8 @@ const Header = ({ locale, copy }: HeaderProps) => {
               type="button"
               onClick={() => setIsMenuOpen((prev) => !prev)}
               aria-expanded={isMenuOpen}
-              aria-label="Toggle navigation"
+              aria-label={locale === "th" ? "เปิดหรือปิดเมนู" : "Toggle navigation"}
+              aria-controls="navbarCollapse"
             >
               {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>

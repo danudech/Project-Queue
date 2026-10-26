@@ -1,13 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Mail, MapPin, Phone } from "lucide-react";
-import type { HomepageCopy } from "../i18n";
+import { ArrowUpRight } from "lucide-react";
+import { localePath, type HomepageCopy, type HomepageLocale } from "../i18n";
 
 type FooterProps = {
   copy: HomepageCopy["footer"];
+  locale: HomepageLocale;
 };
 
-const Footer = ({ copy }: FooterProps) => {
+const Footer = ({ copy, locale }: FooterProps) => {
   const groupRoutes = [
     ["#home", "#how-it-works", "#features", "#service"],
     ["#service", "#features", "#how-it-works", "#about"],
@@ -20,15 +21,7 @@ const Footer = ({ copy }: FooterProps) => {
           <div className="ez-footer-grid">
             <div className="footer-brand">
               <Link href="#home" className="footer-logo">
-                <span className="ez-logo-mark">
-                  <Image
-                    src="/images/brand/new-logo-transparent.png"
-                    alt=""
-                    width={34}
-                    height={34}
-                  />
-                </span>
-                EZQueue
+                <Image src="/images/brand/ezqueue-logo.png" alt="EZQueue" width={150} height={47} />
               </Link>
               <h3>{copy.title}</h3>
               <p>{copy.description}</p>
@@ -51,21 +44,19 @@ const Footer = ({ copy }: FooterProps) => {
               <h5>{copy.contactTitle}</h5>
               <ul>
                 <li>
-                  <Link href="mailto:hello@ezqueue.app">
-                    <Mail className="h-4 w-4" />
-                    hello@ezqueue.app
+                  <Link href={localePath(locale, "/auth/register")}>
+                    <ArrowUpRight className="h-4 w-4" />
+                    {locale === "th" ? "สร้างบัญชีร้านของคุณ" : "Create your account"}
                   </Link>
                 </li>
                 <li>
-                  <Link href="tel:+66020000000">
-                    <Phone className="h-4 w-4" />
-                    +66 02-000-0000
+                  <Link href={localePath(locale, "/terms")}>
+                    {locale === "th" ? "ข้อกำหนดการใช้งาน" : "Terms of service"}
                   </Link>
                 </li>
                 <li>
-                  <Link href="#home">
-                    <MapPin className="h-4 w-4" />
-                    {copy.location}
+                  <Link href={localePath(locale, "/privacy")}>
+                    {locale === "th" ? "นโยบายความเป็นส่วนตัว" : "Privacy policy"}
                   </Link>
                 </li>
               </ul>

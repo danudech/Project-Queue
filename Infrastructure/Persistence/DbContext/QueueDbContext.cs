@@ -135,6 +135,7 @@ public partial class QueueDbContext : DbContext
 
         modelBuilder.Entity<AuditLog>(entity =>
         {
+            entity.HasIndex(e => new { e.ShopId, e.CreatedAt });
             entity.Property(e => e.Action).HasMaxLength(50);
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.RecordId).HasMaxLength(100);
@@ -304,6 +305,7 @@ public partial class QueueDbContext : DbContext
 
         modelBuilder.Entity<CustomerTag>(entity =>
         {
+            entity.HasIndex(e => new { e.ShopId, e.Name }).IsUnique().HasFilter("[ShopId] IS NOT NULL");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Name).HasMaxLength(100);

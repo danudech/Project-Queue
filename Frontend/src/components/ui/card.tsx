@@ -10,10 +10,10 @@ const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElemen
     <div
       ref={ref}
       className={cn(
-        "rounded-lg  bg-card text-card-foreground ",
+        "rounded-xl border border-default-200/70 bg-card text-card-foreground dark:border-default-200 ",
         className, {
         'border': config?.skin === 'bordered',
-        'shadow-base': config?.skin === 'default'
+        'shadow-[0_2px_8px_rgba(15,23,42,0.035)]': config?.skin === 'default'
       }
       )}
       {...props}

@@ -1,7 +1,7 @@
-import { CalendarCheck, CreditCard, MonitorCheck, UsersRound } from "lucide-react";
+import { CalendarCheck, Store, MonitorCheck, UsersRound } from "lucide-react";
 import type { HomepageCopy } from "../i18n";
 
-const icons = [CalendarCheck, MonitorCheck, UsersRound, CreditCard];
+const icons = [CalendarCheck, MonitorCheck, UsersRound, Store];
 
 type ServiceProps = {
   copy: HomepageCopy["service"];

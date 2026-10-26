@@ -1,0 +1,95 @@
+/* Shared editorial direction: warm paper, deep green, real service moments. */
+body.nosic-homepage { color: #183d33; background: #fbfcf9; }
+body.nosic-homepage .ez-container { max-width: 1280px; padding-inline: clamp(22px, 4vw, 56px); }
+body.nosic-homepage .navbar.ez-navbar { background: #fbfcf9f2; border-bottom: 1px solid #dfe7de; box-shadow: none; }
+body.nosic-homepage .ez-nav-inner { min-height: 88px; }
+body.nosic-homepage .ez-brand-logo { width: 150px; max-height: 50px; object-fit: contain; }
+body.nosic-homepage .nav-link { font-size: 14px; color: #50635b; font-weight: 500; }
+body.nosic-homepage .navbar.ez-navbar .nav-link.active { color: #194b3d !important; background: #ecf1e9; }
+body.nosic-homepage .ez-btn { min-height: 44px; border-radius: 9px; font-size: 14px; font-weight: 600; padding: 11px 20px; box-shadow: none; transition: background .2s, transform .2s; }
+body.nosic-homepage .ez-btn-primary { background: #214e3e; border-color: #214e3e; color: #fff; }
+body.nosic-homepage .ez-btn-primary:hover { background: #153e30; transform: translateY(-1px); box-shadow: 0 8px 18px #173c3014; }
+body.nosic-homepage .ez-btn-outline { background: transparent; border: 1px solid #cad5c9; color: #214b3b; }
+body.nosic-homepage .ez-btn-outline:hover { background: #edf2e9; border-color: #a4b6a4; }
+body.nosic-homepage .ez-btn:focus-visible, body.nosic-homepage a:focus-visible, body.nosic-homepage summary:focus-visible { outline: 3px solid #b4cdad; outline-offset: 4px; }
+body.nosic-homepage .home-6 { padding: 148px 0 68px; background: #f7f9f3; background-image: none; overflow: hidden; }
+body.nosic-homepage .home-6::before, body.nosic-homepage .home-6::after { display: none; }
+body.nosic-homepage .ez-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.03fr); align-items: center; gap: 48px; }
+body.nosic-homepage .ez-col-left, body.nosic-homepage .ez-col-right { width: 100%; max-width: none; margin: 0; padding: 0; }
+body.nosic-homepage .ez-badge { color: #54705b; background: #eaf0e3; border: 1px solid #dce6d5; padding: 7px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; letter-spacing: .04em; box-shadow: none; }
+body.nosic-homepage .ez-hero-title { margin: 24px 0 20px; font-size: clamp(2.8rem, 4.2vw, 4.1rem); line-height: 1.12; letter-spacing: -.045em; font-weight: 600; color: #1b3d31; max-width: 600px; }
+html[lang="th"] body.nosic-homepage .ez-hero-title { font-size: clamp(2.5rem, 3.6vw, 3.55rem); line-height: 1.25; letter-spacing: -.015em; text-wrap: balance; }
+body.nosic-homepage .ez-hero-copy { max-width: 460px; color: #6a786c; font-size: 16px; line-height: 1.85; margin-bottom: 28px; }
+body.nosic-homepage .ez-hero-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+body.nosic-homepage .ez-hero-actions .ez-btn { min-height: 50px; padding-inline: 22px; }
+.ez-hero-benefits { display: flex; flex-wrap: wrap; gap: 14px 20px; margin-top: 32px; color: #647769; font-size: 11px; }
+.ez-hero-benefits span { display: inline-flex; gap: 7px; align-items: center; }
+.ez-hero-benefits svg { color: #4f7457; }
+.ez-hero-visual { position: relative; min-height: 510px; aspect-ratio: 1.02; isolation: isolate; }
+.ez-hero-photograph { object-fit: cover; object-position: 62% center; border-radius: 160px 16px 16px 16px; }
+.ez-photo-caption { position: absolute; z-index: 1; bottom: 26px; left: -26px; right: 26px; display: flex; gap: 14px; align-items: center; padding: 18px 20px; border-radius: 12px; border: 1px solid #fff; background: #fffef8f5; box-shadow: 0 12px 40px #1c34271a; }
+.ez-caption-icon { display: grid; place-items: center; flex: 0 0 42px; height: 42px; border-radius: 50%; color: #366445; background: #e7efdf; }
+.ez-photo-caption strong { display: block; color: #294532; font-size: 14px; font-weight: 600; }
+.ez-photo-caption div > span { display: block; margin-top: 4px; color: #77816e; font-size: 11px; }
+body.nosic-homepage .section { padding-block: 96px; }
+body.nosic-homepage section[id] { scroll-margin-top: 88px; }
+body.nosic-homepage .bg-about { background: #fff; padding-bottom: 96px !important; }
+body.nosic-homepage .bg-features { background: #f4f7ef; }
+body.nosic-homepage .bg-services { background: #f7f9f3; }
+body.nosic-homepage .ez-section-grid { gap: 72px; align-items: center; }
+body.nosic-homepage .ez-section-title { margin-top: 18px; color: #1e4032; font-size: clamp(2rem, 3vw, 2.65rem); font-weight: 600; line-height: 1.25; letter-spacing: -.025em; }
+body.nosic-homepage .text-primary { color: #537855 !important; }
+body.nosic-homepage .ez-section-copy { color: #738074; font-size: 15px; line-height: 1.9; }
+body.nosic-homepage .ez-editorial-photo { width: 100%; aspect-ratio: 1.1; object-fit: cover; border-radius: 14px; box-shadow: none; }
+body.nosic-homepage .ez-accordion { margin-top: 28px; }
+body.nosic-homepage .ez-accordion-item { border: 1px solid #dce6d6; background: #ffffffb3; border-radius: 10px; box-shadow: none; margin-bottom: 12px; }
+body.nosic-homepage .ez-accordion-header { font-size: 15px; color: #2a4936; }
+body.nosic-homepage .ez-feature-icon { background: #eaf0e3 !important; color: #52704d !important; border-radius: 8px; }
+body.nosic-homepage .service-card { border: 1px solid #dfe6db; border-radius: 12px; box-shadow: none; background: #fff; padding: 28px; transition: border-color .2s, transform .2s; }
+body.nosic-homepage .service-card:hover { border-color: #9cb28e; box-shadow: 0 12px 24px #223e2a08; transform: translateY(-3px); }
+body.nosic-homepage .service-card h3 { font-size: 18px; font-weight: 600; color: #294733; }
+body.nosic-homepage .service-card p { font-size: 13px; color: #75816e; line-height: 1.85; }
+body.nosic-homepage .service-icon { width: 48px; height: 48px; border-radius: 10px; background: #eef2e8; color: #4c6c46; box-shadow: none; }
+body.nosic-homepage #how-it-works { background: #fff; }
+body.nosic-homepage #how-it-works .ez-service-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+body.nosic-homepage .bg-cta { background: #214c3c; background-image: none; border-radius: 20px; padding: 48px; box-shadow: none; overflow: hidden; }
+body.nosic-homepage .ez-cta-copy h2 { color: #f8faf0; font-size: 32px; line-height: 1.35; font-weight: 500; }
+body.nosic-homepage .cta-img { transform: none; margin: 0; }
+body.nosic-homepage .ez-cta-photograph { height: 280px; width: 100%; object-fit: cover; border-radius: 12px; box-shadow: none; }
+body.nosic-homepage .footer { background: #f0f4eb; border-top: 1px solid #e1e8da; }
+body.nosic-homepage .footer-logo, body.nosic-homepage .footer-links h5 { color: #2d4835; }
+body.nosic-homepage .footer-links h5 { font-size: 13px; font-weight: 600; }
+body.nosic-homepage .footer-logo img { width: 150px; height: auto; }
+body.nosic-homepage .footer-links a, body.nosic-homepage .footer-brand p { color: #5e6d59; font-size: 13px; }
+body.nosic-homepage .footer-links a:hover { color: #214c3c; text-decoration: underline; }
+body.nosic-homepage .footer-brand h3 { color: #2d4835; font-size: 22px; font-weight: 500; }
+body.nosic-homepage .footer-copyright { background: #f0f4eb; color: #7e8a77; border-top: 1px solid #dde5d5; }
+@media (max-width: 991px) {
+  body.nosic-homepage .ez-row { grid-template-columns: 1fr; gap: 40px; }
+  body.nosic-homepage .home-6 { padding-top: 126px; }
+  body.nosic-homepage .ez-hero-title { max-width: 680px; }
+  .ez-hero-visual { min-height: 400px; aspect-ratio: 1.5; }
+  .ez-hero-photograph { border-top-left-radius: 100px; }
+  .ez-photo-caption { left: 20px; }
+  body.nosic-homepage .ez-section-grid { gap: 36px; }
+  body.nosic-homepage .section { padding-block: 64px; }
+}
+@media (max-width: 640px) {
+  body.nosic-homepage .ez-nav-inner { min-height: 74px; }
+  body.nosic-homepage .ez-brand-logo { width: 125px; }
+  body.nosic-homepage .ez-hero-title { font-size: 2.65rem; }
+  html[lang="th"] body.nosic-homepage .ez-hero-title { font-size: 2.45rem; }
+  .ez-hero-visual { min-height: 340px; aspect-ratio: 1.1; }
+  .ez-photo-caption { left: 12px; right: 12px; bottom: 12px; padding: 14px; gap: 10px; }
+  .ez-photo-caption strong { font-size: 12px; }
+  .ez-photo-caption div > span { font-size: 10px; }
+  body.nosic-homepage #how-it-works .ez-service-grid { grid-template-columns: 1fr; }
+  body.nosic-homepage .ez-section-title { font-size: 1.9rem; }
+  body.nosic-homepage .bg-cta { padding: 28px; border-radius: 12px; }
+  body.nosic-homepage .ez-cta-copy h2 { font-size: 26px; }
+  body.nosic-homepage .ez-cta-photograph { height: 220px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body.nosic-homepage { scroll-behavior: auto; }
+  body.nosic-homepage *, body.nosic-homepage *::before, body.nosic-homepage *::after { animation: none !important; transition: none !important; }
+}

@@ -36,7 +36,7 @@ export function SheetMenu() {
             <SheetContent className="sm:w-72 px-3 h-full flex flex-col" side="left">
                 <SheetHeader>
                     <Link href="/dashboard" className="flex gap-2 items-center     ">
-                        <Image src="/images/brand/new-logo-transparent.png" alt="EZQueue" width={32} height={32} className="h-8 w-8" />
+                        <Image src="/images/brand/ezqueue-mark.png" alt="EZQueue" width={32} height={32} className="h-8 w-8" />
                         <h1 className="text-xl font-semibold text-default-900 ">
                             EZQueue
                         </h1>

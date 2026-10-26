@@ -113,7 +113,6 @@ const SettingShopPage = () => {
       
       if (selectedShopType) formData.append("TypeId", selectedShopType);
 
-      // TODO: Connect with actual update API when ready
       await http.put("updateshop", formData);
       window.location.reload(); // Refresh to show new data
     } finally {

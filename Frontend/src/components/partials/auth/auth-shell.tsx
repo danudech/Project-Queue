@@ -37,54 +37,46 @@ const AuthShell = async ({
     : { eyebrow, title, subtitle };
 
   return (
-    <main className="h-dvh w-full overflow-hidden bg-white text-slate-950">
+    <main className="ez-auth h-dvh w-full overflow-hidden bg-white text-slate-950">
       <div className="grid h-full w-full lg:grid-cols-[minmax(0,1.1fr)_minmax(480px,0.9fr)]">
-        <section className="relative hidden h-dvh min-w-0 flex-col overflow-hidden bg-[#f2f8f5] lg:flex">
-          <header className="flex shrink-0 items-start justify-between px-[6vw] pt-[5vh]">
-            <Link href="/" aria-label="EZQueue home" className="inline-flex">
-              <span className="block [&_img]:!w-[82px] [&_img]:!max-w-[82px]">
+        <section className="relative hidden h-dvh min-w-0 flex-col overflow-hidden bg-[#214c3c] lg:flex">
+          <Image src="/images/editorial/studio.webp" alt={t("loginVisual.imageAlt")} fill preload sizes="55vw" className="object-cover object-center" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#102e25] via-[#102e25]/50 to-[#102e25]/10" />
+          <header className="relative z-10 flex shrink-0 items-start justify-between px-[4vw] pt-[5vh]">
+            <Link href="/" aria-label="EZQueue home" className="inline-flex rounded-xl bg-white/95 px-4 py-3 shadow-sm">
+              <span className="block [&_img]:!w-[132px] [&_img]:!max-w-[132px]">
                 <Logo />
               </span>
             </Link>
-            <span className="mt-2 inline-flex items-center gap-2 text-xs font-medium text-emerald-800">
-              <span className="h-2 w-2 rounded-full bg-emerald-500" />
+            <span className="mt-3 inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3 py-2 text-xs font-medium text-white backdrop-blur-md">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#d9e9bc]" />
               {t("loginVisual.badge")}
             </span>
           </header>
 
-          <div className="z-10 shrink-0 px-[5vw] pt-[4.5vh]">
-            <p className="text-xs font-semibold uppercase text-emerald-700">
+          <div className="relative z-10 mt-auto shrink-0 px-[5vw] pb-[8vh] pt-12">
+            <p className="text-xs font-medium tracking-widest text-[#d4dfbd]">
               {t("loginVisual.eyebrow")}
             </p>
             <h1
-              className={`mt-3 max-w-[760px] text-[clamp(2.25rem,2.8vw,3.25rem)] leading-[1.14] tracking-normal ${
+              className={`mt-4 max-w-[650px] text-[clamp(2.25rem,2.8vw,3.25rem)] leading-[1.2] tracking-normal text-white ${
                 isThai ? "font-medium" : "font-semibold"
               }`}
             >
               {t("loginVisual.title")}
             </h1>
-            <p className="mt-4 max-w-[560px] text-[15px] leading-7 text-slate-600">
+            <p className="mt-5 max-w-[470px] text-[15px] leading-8 text-white/75">
               {t("loginVisual.description")}
             </p>
           </div>
 
-          <div className="relative min-h-0 flex-1">
-            <Image
-              src="/images/auth/queue-workspace-hero-transparent.png"
-              alt={t("loginVisual.imageAlt")}
-              fill
-              priority
-              sizes="60vw"
-              className="object-contain object-bottom"
-            />
-          </div>
         </section>
 
-        <section className="h-dvh min-w-0 overflow-y-auto bg-white">
+        <section className="h-dvh min-w-0 overflow-y-auto bg-[#fcfdfb]">
           <div className="flex min-h-full flex-col">
             <header className="flex h-20 shrink-0 items-center justify-between px-6 sm:px-10 lg:justify-end">
               <Link href="/" className="lg:hidden" aria-label="EZQueue home">
-                <span className="block [&_img]:!w-[60px] [&_img]:!max-w-[60px]">
+                <span className="block [&_img]:!w-[120px] [&_img]:!max-w-[120px]">
                   <Logo />
                 </span>
               </Link>

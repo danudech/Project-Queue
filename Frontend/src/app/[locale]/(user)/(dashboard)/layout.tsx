@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { metadataBase } from "@/config/metadata";
 import ThemeCustomize from "@/components/partials/customizer";
 import DashCodeFooter from "@/components/partials/footer";
 import DashCodeHeader from "@/components/partials/header";
@@ -11,7 +12,7 @@ import { StoreSyncProvider } from "@/components/providers/store-sync-provider";
 import DashboardAccessGate from "@/components/permissions/dashboard-access-gate";
 
 export const metadata: Metadata = {
-    metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3103"),
+    metadataBase,
     title: "EZQueue User Dashboard",
     description: "Manage queues, bookings, staff, and branch operations with EZQueue.",
 };
@@ -25,7 +26,7 @@ export default function DashboardLayout({ children }: any) {
                     <DashCodeHeader />
                     <DashCodeSidebar />
                     <LayoutContentProvider>
-                        <div>
+                        <div className="ez-dashboard">
                             <SiteBreadcrumb />
                             <DashboardAccessGate>{children}</DashboardAccessGate>
                         </div>

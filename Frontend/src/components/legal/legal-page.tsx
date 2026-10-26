@@ -23,7 +23,7 @@ export default function LegalPage({
         <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 sm:px-8 lg:px-10">
           <NextLink href="/" className="flex items-center gap-3">
             <Image
-              src="/images/brand/new-logo-transparent.png"
+              src="/images/brand/ezqueue-mark.png"
               alt="EZQueue"
               width={42}
               height={42}

@@ -20,7 +20,7 @@ export default function RouteLoadingScreen({
         <div className="route-loading__mark">
           <span className="route-loading__ring" aria-hidden="true" />
           <Image
-            src="/images/brand/new-logo-transparent.png"
+            src="/images/brand/ezqueue-mark.png"
             alt=""
             width={72}
             height={72}

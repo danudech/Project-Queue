@@ -20,12 +20,15 @@ export const dashboardRoutePermissions: Array<{
   prefix: string;
   permission?: string;
 }> = [
+  { prefix: "/analytics", permission: "shop.view" },
+  { prefix: "/system", permission: "shop.view" },
   { prefix: "/setting/role", permission: "role.assign" },
   { prefix: "/setting/staff", permission: "staff.view" },
   { prefix: "/setting/shop", permission: "shop.view" },
   { prefix: "/setting/branch", permission: "branch.view" },
   { prefix: "/setting/business-hours", permission: "setting.view" },
   { prefix: "/setting/holiday", permission: "setting.view" },
+  { prefix: "/setting", permission: "shop.view|branch.view|setting.view|staff.view|role.assign" },
   { prefix: "/service", permission: "service.view" },
   { prefix: "/customer", permission: "customer.view" },
   { prefix: "/queue", permission: "queue.view" },
@@ -37,38 +40,19 @@ export const dashboardRoutePermissions: Array<{
 ];
 
 const unavailableDashboardPrefixes = [
-  "/analytics",
-  "/queue/category",
-  "/customer/tag",
   "/payment",
   "/invoice",
   "/subscription",
-  "/system",
-  "/setting",
 ];
 
-const unavailableDashboardPaths = new Set(["/account"]);
+
 
 export function permissionForPath(pathname: string) {
   return accessRuleForPath(pathname)?.permission;
 }
 
 export function accessRuleForPath(pathname: string) {
-  if (unavailableDashboardPaths.has(pathname)) return undefined;
-
-  if (
-    unavailableDashboardPrefixes.some(
-      (prefix) =>
-        pathname === prefix || pathname.startsWith(`${prefix}/`),
-    )
-  ) {
-    const implementedSettingChild = dashboardRoutePermissions.some(
-      (route) =>
-        route.prefix.startsWith("/setting/")
-        && (pathname === route.prefix || pathname.startsWith(`${route.prefix}/`)),
-    );
-    if (!implementedSettingChild) return undefined;
-  }
+  if (unavailableDashboardPrefixes.some(prefix => pathname === prefix || pathname.startsWith(`${prefix}/`))) return undefined;
   return dashboardRoutePermissions.find(
     (route) =>
       pathname === route.prefix || pathname.startsWith(`${route.prefix}/`),

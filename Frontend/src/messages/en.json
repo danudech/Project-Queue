@@ -88,7 +88,7 @@
       "waitTimeValue": "12 min",
       "queueLabel": "Today queues",
       "queueValue": "148",
-      "imageAlt": "Minimal illustration of the EZQueue appointment and queue workspace",
+      "imageAlt": "A warm, welcoming service studio",
       "queueBoard": "Queue board",
       "nowServing": "Now serving",
       "counter": "Counter",
@@ -504,7 +504,15 @@
       "timeSuffix": "AM/PM"
     },
     "calendar": {
-      "daysShort": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+      "daysShort": [
+        "Sun",
+        "Mon",
+        "Tue",
+        "Wed",
+        "Thu",
+        "Fri",
+        "Sat"
+      ]
     },
     "statusChangeSuccess": "Changed status to {status} successfully",
     "loadingData": "Loading data...",
@@ -799,8 +807,8 @@
       "bookingUrl": "Booking URL",
       "copyLink": "Copy booking link",
       "downloadQr": "Download QR code",
-      "openBookingPage": "Open booking page"
-      ,"openShopPage": "Open shop page"
+      "openBookingPage": "Open booking page",
+      "openShopPage": "Open shop page"
     },
     "holiday": {
       "title": "Holiday Settings",
@@ -878,12 +886,34 @@
     }
   },
   "Dashboard": {
-    "title": "Dashboard Overview",
-    "totalCustomers": "Total Customers",
-    "totalBookings": "Total Bookings",
-    "revenue": "Revenue",
-    "recentActivity": "Recent Activity",
-    "noActivity": "No recent activity"
+    "eyebrow": "Today overview",
+    "description": "Today’s queue activity and upcoming appointments.",
+    "fallbackShop": "EZQueue Shop",
+    "newBooking": "New booking",
+    "upcomingQueue": "Upcoming queue",
+    "live": "Live",
+    "todayStatus": "Today’s status",
+    "cancelled": "Cancelled",
+    "noShow": "No-show",
+    "completionRate": "Completion rate",
+    "popularServices": "Popular services",
+    "bookingCount": "{count} bookings",
+    "walkInCustomer": "Walk-in customer",
+    "serviceFallback": "Service",
+    "staffFallback": "Staff not assigned",
+    "noUpcoming": "No upcoming queues today",
+    "noServiceData": "No service activity today",
+    "stats": {
+      "bookings": "Bookings today",
+      "waiting": "Waiting queue",
+      "serving": "Now serving",
+      "completed": "Completed",
+      "customers": "Customers"
+    },
+    "status": {
+      "waiting": "Waiting",
+      "serving": "Serving"
+    }
   },
   "CustomerBooking": {
     "metadata": {
@@ -982,7 +1012,11 @@
         "done": "Completed",
         "cancelled": "Cancelled",
         "no_show": "No show"
-      }
+      },
+      "source": "Source",
+      "booking": "Booking",
+      "walkIn": "Walk-in",
+      "phone": "Phone"
     },
     "myBookings": {
       "title": "My bookings",
@@ -1027,7 +1061,15 @@
       "readyDescription": "Choose a service and reserve your time in a few steps.",
       "notFound": "This shop page is unavailable.",
       "loadError": "Unable to load shop information.",
-      "day": { "0": "Sunday", "1": "Monday", "2": "Tuesday", "3": "Wednesday", "4": "Thursday", "5": "Friday", "6": "Saturday" }
+      "day": {
+        "0": "Sunday",
+        "1": "Monday",
+        "2": "Tuesday",
+        "3": "Wednesday",
+        "4": "Thursday",
+        "5": "Friday",
+        "6": "Saturday"
+      }
     }
   },
   "HolidaySettings": {
@@ -1578,36 +1620,6 @@
       }
     }
   },
-  "Dashboard": {
-    "eyebrow": "Today overview",
-      "description": "Today’s queue activity and upcoming appointments.",
-    "fallbackShop": "EZQueue Shop",
-      "newBooking": "New booking",
-      "upcomingQueue": "Upcoming queue",
-      "live": "Live",
-      "todayStatus": "Today’s status",
-      "cancelled": "Cancelled",
-      "noShow": "No-show",
-      "completionRate": "Completion rate",
-      "popularServices": "Popular services",
-      "bookingCount": "{count} bookings",
-      "walkInCustomer": "Walk-in customer",
-      "serviceFallback": "Service",
-      "staffFallback": "Staff not assigned",
-      "noUpcoming": "No upcoming queues today",
-      "noServiceData": "No service activity today",
-      "stats": {
-        "bookings": "Bookings today",
-        "waiting": "Waiting queue",
-        "serving": "Now serving",
-        "completed": "Completed",
-        "customers": "Customers"
-      },
-      "status": {
-        "waiting": "Waiting",
-        "serving": "Serving"
-      }
-  },
   "BusinessHoursSettings": {
     "eyebrow": "Shop settings",
     "title": "Business hours & queue rules",
@@ -1629,8 +1641,24 @@
     "serviceBuffer": "Buffer between services (minutes)",
     "savingRules": "Saving rules...",
     "saveRules": "Save rules",
-    "days": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-    "shortDays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    "days": [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday"
+    ],
+    "shortDays": [
+      "Sun",
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri",
+      "Sat"
+    ],
     "messages": {
       "hoursSaved": "Business hours updated successfully!",
       "hoursError": "Failed to update business hours",

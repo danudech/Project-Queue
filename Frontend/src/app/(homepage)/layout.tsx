@@ -5,7 +5,7 @@ import "./globals.css";
 import { getHomepageLocale } from "./i18n";
 import RouteLoadingProvider from "@/providers/route-loading.provider";
 import "@/styles/route-loading.css";
-import { env } from "@/config/env";
+import { metadataBase } from "@/config/metadata";
 
 const justSans = localFont({
   variable: "--font-ez-latin",
@@ -67,7 +67,7 @@ const ibmPlexSansThai = localFont({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(env.appBaseUrl || "http://localhost:3103"),
+  metadataBase,
   title: "EZQueue | Queue and Booking Platform",
   description:
     "EZQueue is the ultimate queue management, booking, CRM, and shop operations platform for modern businesses. Fast, secure, and easy to use.",

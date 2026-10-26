@@ -28,21 +28,17 @@ export function DashboardStatCard({
   tone = "primary",
 }: DashboardStatCardProps) {
   return (
-    <Card>
-      <CardContent className="flex min-h-28 items-center gap-4 p-5">
+    <Card className="transition-shadow duration-200 hover:shadow-md">
+      <CardContent className="flex min-h-32 items-start justify-between gap-4 p-5 sm:p-6">
+        <div className="min-w-0">
+          <p className="text-xs font-medium leading-5 text-muted-foreground">{label}</p>
+          <p className="mt-3 text-3xl font-medium tabular-nums tracking-tight text-default-900">{value}</p>
+          {helper ? <p className="mt-2 text-xs leading-5 text-muted-foreground">{helper}</p> : null}
+        </div>
         <div
-          className={`grid size-11 shrink-0 place-items-center rounded-full ${toneClasses[tone]}`}
+          className={`grid size-10 shrink-0 place-items-center rounded-xl ${toneClasses[tone]}`}
         >
           <Icon className="size-5" />
-        </div>
-        <div className="min-w-0">
-          <p className="text-sm text-muted-foreground">{label}</p>
-          <p className="mt-0.5 text-2xl font-medium text-default-900">{value}</p>
-          {helper ? (
-            <p className="mt-0.5 truncate text-xs text-muted-foreground">
-              {helper}
-            </p>
-          ) : null}
         </div>
       </CardContent>
     </Card>

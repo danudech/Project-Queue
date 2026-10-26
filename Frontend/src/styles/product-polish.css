@@ -1,0 +1,14 @@
+.ez-dashboard { width: 100%; max-width: 1600px; margin-inline: auto; }
+.ez-auth { --primary: 155 41% 22%; --ring: 155 41% 22%; }
+.ez-dashboard table { border-collapse: collapse; }
+.ez-dashboard table thead { font-size: 12px; color: hsl(var(--muted-foreground)); }
+.ez-dashboard table thead th { font-weight: 500; padding-block: 14px; }
+.ez-dashboard table tbody tr { transition: background-color .15s ease; }
+.ez-dashboard table tbody tr:hover { background-color: hsl(var(--primary) / .035); }
+.ez-dashboard table tbody td { padding-block: 16px; }
+.ez-dashboard select { border-color: hsl(var(--border)); border-radius: 8px; font-size: 13px; }
+.ez-dashboard button, .ez-dashboard a { -webkit-tap-highlight-color: transparent; }
+.ez-dashboard :is(button, a, input, select, textarea):focus-visible { outline: 2px solid hsl(var(--primary) / .65); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) {
+  .ez-dashboard *, .ez-dashboard *::before, .ez-dashboard *::after { transition: none !important; }
+}

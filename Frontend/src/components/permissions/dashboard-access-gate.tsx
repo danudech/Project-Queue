@@ -7,6 +7,7 @@ import RouteLoadingScreen from "@/components/route-loading-screen";
 import { Card, CardContent } from "@/components/ui/card";
 import { usePermissions } from "@/hooks/use-permissions";
 import { accessRuleForPath } from "@/lib/permissions";
+import { useShop } from "@/hooks/use-me";
 
 export default function DashboardAccessGate({
   children,
@@ -15,12 +16,14 @@ export default function DashboardAccessGate({
 }) {
   const t = useTranslations("AccessControl");
   const pathname = usePathname();
-  const { isLoading, isError, can } = usePermissions();
+  const { isLoading, isError, can, data: profile } = usePermissions();
+  const shop = useShop();
+  const ownerOnly = pathname === "/system" || pathname.startsWith("/system/") || pathname === "/analytics";
   const accessRule = accessRuleForPath(pathname);
   const requiredPermission = accessRule?.permission;
 
-  if (isLoading) return <RouteLoadingScreen />;
-  if (!isError && accessRule && can(requiredPermission)) return children;
+  if (isLoading || (ownerOnly && shop.isLoading)) return <RouteLoadingScreen />;
+  if (!isError && accessRule && can(requiredPermission) && (!ownerOnly || (shop.data?.ownerId === profile?.id && !!profile))) return children;
 
   return (
     <Card>

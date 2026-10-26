@@ -1,11 +1,12 @@
 import { getTranslations } from "next-intl/server";
+import { metadataBase } from "@/config/metadata";
 
 export async function generateMetadata() {
   const t = await getTranslations("CustomerBooking.bookService");
   const title = t("metadataTitle");
   const description = t("metadataDescription");
   return {
-    metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3103"),
+    metadataBase,
     title,
     description,
     openGraph: { title, description },

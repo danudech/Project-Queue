@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using Microsoft.AspNetCore.RateLimiting;
@@ -150,11 +149,7 @@ builder.Services.AddCors(opt =>
 });
 #region SQL
 builder.Services.AddDbContext<QueueDbContext>(options => options
-    .UseSqlServer(builder.Configuration.GetConnectionString("Default"))
-    // The project keeps a squashed baseline migration plus additive deployment
-    // migrations. Do not block applying an additive migration when the snapshot
-    // is intentionally behind the runtime model.
-    .ConfigureWarnings(warnings => warnings.Ignore(RelationalEventId.PendingModelChangesWarning)));
+    .UseSqlServer(builder.Configuration.GetConnectionString("Default")));
 #endregion
 #region Services
 builder.Services.AddSingleton<ReadJwtConfig>();
@@ -177,6 +172,7 @@ builder.Services.AddScoped<IPublicBooking, PublicBooking>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IRoleManagement, RoleManagement>();
+builder.Services.AddScoped<IShopWorkspace, ShopWorkspace>();
 #endregion
 
 var app = builder.Build();

@@ -15,11 +15,12 @@ const Feature = ({ copy }: FeatureProps) => {
         <div className="ez-section-grid">
           <div>
             <Image
-              src="/images/homepage/ezqueue-features-generated.png"
+              src="/images/editorial/booking.webp"
               alt={copy.imageAlt}
-              className="rounded-4 ez-section-image"
-              height={512}
-              width={512}
+              className="ez-section-image ez-editorial-photo"
+              height={640}
+              width={768}
+              sizes="(max-width: 991px) 100vw, 45vw"
             />
           </div>
 

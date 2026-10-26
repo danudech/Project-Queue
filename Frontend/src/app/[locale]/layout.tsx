@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import "./theme.css";
+import "@/styles/product-polish.css";
 import { ThemeProvider } from "@/providers/theme-provider";
 import MountedProvider from "@/providers/mounted.provider";
 import { Toaster } from "@/components/ui/toaster";
@@ -71,10 +72,10 @@ import { getMessages, setRequestLocale } from "next-intl/server";
 import DirectionProvider from "@/providers/direction-provider";
 import RouteLoadingProvider from "@/providers/route-loading.provider";
 import "@/styles/route-loading.css";
-import { env } from "@/config/env";
+import { metadataBase } from "@/config/metadata";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(env.appBaseUrl || "http://localhost:3103"),
+  metadataBase,
   title: "EZQueue User Dashboard",
   description: "EZQueue queue, booking, and shop operation dashboard.",
   icons: {

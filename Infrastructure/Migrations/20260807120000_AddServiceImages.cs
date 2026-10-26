@@ -1,9 +1,13 @@
 using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Queue.Infrastructure.Persistence;
 
 #nullable disable
 
 namespace Queue.Infrastructure.Migrations;
 
+[DbContext(typeof(QueueDbContext))]
+[Migration("20260807120000_AddServiceImages")]
 public partial class AddServiceImages : Migration
 {
     protected override void Up(MigrationBuilder migrationBuilder)

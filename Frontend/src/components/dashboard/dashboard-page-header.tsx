@@ -14,14 +14,14 @@ export function DashboardPageHeader({
   actions,
 }: DashboardPageHeaderProps) {
   return (
-    <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
+    <div className="flex flex-col justify-between gap-5 border-b border-default-200/70 pb-6 lg:flex-row lg:items-center dark:border-default-200">
       <div className="min-w-0">
         {eyebrow ? (
-          <div className="mb-1 text-sm font-medium text-primary">{eyebrow}</div>
+          <div className="mb-2 inline-flex items-center gap-2 text-xs font-medium text-primary"><span className="size-1.5 rounded-full bg-primary" aria-hidden="true" />{eyebrow}</div>
         ) : null}
-        <h1 className="text-2xl font-medium text-default-900">{title}</h1>
+        <h1 className="text-2xl font-medium tracking-tight text-default-900">{title}</h1>
         {description ? (
-          <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
             {description}
           </p>
         ) : null}

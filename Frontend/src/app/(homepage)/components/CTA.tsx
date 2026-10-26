@@ -22,9 +22,9 @@ const CTA = ({ locale, copy, actions }: CTAProps) => {
             </div>
             <div className="cta-img">
               <Image
-                src="/images/homepage/nosic-cta.png"
+                src="/images/editorial/reception.webp"
                 alt={copy.imageAlt}
-                className="shadow"
+                className="ez-cta-photograph"
                 width={715}
                 height={344}
               />
