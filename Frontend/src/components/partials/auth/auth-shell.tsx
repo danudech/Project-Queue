@@ -43,10 +43,8 @@ const AuthShell = async ({
           <Image src="/images/editorial/studio.webp" alt={t("loginVisual.imageAlt")} fill preload sizes="55vw" className="object-cover object-center" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#102e25] via-[#102e25]/50 to-[#102e25]/10" />
           <header className="relative z-10 flex shrink-0 items-start justify-between px-[4vw] pt-[5vh]">
-            <Link href="/" aria-label="EZQueue home" className="inline-flex rounded-xl bg-white/95 px-4 py-3 shadow-sm">
-              <span className="block [&_img]:!w-[132px] [&_img]:!max-w-[132px]">
-                <Logo />
-              </span>
+            <Link href="/" aria-label="EZQueue home" className="inline-flex rounded-xl p-1 transition hover:bg-black/10">
+              <Logo onDark />
             </Link>
             <span className="mt-3 inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3 py-2 text-xs font-medium text-white backdrop-blur-md">
               <span className="h-1.5 w-1.5 rounded-full bg-[#d9e9bc]" />
@@ -76,9 +74,7 @@ const AuthShell = async ({
           <div className="flex min-h-full flex-col">
             <header className="flex h-20 shrink-0 items-center justify-between px-6 sm:px-10 lg:justify-end">
               <Link href="/" className="lg:hidden" aria-label="EZQueue home">
-                <span className="block [&_img]:!w-[120px] [&_img]:!max-w-[120px]">
-                  <Logo />
-                </span>
+                <Logo />
               </Link>
               <LocalSwitcher />
             </header>

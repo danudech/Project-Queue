@@ -21,6 +21,14 @@ export interface PublicBookingSlot {
   remaining: number;
 }
 
+export interface PublicBookingBranchSummary {
+  publicId: string;
+  name: string;
+  phone?: string | null;
+  address?: string | null;
+  isCurrent: boolean;
+}
+
 export interface PublicBookingPage {
   shopSlug: string;
   shopName: string;
@@ -37,6 +45,7 @@ export interface PublicBookingPage {
   branchPhone: string;
   branchAddress: string;
   isOnlineBookingEnabled: boolean;
+  branches: PublicBookingBranchSummary[];
   services: PublicBookingService[];
   staff: PublicBookingStaff[];
   slots: PublicBookingSlot[];
@@ -81,6 +90,7 @@ export interface PublicBookingManagement {
   date: string;
   startTime: string;
   customerName: string;
+  customerPhone: string;
   customerEmail?: string | null;
   staffName?: string | null;
   status: string;

@@ -358,3 +358,9 @@ A separate cross-tenant Platform Admin frontend prototype now exists under `/[lo
 
 This is **not production authorization**: the prototype uses an isolated four-hour `PlatformAdminMock` cookie from `/[locale]/admin-access`; `system.admin` is not enforced and no real admin account/API was added. See `PLATFORM_ADMIN_MOCK.md` for mock credentials, route ownership, security boundaries, and the production implementation checklist. Payment, invoice, and subscription administration remain out of scope.
 
+## Brand asset normalization (2026-10-26)
+
+The homepage, authentication, dashboard, legal pages, route loader, and Platform Admin now share the same EZQueue wordmark/mark. Browser icons were regenerated from that mark as a valid multi-size ICO plus Apple and installable PNG sizes. Asset ownership and intended usage are documented in `Frontend/public/images/brand/BRAND_ASSETS.md`.
+
+Brand rendering is now centralized: `Frontend/src/config/brand.ts` owns the name and all asset paths, while `Frontend/src/components/brand-logo.tsx` owns compact/full and light/dark rendering. Homepage, Auth, Dashboard, responsive menus, Legal, Loading, and Platform Admin consume these shared sources. No page-level source file should reference a brand image path directly.
+

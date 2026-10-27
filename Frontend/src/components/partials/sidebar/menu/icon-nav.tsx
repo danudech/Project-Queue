@@ -1,8 +1,8 @@
 'use client'
-import Image from 'next/image';
 import React from 'react'
+import { BrandLogo } from '@/components/brand-logo';
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Group, Submenu } from '@/lib/menus';
+import { Group } from '@/lib/menus';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import {
@@ -21,22 +21,22 @@ interface IconNavProps {
 }
 const IconNav = ({ menuList }: IconNavProps) => {
 
-    const [config, setConfig] = useConfig();
+    const [, setConfig] = useConfig();
 
 
     return (
         <div className=' h-full bg-sidebar  border-r border-default-200 dark:border-secondary border-dashed w-[72px]'>
             <div className="text-center py-5">
                 <Link href="/dashboard">
-                    <Image src="/images/brand/ezqueue-mark.png" alt="EZQueue" width={32} height={32} className="h-8 w-8 mx-auto" />
+                    <BrandLogo compact symbolClassName="size-8" />
                 </Link>
             </div>
             <ScrollArea className="[&>div>div[style]]:!block h-full">
                 <nav className="mt-8 h-full w-full ">
                     <ul className=" h-full flex flex-col min-h-[calc(100vh-48px-36px-16px-32px)] lg:min-h-[calc(100vh-32px-40px-32px)] items-start space-y-2 ">
-                        {menuList?.map(({ groupLabel, menus }, index) => (
+                        {menuList?.map(({ menus }, index) => (
                             <li key={index} className=' block w-full'>
-                                {menus?.map(({ href, label, icon, active, id, submenus }, menuIndex) => (
+                                {menus?.map(({ href, label, icon, active, submenus }, menuIndex) => (
 
                                     <TooltipProvider disableHoverableContent key={menuIndex}>
                                         <Tooltip delayDuration={100}>

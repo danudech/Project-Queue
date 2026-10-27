@@ -73,6 +73,12 @@ export default function ProfilePage() {
     );
   }
 
+  const avatarSrc = previewUrl || (profile?.profilePictureUrl
+    ? (profile.profilePictureUrl.startsWith('http://') || profile.profilePictureUrl.startsWith('https://')
+        ? profile.profilePictureUrl
+        : `${(process.env.NEXT_PUBLIC_API_BASE_URL || '').replace(/\/$/, '')}/${profile.profilePictureUrl.replace(/^\//, '')}`)
+    : '');
+
   return (
     <div className="container mx-auto py-10 px-4 max-w-3xl animate-in fade-in zoom-in-95 duration-500">
       <div className="mb-8">
@@ -97,7 +103,7 @@ export default function ProfilePage() {
               <div className="relative group z-10">
                 <Avatar className="h-32 w-32 border-4 border-card shadow-xl bg-card transition-transform duration-300 group-hover:scale-105">
                   <AvatarImage 
-                    src={previewUrl || (profile?.profilePictureUrl ? `${process.env.NEXT_PUBLIC_API_BASE_URL || ''}${profile.profilePictureUrl}` : '')} 
+                    src={avatarSrc} 
                     alt={profile?.name} 
                     className="object-cover"
                   />

@@ -1,7 +1,7 @@
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { localePath, type HomepageCopy, type HomepageLocale } from "../i18n";
+import { BrandLogo } from "@/components/brand-logo";
 
 type FooterProps = {
   copy: HomepageCopy["footer"];
@@ -21,7 +21,7 @@ const Footer = ({ copy, locale }: FooterProps) => {
           <div className="ez-footer-grid">
             <div className="footer-brand">
               <Link href="#home" className="footer-logo">
-                <Image src="/images/brand/ezqueue-logo.png" alt="EZQueue" width={150} height={47} />
+                <BrandLogo symbolClassName="size-11" />
               </Link>
               <h3>{copy.title}</h3>
               <p>{copy.description}</p>

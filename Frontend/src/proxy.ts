@@ -2,7 +2,7 @@ import createMiddleware from "next-intl/middleware";
 import { NextRequest, NextResponse } from "next/server";
 import { locales } from "./config";
 
-import { isExpired } from "./utils/token";
+import { isExpired } from "./lib/token";
 import { ADMIN_MOCK_COOKIE, ADMIN_MOCK_COOKIE_VALUE } from "./config/admin-mock";
 
 const handleI18nRouting = createMiddleware({
@@ -10,7 +10,7 @@ const handleI18nRouting = createMiddleware({
   defaultLocale: "en",
 });
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
   if (pathname === "/") {
@@ -35,7 +35,11 @@ export function middleware(request: NextRequest) {
 
   if (["/payment", "/invoice", "/subscription"].some(
     prefix => pathWithoutLocale === prefix || pathWithoutLocale.startsWith(`${prefix}/`),
-  )) return new NextResponse(null, { status: 404 });
+  )) {
+    const url = request.nextUrl.clone();
+    url.pathname = `/${maybeLocale}/dashboard`;
+    return NextResponse.redirect(url);
+  }
 
   const token = request.cookies.get("access_token")?.value;
   const expUtc = request.cookies.get("access_expires_at_utc")?.value;

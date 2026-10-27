@@ -976,7 +976,11 @@
       "bookingReference": "Booking reference",
       "manageBooking": "View or cancel booking",
       "latestBooking": "Latest booking",
-      "myBookings": "My bookings"
+      "myBookings": "My bookings",
+      "branch": "Branch",
+      "selectBranch": "Select Branch",
+      "changeBranch": "Change Branch",
+      "allBranches": "All Branches"
     },
     "manage": {
       "eyebrow": "Your booking",
@@ -1069,7 +1073,10 @@
         "4": "Thursday",
         "5": "Friday",
         "6": "Saturday"
-      }
+      },
+      "selectBranch": "Select Branch",
+      "changeBranch": "Change Branch",
+      "allBranches": "All Branches"
     }
   },
   "HolidaySettings": {

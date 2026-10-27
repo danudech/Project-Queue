@@ -18,6 +18,15 @@ public sealed class PublicBookingController : ControllerBase
     public PublicBookingController(IPublicBooking publicBooking) =>
         _publicBooking = publicBooking;
 
+    [HttpGet("~/api/v1/public/booking/{shopSlug}")]
+    [EnableRateLimiting("public-booking-read")]
+    public Task<ActionResult<ApiResponse<PublicBookingPageResponse>>> GetDefault(
+        string shopSlug,
+        [FromQuery] int? serviceId,
+        [FromQuery] DateTime? date,
+        CancellationToken ct) =>
+        Execute(() => _publicBooking.GetDefaultPageAsync(shopSlug, serviceId, date, ct));
+
     [HttpGet]
     [EnableRateLimiting("public-booking-read")]
     public Task<ActionResult<ApiResponse<PublicBookingPageResponse>>> Get(

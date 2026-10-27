@@ -74,7 +74,7 @@ public sealed class Operations : IOperations
             .Include(s => s.ServiceCategoryMaps).Include(s => s.ServiceStaffMaps)
             .OrderBy(s => s.Name).Select(s => new ShopServiceResponse
             {
-                Id = s.Id, Name = s.Name, ShopId = s.ShopId, BranchId = s.BranchId,
+                Id = s.Id, Name = s.Name, ImageUrl = s.ImageUrl, ShopId = s.ShopId, BranchId = s.BranchId,
                 ShopName = s.Shop.Name ?? string.Empty, Duration = s.Duration, Price = s.Price,
                 CategoryId = s.ServiceCategoryMaps.Select(m => m.CategoryId).FirstOrDefault(),
                 IsActive = s.IsActive, StaffSelectionMode = s.StaffSelectionMode,

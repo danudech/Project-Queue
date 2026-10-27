@@ -74,6 +74,25 @@ public sealed class PublicBooking : IPublicBooking
         string? description = GetSetting(branch, "Description");
         string? email = GetSetting(branch, "Email");
 
+        List<PublicBookingBranchSummaryResponse> branches = await _db.ShopBranches.AsNoTracking()
+            .Include(b => b.Address)
+                .ThenInclude(a => a.Subdistrict)
+            .Include(b => b.Address)
+                .ThenInclude(a => a.District)
+            .Include(b => b.Address)
+                .ThenInclude(a => a.Province)
+            .Where(b => b.ShopId == branch.ShopId && b.IsActive && b.IsOnlineBookingEnabled)
+            .OrderBy(b => b.Id)
+            .Select(b => new PublicBookingBranchSummaryResponse
+            {
+                PublicId = b.PublicBookingId,
+                Name = b.Name,
+                Phone = b.Phone,
+                Address = b.Address != null ? FormatAddress(b.Address) : string.Empty,
+                IsCurrent = b.Id == branch.Id
+            })
+            .ToListAsync(ct);
+
         return new PublicBookingPageResponse
         {
             ShopSlug = branch.Shop.PublicSlug,
@@ -91,6 +110,7 @@ public sealed class PublicBooking : IPublicBooking
             BranchPhone = branch.Phone,
             BranchAddress = FormatAddress(branch.Address),
             IsOnlineBookingEnabled = branch.IsOnlineBookingEnabled,
+            Branches = branches,
             Services = catalog.Select(service => new PublicBookingServiceResponse
             {
                 Id = service.Id,
@@ -119,6 +139,24 @@ public sealed class PublicBooking : IPublicBooking
                     IsActive = hour.IsActive
                 }).ToList()
         };
+    }
+
+    public async Task<PublicBookingPageResponse> GetDefaultPageAsync(
+        string shopSlug,
+        int? serviceId,
+        DateTime? date,
+        CancellationToken ct)
+    {
+        var branch = await _db.ShopBranches.AsNoTracking()
+            .Where(b => b.Shop.PublicSlug == shopSlug
+                && b.IsActive
+                && b.Shop.IsActive
+                && b.IsOnlineBookingEnabled)
+            .OrderBy(b => b.Id)
+            .FirstOrDefaultAsync(ct)
+            ?? throw new KeyNotFoundException("No active booking branch found for this shop.");
+
+        return await GetPageAsync(shopSlug, branch.PublicBookingId, serviceId, date, ct);
     }
 
     public async Task<PublicBookingConfirmationResponse> CreateAsync(

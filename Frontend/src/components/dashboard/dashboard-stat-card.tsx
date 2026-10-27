@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
-type Tone = "primary" | "success" | "warning" | "info" | "secondary";
+type Tone = "primary" | "success" | "warning" | "info" | "secondary" | "destructive";
 
 const toneClasses: Record<Tone, string> = {
   primary: "bg-primary/10 text-primary",
@@ -10,6 +10,7 @@ const toneClasses: Record<Tone, string> = {
   warning: "bg-warning/10 text-warning",
   info: "bg-info/10 text-info",
   secondary: "bg-default-200 text-default-700",
+  destructive: "bg-destructive/10 text-destructive",
 };
 
 type DashboardStatCardProps = {

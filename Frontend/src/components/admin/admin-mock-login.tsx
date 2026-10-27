@@ -2,9 +2,27 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { BrandLogo } from "@/components/brand-logo";
+import { BRAND } from "@/config/brand";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, Copy, Eye, EyeOff, LockKeyhole } from "lucide-react";
-import { ADMIN_MOCK_EMAIL, ADMIN_MOCK_PASSWORD, ADMIN_MOCK_PERMISSIONS } from "@/config/admin-mock";
+import {
+  ArrowLeft,
+  Check,
+  Copy,
+  Eye,
+  EyeOff,
+  LockKeyhole,
+  ShieldAlert,
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  ADMIN_MOCK_EMAIL,
+  ADMIN_MOCK_PASSWORD,
+  ADMIN_MOCK_PERMISSIONS,
+} from "@/config/admin-mock";
 
 export function AdminMockLogin({ locale }: { locale: string }) {
   const router = useRouter();
@@ -18,7 +36,7 @@ export function AdminMockLogin({ locale }: { locale: string }) {
   const copy = async (value: string, field: "email" | "password") => {
     await navigator.clipboard.writeText(value);
     setCopied(field);
-    window.setTimeout(() => setCopied(null), 1200);
+    window.setTimeout(() => setCopied(null), 1500);
   };
 
   const submit = async (event: React.FormEvent) => {
@@ -32,7 +50,9 @@ export function AdminMockLogin({ locale }: { locale: string }) {
         body: JSON.stringify({ email, password }),
       });
       const result = await response.json();
-      if (!response.ok) throw new Error(result.message || "Unable to start mock session");
+      if (!response.ok) {
+        throw new Error(result.message || "Unable to start mock session");
+      }
       router.replace(`/${locale}/admin`);
       router.refresh();
     } catch (cause) {
@@ -42,26 +62,218 @@ export function AdminMockLogin({ locale }: { locale: string }) {
     }
   };
 
-  return <div className="min-h-screen bg-[#f3f6f4] p-4 text-slate-950 md:p-8">
-    <div className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-6xl overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_30px_100px_rgba(16,37,28,0.14)] lg:grid-cols-[0.9fr_1.1fr]">
-      <section className="relative overflow-hidden bg-[#10251c] p-8 text-white md:p-12">
-        <div className="absolute -right-28 -top-28 size-80 rounded-full border-[60px] border-white/[0.03]" />
-        <div className="relative flex h-full flex-col">
-          <div className="flex items-center gap-3"><span className="grid size-11 place-items-center overflow-hidden rounded-xl bg-white/10"><Image src="/images/brand/ezqueue-mark.png" alt="" width={44} height={44} className="size-11 object-contain" priority /></span><div><strong className="block text-xl">EZQueue</strong><span className="text-xs font-bold tracking-[0.18em] text-emerald-100/60">PLATFORM ADMIN MOCK</span></div></div>
-          <div className="my-auto py-12"><p className="text-xs font-bold tracking-[0.2em] text-[#e1bd76]">DEMONSTRATION ACCESS</p><h1 className="mt-4 max-w-lg text-4xl font-bold leading-tight tracking-tight md:text-5xl">Test the platform boundary before connecting real privileges.</h1><p className="mt-5 max-w-lg leading-7 text-white/60">This session represents a cross-tenant administrator. It contains static data and never changes real shops, users, or settings.</p></div>
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-xs leading-5 text-white/55"><strong className="block text-white/80">Prototype limitation</strong>This login is intentionally isolated from the production identity system and must be removed when real `system.admin` authorization is implemented.</div>
-        </div>
-      </section>
-      <section className="flex items-center p-6 md:p-12 lg:p-16"><div className="w-full"><div className="mb-8"><span className="inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-800"><LockKeyhole className="size-3.5" />Mock credentials</span><h2 className="mt-4 text-3xl font-bold tracking-tight">Platform administrator access</h2><p className="mt-2 text-sm leading-6 text-slate-500">Credentials are prefilled for local UI review.</p></div>
-        <form className="space-y-5" onSubmit={submit}>
-          <label className="block"><span className="mb-2 block text-sm font-semibold">Email</span><span className="relative block"><input type="email" value={email} onChange={event => setEmail(event.target.value)} className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 pr-12 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/10" /><button type="button" onClick={() => void copy(ADMIN_MOCK_EMAIL, "email")} className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-slate-400 hover:bg-white hover:text-emerald-700" aria-label="Copy email">{copied === "email" ? <Check className="size-4" /> : <Copy className="size-4" />}</button></span></label>
-          <label className="block"><span className="mb-2 block text-sm font-semibold">Password</span><span className="relative block"><input type={showPassword ? "text" : "password"} value={password} onChange={event => setPassword(event.target.value)} className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 pr-20 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/10" /><button type="button" onClick={() => setShowPassword(value => !value)} className="absolute right-11 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-slate-400 hover:bg-white" aria-label={showPassword ? "Hide password" : "Show password"}>{showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}</button><button type="button" onClick={() => void copy(ADMIN_MOCK_PASSWORD, "password")} className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-slate-400 hover:bg-white hover:text-emerald-700" aria-label="Copy password">{copied === "password" ? <Check className="size-4" /> : <Copy className="size-4" />}</button></span></label>
-          {error && <p className="rounded-xl bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">{error}</p>}
-          <button disabled={loading} className="flex h-12 w-full items-center justify-center rounded-xl bg-[#173d2d] text-sm font-bold text-white shadow-sm transition hover:bg-[#20563e] disabled:cursor-wait disabled:opacity-60">{loading ? "Starting mock session…" : "Enter Platform Admin mock"}</button>
-        </form>
-        <div className="mt-8 border-t border-slate-200 pt-6"><p className="text-xs font-bold uppercase tracking-wider text-slate-400">Mock role: PlatformAdminMock</p><div className="mt-3 flex flex-wrap gap-2">{ADMIN_MOCK_PERMISSIONS.map(permission => <span key={permission} className="rounded-lg bg-slate-100 px-2.5 py-1.5 font-mono text-[10px] text-slate-600">{permission}</span>)}</div></div>
-      </div></section>
-    </div>
-  </div>;
-}
+  return (
+    <main className="ez-auth min-h-screen w-full bg-default-50 text-default-900 font-sans">
+        <div className="grid min-h-screen w-full lg:grid-cols-[1.1fr_0.9fr]">
+          {/* Left Column: Visual Editorial Hero */}
+          <section className="relative hidden min-h-screen flex-col justify-between overflow-hidden bg-[#102e25] p-10 lg:flex xl:p-14 text-white">
+            <Image
+              src="/images/editorial/studio.webp"
+              alt="EZQueue Studio"
+              fill
+              priority
+              className="object-cover object-center opacity-30 mix-blend-overlay"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0a1e18] via-[#0f2e24]/70 to-[#0a1e18]/40" />
 
+            {/* Top Brand Bar */}
+            <div className="relative z-10 flex items-center justify-between">
+              <Link href="/" className="flex items-center gap-3">
+                <BrandLogo compact onDark symbolClassName="size-10" />
+                <div>
+                  <strong className="block text-lg font-bold tracking-tight text-white">
+                    {BRAND.name}
+                  </strong>
+                  <span className="text-[11px] font-semibold tracking-wider text-emerald-200/70 uppercase">
+                    Platform Control
+                  </span>
+                </div>
+              </Link>
+              <Badge
+                color="primary"
+                className="border border-emerald-400/30 bg-emerald-900/60 px-3 py-1 text-xs font-semibold text-emerald-200 backdrop-blur-md"
+              >
+                Mock Sandbox
+              </Badge>
+            </div>
+
+            {/* Hero Copy */}
+            <div className="relative z-10 my-auto py-12 max-w-xl">
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#e1bd76]">
+                PLATFORM ADMINISTRATION
+              </p>
+              <h1 className="mt-3 text-3xl font-semibold tracking-tight text-white sm:text-4xl lg:text-5xl leading-tight">
+                Inspect cross-tenant operations with confidence.
+              </h1>
+              <p className="mt-4 text-sm leading-relaxed text-white/70 max-w-lg">
+                This environment simulates platform-level supervision for multi-tenant shops,
+                global queue workers, and sensitive audit records without risking live production data.
+              </p>
+            </div>
+
+            {/* Prototype Disclaimer Card */}
+            <div className="relative z-10 rounded-2xl border border-white/15 bg-white/5 p-4 text-xs leading-relaxed text-white/70 backdrop-blur-md max-w-xl">
+              <div className="flex items-center gap-2 font-semibold text-white/90">
+                <ShieldAlert className="size-4 text-amber-400" />
+                <span>Security Notice: Demonstration Boundary</span>
+              </div>
+              <p className="mt-1 text-[11px] text-white/60">
+                Mock sessions are isolated from the production identity system. Production deployment requires
+                dedicated cross-tenant policies and multi-factor authorization.
+              </p>
+            </div>
+          </section>
+
+          {/* Right Column: Sign In Form */}
+          <section className="flex min-h-screen flex-col justify-between bg-card p-6 sm:p-10 lg:p-14">
+            {/* Top Navigation */}
+            <div className="flex items-center justify-between">
+              <Link
+                href={`/${locale}/auth/login`}
+                className="inline-flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-default-900 transition-colors"
+              >
+                <ArrowLeft className="size-3.5" />
+                Back to Shop Login
+              </Link>
+              <Badge color="warning" className="text-xs">
+                Local Prototype
+              </Badge>
+            </div>
+
+            {/* Center Form Container */}
+            <div className="mx-auto w-full max-w-md py-8">
+              <div className="mb-6">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 dark:bg-amber-950/40 px-3 py-1 text-xs font-semibold text-amber-800 dark:text-amber-300 ring-1 ring-amber-600/20">
+                  <LockKeyhole className="size-3.5" />
+                  Preconfigured Sandbox Access
+                </span>
+                <h2 className="mt-3 text-2xl font-semibold tracking-tight text-default-900">
+                  Platform Admin Sign In
+                </h2>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Credentials are provided below for immediate UI demonstration.
+                </p>
+              </div>
+
+              {/* Mock Credentials Fast-Copy Card */}
+              <div className="mb-6 rounded-xl border border-default-200 bg-default-50/70 p-3.5 text-xs space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Demo Email:</span>
+                  <div className="flex items-center gap-1.5 font-mono text-default-800">
+                    <span>{ADMIN_MOCK_EMAIL}</span>
+                    <button
+                      type="button"
+                      onClick={() => void copy(ADMIN_MOCK_EMAIL, "email")}
+                      className="rounded p-1 text-muted-foreground hover:bg-default-200 hover:text-default-900"
+                      aria-label="Copy demo email"
+                    >
+                      {copied === "email" ? (
+                        <Check className="size-3.5 text-success" />
+                      ) : (
+                        <Copy className="size-3.5" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between border-t border-default-200/60 pt-2">
+                  <span className="text-muted-foreground">Demo Password:</span>
+                  <div className="flex items-center gap-1.5 font-mono text-default-800">
+                    <span>••••••••</span>
+                    <button
+                      type="button"
+                      onClick={() => void copy(ADMIN_MOCK_PASSWORD, "password")}
+                      className="rounded p-1 text-muted-foreground hover:bg-default-200 hover:text-default-900"
+                      aria-label="Copy demo password"
+                    >
+                      {copied === "password" ? (
+                        <Check className="size-3.5 text-success" />
+                      ) : (
+                        <Copy className="size-3.5" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Login Form */}
+              <form onSubmit={submit} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-default-700 mb-1.5">
+                    Admin Email
+                  </label>
+                  <Input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="h-10 text-sm focus:border-primary"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-default-700 mb-1.5">
+                    Password
+                  </label>
+                  <div className="relative">
+                    <Input
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      className="h-10 text-sm pr-10 focus:border-primary"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-default-900"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {error && (
+                  <p className="rounded-lg bg-destructive/10 p-3 text-xs font-medium text-destructive">
+                    {error}
+                  </p>
+                )}
+
+                <Button
+                  type="submit"
+                  color="primary"
+                  fullWidth
+                  disabled={loading}
+                  className="h-10 text-sm font-semibold shadow-sm"
+                >
+                  {loading ? "Starting sandbox session…" : "Enter Platform Admin Mock"}
+                </Button>
+              </form>
+
+              {/* Permissions Preview */}
+              <div className="mt-6 border-t border-default-200/70 pt-5">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Simulated Mock Permissions ({ADMIN_MOCK_PERMISSIONS.length})
+                </p>
+                <div className="mt-2.5 flex flex-wrap gap-1.5">
+                  {ADMIN_MOCK_PERMISSIONS.map((perm) => (
+                    <span
+                      key={perm}
+                      className="rounded-md bg-default-100 px-2 py-0.5 font-mono text-[10px] text-default-700"
+                    >
+                      {perm}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Footer */}
+            <div className="text-center text-xs text-muted-foreground">
+              {BRAND.name} Multi-Tenant Architecture · Internal Evaluation
+            </div>
+          </section>
+        </div>
+      </main>
+  );
+}

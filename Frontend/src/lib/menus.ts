@@ -47,7 +47,7 @@ export function getMenuList(
           href: "/dashboard",
           label: t("dashboard"),
           active: pathname === "/dashboard",
-          icon: "heroicons-outline:squares-2x2",
+          icon: "solar:widget-5-linear",
           submenus: [],
         },
         {
@@ -55,7 +55,7 @@ export function getMenuList(
           href: "/analytics",
           label: t("analytics"),
           active: pathname.startsWith("/analytics"),
-          icon: "heroicons-outline:chart-bar",
+          icon: "solar:chart-2-linear",
           submenus: [],
         },
       ],
@@ -73,7 +73,7 @@ export function getMenuList(
           href: "/queue/live",
           label: t("queueManagement"),
           active: pathname.startsWith("/queue"),
-          icon: "heroicons-outline:queue-list",
+          icon: "solar:ticket-linear",
           submenus: [
             {
               href: "/queue/live",
@@ -97,7 +97,7 @@ export function getMenuList(
           href: "/booking/list",
           label: t("bookingManagement"),
           active: pathname.startsWith("/booking"),
-          icon: "heroicons-outline:calendar-days",
+          icon: "solar:calendar-date-linear",
           submenus: [
             {
               href: "/booking/list",
@@ -126,7 +126,7 @@ export function getMenuList(
           href: "/service",
           label: t("services"),
           active: pathname.startsWith("/service"),
-          icon: "heroicons-outline:briefcase",
+          icon: "solar:tag-horizontal-linear",
           submenus: [
             {
               href: "/service",
@@ -145,7 +145,7 @@ export function getMenuList(
           href: "/customer",
           label: t("customers"),
           active: pathname.startsWith("/customer"),
-          icon: "heroicons-outline:user-group",
+          icon: "solar:users-group-rounded-linear",
           submenus: [
             {
               href: "/customer",
@@ -174,7 +174,7 @@ export function getMenuList(
           href: "/payment/list",
           label: t("payments"),
           active: pathname.startsWith("/payment"),
-          icon: "heroicons-outline:credit-card",
+          icon: "solar:card-2-linear",
           submenus: [
             {
               href: "/payment/list",
@@ -193,7 +193,7 @@ export function getMenuList(
           href: "/subscription",
           label: t("subscription"),
           active: pathname.startsWith("/subscription") || pathname.startsWith("/invoice"),
-          icon: "heroicons-outline:document-check",
+          icon: "solar:bill-check-linear",
           submenus: [
             {
               href: "/subscription/plan",
@@ -222,7 +222,7 @@ export function getMenuList(
           href: "/notification",
           label: t("notification"),
           active: pathname.startsWith("/notification"),
-          icon: "heroicons-outline:bell",
+          icon: "solar:bell-bing-linear",
           submenus: [],
         },
         {
@@ -230,7 +230,7 @@ export function getMenuList(
           href: "/chat",
           label: t("chat"),
           active: pathname.startsWith("/chat"),
-          icon: "heroicons-outline:chat-bubble-left-right",
+          icon: "solar:chat-round-dots-linear",
           submenus: [],
         },
         {
@@ -238,7 +238,7 @@ export function getMenuList(
           href: "/setting/shop",
           label: t("shopSettings"),
           active: pathname.startsWith("/setting/shop") || pathname.startsWith("/setting/branch") || pathname.startsWith("/setting/business-hours") || pathname.startsWith("/setting/holiday"),
-          icon: "heroicons-outline:building-storefront",
+          icon: "solar:shop-2-linear",
           submenus: [
             {
               href: "/setting/shop",
@@ -267,7 +267,7 @@ export function getMenuList(
           href: "/setting/staff",
           label: t("staffAndRoles"),
           active: pathname.startsWith("/setting/staff") || pathname.startsWith("/setting/role"),
-          icon: "heroicons-outline:users",
+          icon: "solar:user-id-linear",
           submenus: [
             {
               href: "/setting/staff",
@@ -286,7 +286,7 @@ export function getMenuList(
           href: "/system/config",
           label: t("system"),
           active: pathname.startsWith("/system"),
-          icon: "heroicons-outline:cog-8-tooth",
+          icon: "solar:settings-minimalistic-linear",
           submenus: [
             {
               href: "/system/config",

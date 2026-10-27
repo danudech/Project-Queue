@@ -3,7 +3,7 @@ body.nosic-homepage { color: #183d33; background: #fbfcf9; }
 body.nosic-homepage .ez-container { max-width: 1280px; padding-inline: clamp(22px, 4vw, 56px); }
 body.nosic-homepage .navbar.ez-navbar { background: #fbfcf9f2; border-bottom: 1px solid #dfe7de; box-shadow: none; }
 body.nosic-homepage .ez-nav-inner { min-height: 88px; }
-body.nosic-homepage .ez-brand-logo { width: 150px; max-height: 50px; object-fit: contain; }
+body.nosic-homepage .navbar-brand { margin: 0; }
 body.nosic-homepage .nav-link { font-size: 14px; color: #50635b; font-weight: 500; }
 body.nosic-homepage .navbar.ez-navbar .nav-link.active { color: #194b3d !important; background: #ecf1e9; }
 body.nosic-homepage .ez-btn { min-height: 44px; border-radius: 9px; font-size: 14px; font-weight: 600; padding: 11px 20px; box-shadow: none; transition: background .2s, transform .2s; }
@@ -59,7 +59,7 @@ body.nosic-homepage .ez-cta-photograph { height: 280px; width: 100%; object-fit:
 body.nosic-homepage .footer { background: #f0f4eb; border-top: 1px solid #e1e8da; }
 body.nosic-homepage .footer-logo, body.nosic-homepage .footer-links h5 { color: #2d4835; }
 body.nosic-homepage .footer-links h5 { font-size: 13px; font-weight: 600; }
-body.nosic-homepage .footer-logo img { width: 150px; height: auto; }
+body.nosic-homepage .footer-logo { display: inline-flex; text-decoration: none; }
 body.nosic-homepage .footer-links a, body.nosic-homepage .footer-brand p { color: #5e6d59; font-size: 13px; }
 body.nosic-homepage .footer-links a:hover { color: #214c3c; text-decoration: underline; }
 body.nosic-homepage .footer-brand h3 { color: #2d4835; font-size: 22px; font-weight: 500; }
@@ -76,7 +76,6 @@ body.nosic-homepage .footer-copyright { background: #f0f4eb; color: #7e8a77; bor
 }
 @media (max-width: 640px) {
   body.nosic-homepage .ez-nav-inner { min-height: 74px; }
-  body.nosic-homepage .ez-brand-logo { width: 125px; }
   body.nosic-homepage .ez-hero-title { font-size: 2.65rem; }
   html[lang="th"] body.nosic-homepage .ez-hero-title { font-size: 2.45rem; }
   .ez-hero-visual { min-height: 340px; aspect-ratio: 1.1; }

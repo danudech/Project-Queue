@@ -5,17 +5,17 @@ import { useLocale, useTranslations } from "next-intl";
 import { Card } from "@/components/ui/card";
 import { Building2, Loader2, MapPin, Phone, ChevronDown, Check, Store, X, Copy, Download, ExternalLink, QrCode } from "lucide-react";
 import { Icon } from "@/components/ui/icon";
-import Image from "next/image";
 import { useShop } from "@/hooks/use-me";
 import { usePermissions } from "@/hooks/use-permissions";
-import { AddressDto, BranchDto } from "@/types/shop/shop-responsd";
+import { AddressDto, BranchDto } from "@/types/shop/shop-response";
 import { storage } from "@/services/localstorage";
 import z from "zod";
 import { AddressType } from "@/types/address/address-type";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { http } from "@/lib/http/client";
-import { env } from "@/config/env";
+import { resolveApiMediaUrl } from "@/lib/media-url";
+import { ShopMediaImage } from "@/components/shop/shop-media-image";
 import {
   Form,
   FormControl,
@@ -93,12 +93,6 @@ const SettingShopBranchPage = () => {
     address: AddressDto | null;
     list: AddressType[];
   } | null>(null);
-
-  const getLogoUrl = (url: string | null | undefined) => {
-    if (!url) return "https://avatars.githubusercontent.com/u/9919?s=200&v=4";
-    if (url.startsWith("http")) return url;
-    return `${env.apiBaseUrl.replace('/api/v1', '')}${url}`;
-  };
 
   const form = useForm<BranchValues>({
     resolver: zodResolver(getBranchSchema(t)),
@@ -325,9 +319,8 @@ const SettingShopBranchPage = () => {
           <div className="md:flex md:items-end md:space-x-6 rtl:space-x-reverse">
             <div className="flex-none">
               <div className="relative mx-auto mb-4 h-[140px] w-[140px] overflow-hidden rounded-full ring-4 ring-default-50 dark:ring-default-700 md:mx-0 md:mb-0 md:h-[186px] md:w-[186px]">
-                <Image
-                  fill
-                  src={getLogoUrl(shopData.logo)}
+                <ShopMediaImage
+                  src={resolveApiMediaUrl(shopData.logo)}
                   alt={shopData.name}
                   className="object-cover"
                 />

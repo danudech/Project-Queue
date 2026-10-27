@@ -73,15 +73,13 @@ import DirectionProvider from "@/providers/direction-provider";
 import RouteLoadingProvider from "@/providers/route-loading.provider";
 import "@/styles/route-loading.css";
 import { metadataBase } from "@/config/metadata";
+import { BRAND_METADATA_ICONS } from "@/config/brand";
 
 export const metadata: Metadata = {
   metadataBase,
   title: "EZQueue User Dashboard",
   description: "EZQueue queue, booking, and shop operation dashboard.",
-  icons: {
-    icon: [{ url: "/favicon.ico" }, { url: "/favicon.png", type: "image/png" }],
-    apple: "/apple-touch-icon.png",
-  },
+  icons: BRAND_METADATA_ICONS,
 };
 
 export default async function RootLayout({

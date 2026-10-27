@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="EZQueue symbol">
+  <defs>
+    <linearGradient id="ezq-emerald" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34d399" />
+      <stop offset="55%" stop-color="#16835f" />
+      <stop offset="100%" stop-color="#0f5a43" />
+    </linearGradient>
+    <linearGradient id="ezq-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f3dda5" />
+      <stop offset="55%" stop-color="#d6ae5f" />
+      <stop offset="100%" stop-color="#a8792f" />
+    </linearGradient>
+  </defs>
+  <g transform="translate(256 235)">
+    <path d="M0-164A164 164 0 1 1-164 0 164 164 0 0 1-57-154" fill="none" stroke="url(#ezq-emerald)" stroke-width="42" stroke-linecap="round" />
+    <path d="M0-103A103 103 0 1 1-103 0 103 103 0 0 1-38-95" fill="none" stroke="url(#ezq-emerald)" stroke-width="21" stroke-linecap="round" opacity=".72" />
+    <circle r="31" fill="url(#ezq-gold)" />
+    <circle r="17" fill="#143d30" />
+    <path d="M66 66l102 102m0 0h-66m66 0v-66" fill="none" stroke="url(#ezq-gold)" stroke-width="39" stroke-linecap="round" stroke-linejoin="round" />
+  </g>
+</svg>

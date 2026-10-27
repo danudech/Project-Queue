@@ -874,9 +874,14 @@ public sealed class ManageShop : IManageShop
                 await _crud.UpdateAsync(shop, ct);
             }
 
+            int? settingBranchId = request.BranchId is > 0 ? request.BranchId : null;
+
             if (request.Logo != null && request.Logo.Length > 0)
             {
-                var logoSetting = shop.ShopSettings.FirstOrDefault(s => s.Key == "Logo");
+                var logoSetting = shop.ShopSettings
+                    .Where(s => s.Key == "Logo" && s.BranchId == settingBranchId)
+                    .OrderByDescending(s => s.UpdatedAt ?? s.CreatedAt)
+                    .FirstOrDefault();
                 
                 // Delete old file
                 if (logoSetting != null && !string.IsNullOrEmpty(logoSetting.Value))
@@ -907,7 +912,7 @@ public sealed class ManageShop : IManageShop
                     logoSetting = new ShopSetting
                     {
                         ShopId = shop.Id,
-                        BranchId = request.BranchId > 0 ? request.BranchId : null,
+                        BranchId = settingBranchId,
                         Key = "Logo",
                         Value = fileUrl,
                         CreatedAt = DateTime.UtcNow,
@@ -918,7 +923,6 @@ public sealed class ManageShop : IManageShop
                 else
                 {
                     logoSetting.Value = fileUrl;
-                    if (request.BranchId > 0) logoSetting.BranchId = request.BranchId;
                     logoSetting.UpdatedAt = DateTime.UtcNow;
                     logoSetting.UpdatedBy = userId;
                     await _crud.UpdateAsync(logoSetting, ct);
@@ -928,7 +932,10 @@ public sealed class ManageShop : IManageShop
             // Update Description if provided
             if (request.Cover != null && request.Cover.Length > 0)
             {
-                var coverSetting = shop.ShopSettings.FirstOrDefault(s => s.Key == "Cover");
+                var coverSetting = shop.ShopSettings
+                    .Where(s => s.Key == "Cover" && s.BranchId == settingBranchId)
+                    .OrderByDescending(s => s.UpdatedAt ?? s.CreatedAt)
+                    .FirstOrDefault();
                 if (coverSetting != null && !string.IsNullOrEmpty(coverSetting.Value))
                 {
                     var oldCoverPath = Path.Combine(_env.ContentRootPath, "wwwroot", coverSetting.Value.TrimStart('/'));
@@ -941,23 +948,29 @@ public sealed class ManageShop : IManageShop
                 using (var stream = new FileStream(filePath, FileMode.Create)) await request.Cover.CopyToAsync(stream, ct);
                 var fileUrl = $"/uploads/shops/{uniqueFileName}";
                 if (coverSetting == null)
-                    await _crud.InsertAsync(new ShopSetting { ShopId = shop.Id, BranchId = request.BranchId > 0 ? request.BranchId : null, Key = "Cover", Value = fileUrl, CreatedAt = DateTime.UtcNow, CreatedBy = userId }, ct);
+                    await _crud.InsertAsync(new ShopSetting { ShopId = shop.Id, BranchId = settingBranchId, Key = "Cover", Value = fileUrl, CreatedAt = DateTime.UtcNow, CreatedBy = userId }, ct);
                 else { coverSetting.Value = fileUrl; coverSetting.UpdatedAt = DateTime.UtcNow; coverSetting.UpdatedBy = userId; await _crud.UpdateAsync(coverSetting, ct); }
             }
 
             if (!string.IsNullOrWhiteSpace(request.LogoPosition))
             {
-                var logoPositionSetting = shop.ShopSettings.FirstOrDefault(s => s.Key == "LogoPosition");
+                var logoPositionSetting = shop.ShopSettings
+                    .Where(s => s.Key == "LogoPosition" && s.BranchId == settingBranchId)
+                    .OrderByDescending(s => s.UpdatedAt ?? s.CreatedAt)
+                    .FirstOrDefault();
                 if (logoPositionSetting == null)
-                    await _crud.InsertAsync(new ShopSetting { ShopId = shop.Id, BranchId = request.BranchId > 0 ? request.BranchId : null, Key = "LogoPosition", Value = request.LogoPosition.Trim(), CreatedAt = DateTime.UtcNow, CreatedBy = userId }, ct);
+                    await _crud.InsertAsync(new ShopSetting { ShopId = shop.Id, BranchId = settingBranchId, Key = "LogoPosition", Value = request.LogoPosition.Trim(), CreatedAt = DateTime.UtcNow, CreatedBy = userId }, ct);
                 else { logoPositionSetting.Value = request.LogoPosition.Trim(); logoPositionSetting.UpdatedAt = DateTime.UtcNow; logoPositionSetting.UpdatedBy = userId; await _crud.UpdateAsync(logoPositionSetting, ct); }
             }
 
             if (!string.IsNullOrWhiteSpace(request.CoverPosition))
             {
-                var positionSetting = shop.ShopSettings.FirstOrDefault(s => s.Key == "CoverPosition");
+                var positionSetting = shop.ShopSettings
+                    .Where(s => s.Key == "CoverPosition" && s.BranchId == settingBranchId)
+                    .OrderByDescending(s => s.UpdatedAt ?? s.CreatedAt)
+                    .FirstOrDefault();
                 if (positionSetting == null)
-                    await _crud.InsertAsync(new ShopSetting { ShopId = shop.Id, BranchId = request.BranchId > 0 ? request.BranchId : null, Key = "CoverPosition", Value = request.CoverPosition.Trim(), CreatedAt = DateTime.UtcNow, CreatedBy = userId }, ct);
+                    await _crud.InsertAsync(new ShopSetting { ShopId = shop.Id, BranchId = settingBranchId, Key = "CoverPosition", Value = request.CoverPosition.Trim(), CreatedAt = DateTime.UtcNow, CreatedBy = userId }, ct);
                 else { positionSetting.Value = request.CoverPosition.Trim(); positionSetting.UpdatedAt = DateTime.UtcNow; positionSetting.UpdatedBy = userId; await _crud.UpdateAsync(positionSetting, ct); }
             }
 
@@ -1303,8 +1316,21 @@ public sealed class ManageShop : IManageShop
 
     // ================= Private Helper Methods =================
 
-    private static ShopResponse MapToResponse(Shop shop, int branchId = 0) => new()
+    private static ShopResponse MapToResponse(Shop shop, int branchId = 0)
     {
+        int effectiveBranchId = branchId > 0
+            ? branchId
+            : shop.ShopBranches?.Where(branch => branch.IsActive).OrderBy(branch => branch.Id).Select(branch => branch.Id).FirstOrDefault() ?? 0;
+
+        string? Setting(string key) => shop.ShopSettings?
+            .Where(setting => setting.Key == key && (setting.BranchId == effectiveBranchId || setting.BranchId == null))
+            .OrderByDescending(setting => setting.BranchId == effectiveBranchId)
+            .ThenByDescending(setting => setting.UpdatedAt ?? setting.CreatedAt)
+            .Select(setting => setting.Value)
+            .FirstOrDefault();
+
+        return new ShopResponse
+        {
         Id = shop.Id,
         Name = shop.Name ?? string.Empty,
         PublicSlug = shop.PublicSlug,
@@ -1316,12 +1342,12 @@ public sealed class ManageShop : IManageShop
         Address = shop.ShopBranches?.FirstOrDefault(b => branchId == 0 || b.Id == branchId)?.Address != null 
                     ? MapAddress(shop.ShopBranches.FirstOrDefault(b => branchId == 0 || b.Id == branchId)!.Address)!.FullAddress 
                     : string.Empty,
-        Logo = shop.ShopSettings?.FirstOrDefault(s => s.Key == "Logo")?.Value,
-        LogoPosition = shop.ShopSettings?.FirstOrDefault(s => s.Key == "LogoPosition")?.Value ?? "50% 50%",
-        Cover = shop.ShopSettings?.FirstOrDefault(s => s.Key == "Cover")?.Value,
-        CoverPosition = shop.ShopSettings?.FirstOrDefault(s => s.Key == "CoverPosition")?.Value ?? "50% 50%",
-        Description = shop.ShopSettings?.FirstOrDefault(s => s.Key == "Description")?.Value,
-        Email = shop.ShopSettings?.FirstOrDefault(s => s.Key == "Email")?.Value,
+        Logo = Setting("Logo"),
+        LogoPosition = Setting("LogoPosition") ?? "50% 50%",
+        Cover = Setting("Cover"),
+        CoverPosition = Setting("CoverPosition") ?? "50% 50%",
+        Description = Setting("Description"),
+        Email = Setting("Email"),
         ShopBranches = shop.ShopBranches?.Where(b => b.IsActive && (branchId == 0 || b.Id == branchId)).Select(b => new BranchDto
         {
             Id = b.Id,
@@ -1353,7 +1379,8 @@ public sealed class ManageShop : IManageShop
             Price = s.Price,
             IsActive = s.IsActive
         }).ToList() ?? new()
-    };
+        };
+    }
 
     private static string CreatePublicSlug(string shopName)
     {

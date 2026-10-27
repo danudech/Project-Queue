@@ -150,7 +150,7 @@ export default function ManagePublicBookingPage() {
                 <span className="truncate">{booking.branchName}</span>
               </div>
             </div>
-            <div className="shrink-0 rounded-xl border border-default-200 bg-background shadow-sm"><LocalSwitcher compact /></div>
+            <LocalSwitcher />
           </div>
           {(booking.branchAddress || booking.branchPhone || booking.shopEmail) && (
             <div className="mt-4 grid gap-2 rounded-2xl bg-default-100 px-3.5 py-3 text-xs text-muted-foreground sm:grid-cols-2 sm:px-4 sm:text-sm">

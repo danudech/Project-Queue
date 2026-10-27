@@ -12,7 +12,7 @@ import { SquarePen, Trash2, Power } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils";
-import { ServiceCategoryType } from "@/types/shop/catgory"
+import { ServiceCategoryType } from "@/types/shop/category"
 
 
 export const getColumns = (t: any, tc: any): ColumnDef<ServiceCategoryType>[] => [

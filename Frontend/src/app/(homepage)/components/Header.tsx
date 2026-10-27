@@ -1,11 +1,11 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { localePath, type HomepageCopy, type HomepageLocale } from "../i18n";
+import { BrandLogo } from "@/components/brand-logo";
 
 const sectionIds = ["home", "about", "features", "service"];
 
@@ -51,14 +51,7 @@ const Header = ({ locale, copy }: HeaderProps) => {
           <div className="ez-nav-inner">
             <div className="navbar-brand logo">
               <Link className="navbar-caption" href="/">
-                <Image
-                  src="/images/brand/ezqueue-logo.png"
-                  alt="EZQueue"
-                  className="ez-brand-logo"
-                  width={256}
-                  height={80}
-                  priority
-                />
+                <BrandLogo symbolClassName="size-11" />
               </Link>
             </div>
 

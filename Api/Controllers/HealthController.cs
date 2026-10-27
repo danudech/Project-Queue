@@ -15,6 +15,10 @@ public class HealthController : ControllerBase
         _db = db;
     }
 
+    [AllowAnonymous]
+    [HttpGet("live")]
+    public IActionResult Live() => Ok(new { status = true, service = "EZQueue API", timestamp = DateTime.UtcNow });
+
     [Authorize]
     [HttpGet]
     public async Task<IActionResult> Get(CancellationToken ct)

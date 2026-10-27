@@ -6,6 +6,7 @@ import { getHomepageLocale } from "./i18n";
 import RouteLoadingProvider from "@/providers/route-loading.provider";
 import "@/styles/route-loading.css";
 import { metadataBase } from "@/config/metadata";
+import { BRAND_METADATA_ICONS } from "@/config/brand";
 
 const justSans = localFont({
   variable: "--font-ez-latin",
@@ -71,10 +72,7 @@ export const metadata: Metadata = {
   title: "EZQueue | Queue and Booking Platform",
   description:
     "EZQueue is the ultimate queue management, booking, CRM, and shop operations platform for modern businesses. Fast, secure, and easy to use.",
-  icons: {
-    icon: [{ url: "/favicon.ico" }, { url: "/favicon.png", type: "image/png" }],
-    apple: "/apple-touch-icon.png",
-  },
+  icons: BRAND_METADATA_ICONS,
 };
 
 export default async function RootLayout({

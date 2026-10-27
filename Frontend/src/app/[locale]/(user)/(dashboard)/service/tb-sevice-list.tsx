@@ -57,7 +57,7 @@ import RouteLoadingScreen from "@/components/route-loading-screen";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ServiceCategoryType } from "@/types/shop/catgory";
+import { ServiceCategoryType } from "@/types/shop/category";
 import { SetService } from "@/types/shop/service";
 import type { StaffMember } from "@/types/shop/staff";
 import { getColumns } from "./columns";
@@ -68,6 +68,8 @@ import toast from "react-hot-toast";
 import { resolveActiveBranchId } from "@/lib/active-branch";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
+import { Image as ImageIcon, X } from "lucide-react";
+import { resolveApiMediaUrl } from "@/lib/media-url";
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
 
@@ -161,6 +163,24 @@ const ServicePage = () => {
   const [editTarget, setEditTarget] = React.useState<SetService | null>(null);
   const [btnLoading, setBtnLoading] = React.useState(false);
   const [servicePhoto, setServicePhoto] = React.useState<File | null>(null);
+
+  const currentImageUrl = editTarget?.imageUrl
+    ? resolveApiMediaUrl(editTarget.imageUrl)
+    : null;
+  const photoPreviewUrl = React.useMemo(() => {
+    if (servicePhoto) {
+      return URL.createObjectURL(servicePhoto);
+    }
+    return currentImageUrl;
+  }, [servicePhoto, currentImageUrl]);
+
+  React.useEffect(() => {
+    return () => {
+      if (photoPreviewUrl && photoPreviewUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(photoPreviewUrl);
+      }
+    };
+  }, [photoPreviewUrl]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [branchRules, setBranchRules] = React.useState<QueueRules>(defaultQueueRules);
 
@@ -318,10 +338,14 @@ const ServicePage = () => {
           bufferBetweenServices: values.useDefaultBookingRules ? null : values.bufferBetweenServices,
         });
         if (updated) {
+          let updatedImageUrl = editTarget.imageUrl;
           if (servicePhoto) {
             const photoData = new FormData();
             photoData.append("Image", servicePhoto);
-            await http.upload<SetService>("servicephoto", photoData, { params: { serviceId: updated.id } });
+            const uploaded = await http.upload<SetService>("servicephoto", photoData, { params: { serviceId: updated.id } });
+            if (uploaded?.imageUrl) {
+              updatedImageUrl = uploaded.imageUrl;
+            }
           }
           setTableData(
             (prev) =>
@@ -330,6 +354,7 @@ const ServicePage = () => {
                   ? {
                       ...r,
                       name: values.name,
+                      imageUrl: updatedImageUrl,
                       duration: values.duration,
                       price: values.price,
                       categoryId: values.categoryId!,
@@ -366,7 +391,9 @@ const ServicePage = () => {
             const photoData = new FormData();
             photoData.append("Image", servicePhoto);
             const uploaded = await http.upload<SetService>("servicephoto", photoData, { params: { serviceId: newService.id } });
-            if (uploaded) Object.assign(newService, uploaded);
+            if (uploaded?.imageUrl) {
+              newService.imageUrl = uploaded.imageUrl;
+            }
           }
           setTableData((prev) => [...(prev ?? []), newService]);
           toast.success(t("toast.addSuccess"));
@@ -530,10 +557,50 @@ const ServicePage = () => {
 
               <FormItem>
                 <FormLabel>{t("form.image")}</FormLabel>
-                <FormControl>
-                  <Input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => setServicePhoto(event.target.files?.[0] ?? null)} />
-                </FormControl>
-                <p className="text-xs text-muted-foreground">{servicePhoto?.name ?? t("form.imageHint")}</p>
+                <div className="flex flex-col gap-3.5 rounded-xl border border-dashed border-default-200 bg-default-50/60 p-4 sm:flex-row sm:items-center">
+                  <div className="relative size-24 shrink-0 overflow-hidden rounded-lg border border-default-200 bg-background shadow-2xs">
+                    {photoPreviewUrl ? (
+                      <img
+                        src={photoPreviewUrl}
+                        alt="Service preview"
+                        className="size-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex size-full flex-col items-center justify-center text-default-400">
+                        <ImageIcon className="size-8 opacity-40" />
+                        <span className="mt-1 text-[10px] text-muted-foreground">{t("form.noImage") ?? "ไม่มีรูปภาพ"}</span>
+                      </div>
+                    )}
+                    {servicePhoto && (
+                      <button
+                        type="button"
+                        onClick={() => setServicePhoto(null)}
+                        className="absolute right-1 top-1 rounded-full bg-black/60 p-1 text-white hover:bg-black/80 transition-colors"
+                        title="ยกเลิกรูปที่เลือก"
+                      >
+                        <X className="size-3" />
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="flex-1 space-y-2">
+                    <FormControl>
+                      <Input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={(event) => setServicePhoto(event.target.files?.[0] ?? null)}
+                        className="file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1 file:text-xs file:font-semibold file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
+                      />
+                    </FormControl>
+                    <p className="text-xs text-muted-foreground">
+                      {servicePhoto
+                        ? `${servicePhoto.name} (${(servicePhoto.size / 1024).toFixed(0)} KB)`
+                        : currentImageUrl
+                          ? (locale === "th" ? "รูปภาพปัจจุบันที่บันทึกไว้ (เลือกไฟล์ใหม่หากต้องการเปลี่ยนรูป)" : "Currently saved image (choose a new file to replace)")
+                          : t("form.imageHint")}
+                    </p>
+                  </div>
+                </div>
               </FormItem>
 
               <div className="space-y-5 rounded-xl border border-primary/15 bg-primary/[0.025] p-5 shadow-sm">

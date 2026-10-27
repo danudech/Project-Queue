@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { env } from "@/config/env";
 import { serverHttp } from "@/lib/http/server";
-import { ServiceCategoryType, SetCategory } from "@/types/shop/catgory";
+import { ServiceCategoryType, SetCategory } from "@/types/shop/category";
 import { CustomerType } from "@/types/shop/customer";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

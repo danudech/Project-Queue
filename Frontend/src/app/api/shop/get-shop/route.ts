@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { env } from "@/config/env";
 import { serverHttp } from "@/lib/http/server";
 import { ProfileUser } from "@/types/user";
-import { ShopResponse } from "@/types/shop/shop-responsd";
+import { ShopResponse } from "@/types/shop/shop-response";
 
 export async function GET(req: NextRequest) {
   try {

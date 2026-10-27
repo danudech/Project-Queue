@@ -1,8 +1,10 @@
-import Image from "next/image";
 import NextLink from "next/link";
-import { ArrowLeft, CheckCircle2, FileText, Languages, ShieldCheck } from "lucide-react";
+import { ArrowLeft, CheckCircle2, FileText, ShieldCheck } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { legalContent, type LegalKind } from "./legal-copy";
+import { BrandLogo } from "@/components/brand-logo";
+import { BRAND } from "@/config/brand";
+import LocalSwitcher from "@/components/partials/header/locale-switcher";
 
 export default function LegalPage({
   locale,
@@ -22,24 +24,9 @@ export default function LegalPage({
       <header className="border-b border-[#dfe8e4] bg-[#fbfdfc]">
         <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 sm:px-8 lg:px-10">
           <NextLink href="/" className="flex items-center gap-3">
-            <Image
-              src="/images/brand/ezqueue-mark.png"
-              alt="EZQueue"
-              width={42}
-              height={42}
-              className="h-10 w-10 object-contain"
-              priority
-            />
-            <span className="text-xl font-bold tracking-[-0.025em] text-[#123d33]">EZQueue</span>
+            <BrandLogo symbolClassName="size-10" />
           </NextLink>
-          <Link
-            href={`/${kind}`}
-            locale={otherLocale}
-            className="inline-flex items-center gap-2 rounded-full border border-[#d7e3de] bg-white px-4 py-2 text-sm font-semibold text-[#176b57] shadow-[0_2px_8px_rgba(16,37,31,0.04)] transition hover:border-[#9bc9b9] hover:bg-[#f0f8f4]"
-          >
-            <Languages className="h-4 w-4" />
-            {otherLocale === "th" ? "ภาษาไทย" : "English"}
-          </Link>
+          <LocalSwitcher />
         </div>
       </header>
 
@@ -161,7 +148,7 @@ export default function LegalPage({
 
       <footer className="border-t border-[#dfe7e3] bg-[#fbfdfc]">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 px-5 py-8 text-sm text-[#687872] sm:flex-row sm:items-center sm:justify-between sm:px-8 lg:px-10">
-          <span>© 2026 EZQueue</span>
+          <span>© 2026 {BRAND.name}</span>
           <div className="flex gap-5">
             <Link href="/terms" locale={language} className="hover:text-[#18745e]">
               {legalContent[language].terms.title}

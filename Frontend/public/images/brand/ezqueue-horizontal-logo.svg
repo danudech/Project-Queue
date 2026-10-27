@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 240" width="960" height="240">
+  <defs>
+    <!-- Background Gradient for Dark Theme -->
+    <linearGradient id="logoBgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a1d15" />
+      <stop offset="100%" stop-color="#143e2e" />
+    </linearGradient>
+
+    <!-- Emerald Gradient -->
+    <linearGradient id="logoEmeraldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34d399" />
+      <stop offset="60%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+
+    <!-- Warm Gold Gradient -->
+    <linearGradient id="logoGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="50%" stop-color="#e5c179" />
+      <stop offset="100%" stop-color="#b4833e" />
+    </linearGradient>
+  </defs>
+
+  <!-- Left: Emblem Mark Container (Scaled to 180x180) -->
+  <g transform="translate(30, 30)">
+    <!-- Squircle Badge -->
+    <rect x="0" y="0" width="180" height="180" rx="42" fill="url(#logoBgGrad)" stroke="#e5c179" stroke-width="2" stroke-opacity="0.35" />
+    <rect x="6" y="6" width="168" height="168" rx="36" fill="none" stroke="#34d399" stroke-width="1" stroke-opacity="0.25" />
+
+    <!-- Central "Q" Queue Flow Emblem -->
+    <g transform="translate(90, 84) scale(0.38)">
+      <!-- Outer Flow Arc -->
+      <path d="M 0 -130 A 130 130 0 1 1 -130 0 A 130 130 0 0 1 -45 -122" 
+            fill="none" 
+            stroke="url(#logoEmeraldGrad)" 
+            stroke-width="36" 
+            stroke-linecap="round" />
+
+      <!-- Inner Concentric Flow -->
+      <path d="M 0 -80 A 80 80 0 1 1 -80 0 A 80 80 0 0 1 -30 -74" 
+            fill="none" 
+            stroke="url(#logoEmeraldGrad)" 
+            stroke-width="18" 
+            stroke-linecap="round" 
+            opacity="0.85" />
+
+      <!-- Core Dot -->
+      <circle cx="0" cy="0" r="26" fill="url(#logoGoldGrad)" />
+      <circle cx="0" cy="0" r="14" fill="#0f2b20" />
+
+      <!-- The "Q" Arrow Tail -->
+      <path d="M 52 52 L 128 128 M 128 128 L 76 128 M 128 128 L 128 76" 
+            fill="none" 
+            stroke="url(#logoGoldGrad)" 
+            stroke-width="34" 
+            stroke-linecap="round" 
+            stroke-linejoin="round" />
+    </g>
+  </g>
+
+  <!-- Right: Typography "EZQueue" -->
+  <g transform="translate(250, 138)">
+    <!-- Text "EZ" (Gold gradient) -->
+    <text font-family="'JUST Sans', 'Inter', system-ui, sans-serif" font-size="94" font-weight="800" letter-spacing="-2" fill="url(#logoGoldGrad)">
+      EZ
+    </text>
+
+    <!-- Text "Queue" (Pure white / crisp tone) -->
+    <text x="142" font-family="'JUST Sans', 'Inter', system-ui, sans-serif" font-size="94" font-weight="600" letter-spacing="-1" fill="#ffffff">
+      Queue
+    </text>
+
+    <!-- Tagline: "EFFORTLESS QUEUE MANAGEMENT" -->
+    <text x="4" y="38" font-family="'JUST Sans', 'Inter', system-ui, sans-serif" font-size="16" font-weight="700" letter-spacing="6" fill="#34d399" opacity="0.85">
+      EFFORTLESS QUEUE SYSTEM
+    </text>
+  </g>
+</svg>

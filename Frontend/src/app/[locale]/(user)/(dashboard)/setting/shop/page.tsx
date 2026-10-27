@@ -4,14 +4,13 @@ import { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { Icon } from "@/components/ui/icon";
-import Image from "next/image";
-import { Link } from "@/i18n/routing";
 import { useShop } from "@/hooks/use-me";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useTranslations, useLocale } from "next-intl";
 import { http } from "@/lib/http/client";
-import { env } from "@/config/env";
 import { ShopType } from "@/types/shop/shoptype";
+import { resolveApiMediaUrl } from "@/lib/media-url";
+import { ShopMediaImage } from "@/components/shop/shop-media-image";
 
 const SettingShopPage = () => {
   const t = useTranslations("Settings.shop");
@@ -26,7 +25,6 @@ const SettingShopPage = () => {
   const [coverPreviewUrl, setCoverPreviewUrl] = useState<string | null>(null);
   const [coverPositionY, setCoverPositionY] = useState(50);
   const [coverPositionX, setCoverPositionX] = useState(50);
-  const coverDrag = useRef<{ x: number; y: number; startX: number; startY: number } | null>(null);
   const [logoPositionX, setLogoPositionX] = useState(50);
   const [logoPositionY, setLogoPositionY] = useState(50);
   const logoDrag = useRef<{ x: number; y: number; startX: number; startY: number } | null>(null);
@@ -36,12 +34,6 @@ const SettingShopPage = () => {
   const [selectedShopType, setSelectedShopType] = useState("");
   const [isLoadingShopTypes, setIsLoadingShopTypes] = useState(true);
   const locale = useLocale();
-
-  const getLogoUrl = (url: string | null | undefined) => {
-    if (!url) return "https://avatars.githubusercontent.com/u/9919?s=200&v=4";
-    if (url.startsWith("http")) return url;
-    return `${env.apiBaseUrl.replace('/api/v1', '')}${url}`;
-  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -133,7 +125,7 @@ const SettingShopPage = () => {
 
       {/* Section */}
       <Card className="p-6 pb-10 md:pt-[84px] pt-10 rounded-lg lg:flex lg:space-y-0 space-y-6 justify-between items-end relative z-[1] text-white">
-        <div className="pointer-events-none absolute inset-0 z-[-1] h-full w-full rounded-lg bg-cover bg-no-repeat" style={{ backgroundPosition: `${coverPositionX}% ${coverPositionY}%`, backgroundSize: "cover", backgroundImage: `linear-gradient(90deg, rgba(15,23,42,.82), rgba(15,23,42,.42)), url(${coverPreviewUrl || getLogoUrl(shopData.cover)})` }} />
+        <div className="pointer-events-none absolute inset-0 z-[-1] h-full w-full rounded-lg bg-cover bg-no-repeat" style={{ backgroundPosition: `${coverPositionX}% ${coverPositionY}%`, backgroundSize: "cover", backgroundImage: `linear-gradient(90deg, rgba(15,23,42,.82), rgba(15,23,42,.42)), url(${coverPreviewUrl || resolveApiMediaUrl(shopData.cover) || "/images/editorial/studio.webp"})` }} />
         <button type="button" onClick={() => coverInputRef.current?.click()} className="absolute right-5 top-5 z-30 inline-flex cursor-pointer items-center gap-2 rounded-md bg-white/95 px-3 py-2 text-xs font-medium text-slate-700 shadow-sm hover:bg-white"><Icon icon="heroicons:pencil-square" className="size-4" />{t("changeCover")}</button>
         <input id="shop-cover-upload" ref={coverInputRef} type="file" accept="image/*" className="hidden" onChange={handleCoverChange} />
 
@@ -143,10 +135,8 @@ const SettingShopPage = () => {
             <div className="flex-none">
               <div className="relative md:h-[186px] md:w-[186px] h-[140px] w-[140px] md:ml-0 md:mr-0 ml-auto mr-auto md:mb-0 mb-4 cursor-grab rounded-full ring-4 active:cursor-grabbing dark:ring-default-700 ring-default-50" onPointerDown={(event) => { event.currentTarget.setPointerCapture(event.pointerId); logoDrag.current = { x: event.clientX, y: event.clientY, startX: logoPositionX, startY: logoPositionY }; }} onPointerMove={(event) => { const start = logoDrag.current; if (!start) return; const rect = event.currentTarget.getBoundingClientRect(); setLogoPositionX(Math.max(0, Math.min(100, start.startX - ((event.clientX - start.x) / rect.width) * 100))); setLogoPositionY(Math.max(0, Math.min(100, start.startY - ((event.clientY - start.y) / rect.height) * 100))); }} onPointerUp={() => { logoDrag.current = null; }} onPointerCancel={() => { logoDrag.current = null; }}>
                 <div className="absolute inset-0 overflow-hidden rounded-full pointer-events-none">
-                <Image
-                  width={300}
-                  height={300}
-                  src={previewUrl || getLogoUrl(shopData.logo)}
+                <ShopMediaImage
+                  src={previewUrl || resolveApiMediaUrl(shopData.logo)}
                   alt={shopData.name}
                   className="h-full w-full touch-none rounded-full object-cover"
                   style={{ objectPosition: `${logoPositionX}% ${logoPositionY}%` }}

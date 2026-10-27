@@ -3,7 +3,7 @@ import { env } from "@/config/env";
 import { serverHttp } from "@/lib/http/server";
 import { StatusRegister, UserRegister, UserRegisterResponse } from "@/types/user";
 import { AddShop } from "@/types/shop/shoptype";
-import { ShopResponse } from "@/types/shop/shop-responsd";
+import { ShopResponse } from "@/types/shop/shop-response";
 
 export async function POST(req: NextRequest) {
   try {

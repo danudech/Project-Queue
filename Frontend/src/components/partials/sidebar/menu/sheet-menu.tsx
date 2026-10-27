@@ -1,10 +1,8 @@
 'use client'
-import Image from "next/image";
 import { Link } from '@/i18n/routing';
-import { MenuIcon, PanelsTopLeft } from "lucide-react";
+import { BrandLogo } from '@/components/brand-logo';
 import { Icon } from "@/components/ui/icon";
 import { Button } from "@/components/ui/button";
-import { Menu } from "@/components/partials/sidebar/menu";
 import {
     Sheet,
     SheetHeader,
@@ -36,10 +34,7 @@ export function SheetMenu() {
             <SheetContent className="sm:w-72 px-3 h-full flex flex-col" side="left">
                 <SheetHeader>
                     <Link href="/dashboard" className="flex gap-2 items-center     ">
-                        <Image src="/images/brand/ezqueue-mark.png" alt="EZQueue" width={32} height={32} className="h-8 w-8" />
-                        <h1 className="text-xl font-semibold text-default-900 ">
-                            EZQueue
-                        </h1>
+                        <BrandLogo symbolClassName="size-8" />
                     </Link>
                 </SheetHeader>
                 <MenuClassic />

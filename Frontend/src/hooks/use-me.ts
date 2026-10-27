@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { http } from "@/lib/http/client";
 import { ProfileUser } from "@/types/user";
-import { ShopResponse } from "@/types/shop/shop-responsd";
+import { ShopResponse } from "@/types/shop/shop-response";
 
 export const useProfile = () => {
   return useQuery({

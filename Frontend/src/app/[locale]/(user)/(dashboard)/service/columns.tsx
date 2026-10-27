@@ -7,11 +7,11 @@ import {
 } from "@/components/ui/tooltip"
 
 import { ColumnDef } from "@tanstack/react-table"
-import { SquarePen, Trash2, Power } from "lucide-react"
+import { SquarePen, Trash2, Power, Image as ImageIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { cn } from "@/lib/utils"
+import { cn, resolveApiMediaUrl, formatCurrency } from "@/lib"
 import { SetService } from "@/types/shop/service"
 
 export const getColumns = (t: any, tc: any): ColumnDef<SetService>[] => [
@@ -25,9 +25,25 @@ export const getColumns = (t: any, tc: any): ColumnDef<SetService>[] => [
   {
     accessorKey: "name",
     header: t("columns.name"),
-    cell: ({ row }) => (
-      <span className="font-medium text-default-900">{row.getValue("name")}</span>
-    ),
+    cell: ({ row }) => {
+      const img = resolveApiMediaUrl(row.original.imageUrl);
+      return (
+        <div className="flex items-center gap-3">
+          {img ? (
+            <img
+              src={img}
+              alt={row.original.name}
+              className="size-10 shrink-0 rounded-lg object-cover border border-default-200 shadow-2xs"
+            />
+          ) : (
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-dashed border-default-300 bg-default-100 text-default-400">
+              <ImageIcon className="size-4" />
+            </div>
+          )}
+          <span className="font-medium text-default-900">{row.getValue("name")}</span>
+        </div>
+      );
+    },
   },
   {
     accessorKey: "duration",
@@ -43,10 +59,7 @@ export const getColumns = (t: any, tc: any): ColumnDef<SetService>[] => [
       const price = row.getValue("price") as number
       return (
         <span className="text-default-600 text-sm">
-          {price.toLocaleString("th-TH", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}{" "}
+          {formatCurrency(price, { decimals: 2, includeSymbol: false })}{" "}
           {tc("currency.thb")}
         </span>
       )

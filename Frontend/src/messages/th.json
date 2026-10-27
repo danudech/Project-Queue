@@ -976,7 +976,11 @@
       "bookingReference": "หมายเลขอ้างอิง",
       "manageBooking": "ดูหรือยกเลิกการจอง",
       "latestBooking": "การจองล่าสุด",
-      "myBookings": "การจองของฉัน"
+      "myBookings": "การจองของฉัน",
+      "branch": "สาขา",
+      "selectBranch": "เลือกสาขา",
+      "changeBranch": "เปลี่ยนสาขา",
+      "allBranches": "สาขาทั้งหมด"
     },
     "manage": {
       "eyebrow": "การจองของคุณ",
@@ -1069,7 +1073,10 @@
         "4": "วันพฤหัสบดี",
         "5": "วันศุกร์",
         "6": "วันเสาร์"
-      }
+      },
+      "selectBranch": "เลือกสาขา",
+      "changeBranch": "เปลี่ยนสาขา",
+      "allBranches": "สาขาทั้งหมด"
     }
   },
   "HolidaySettings": {

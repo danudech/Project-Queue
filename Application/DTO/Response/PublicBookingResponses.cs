@@ -17,10 +17,20 @@ public sealed class PublicBookingPageResponse
     public string BranchPhone { get; set; } = string.Empty;
     public string BranchAddress { get; set; } = string.Empty;
     public bool IsOnlineBookingEnabled { get; set; }
+    public List<PublicBookingBranchSummaryResponse> Branches { get; set; } = new();
     public List<PublicBookingServiceResponse> Services { get; set; } = new();
     public List<PublicBookingStaffResponse> Staff { get; set; } = new();
     public List<AvailableSlotResponse> Slots { get; set; } = new();
     public List<PublicBusinessHourResponse> BusinessHours { get; set; } = new();
+}
+
+public sealed class PublicBookingBranchSummaryResponse
+{
+    public Guid PublicId { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string? Phone { get; set; }
+    public string? Address { get; set; }
+    public bool IsCurrent { get; set; }
 }
 
 public sealed class PublicBusinessHourResponse
@@ -48,7 +58,28 @@ public sealed class PublicBookingStaffResponse
     public string? ProfilePictureUrl { get; set; }
 }
 
-public class PublicBookingManagementResponse
+public sealed class PublicBookingConfirmationResponse
+{
+    public Guid Guid { get; set; }
+    public string ShopName { get; set; } = string.Empty;
+    public string? LogoUrl { get; set; }
+    public string? ShopTypeNameTh { get; set; }
+    public string? ShopTypeNameEn { get; set; }
+    public string? ShopEmail { get; set; }
+    public string BranchName { get; set; } = string.Empty;
+    public string BranchPhone { get; set; } = string.Empty;
+    public string BranchAddress { get; set; } = string.Empty;
+    public string ServiceName { get; set; } = string.Empty;
+    public DateTime Date { get; set; }
+    public string StartTime { get; set; } = string.Empty;
+    public string CustomerName { get; set; } = string.Empty;
+    public string? StaffName { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public bool CanCancel { get; set; }
+    public string ManagementToken { get; set; } = string.Empty;
+}
+
+public sealed class PublicBookingManagementResponse
 {
     public Guid Guid { get; set; }
     public string ShopSlug { get; set; } = string.Empty;
@@ -64,14 +95,11 @@ public class PublicBookingManagementResponse
     public string ServiceName { get; set; } = string.Empty;
     public DateTime Date { get; set; }
     public string StartTime { get; set; } = string.Empty;
+    public string Status { get; set; } = string.Empty;
     public string CustomerName { get; set; } = string.Empty;
+    public string CustomerPhone { get; set; } = string.Empty;
     public string? CustomerEmail { get; set; }
     public string? StaffName { get; set; }
-    public string Status { get; set; } = string.Empty;
+    public string? Remark { get; set; }
     public bool CanCancel { get; set; }
-}
-
-public sealed class PublicBookingConfirmationResponse : PublicBookingManagementResponse
-{
-    public string ManagementToken { get; set; } = string.Empty;
 }

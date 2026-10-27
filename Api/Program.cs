@@ -173,6 +173,7 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IRoleManagement, RoleManagement>();
 builder.Services.AddScoped<IShopWorkspace, ShopWorkspace>();
+builder.Services.AddScoped<IPlatformAdminService, PlatformAdminService>();
 #endregion
 
 var app = builder.Build();

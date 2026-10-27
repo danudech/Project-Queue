@@ -12,6 +12,12 @@ public interface IPublicBooking
         DateTime? date,
         CancellationToken ct);
 
+    Task<PublicBookingPageResponse> GetDefaultPageAsync(
+        string shopSlug,
+        int? serviceId,
+        DateTime? date,
+        CancellationToken ct);
+
     Task<PublicBookingConfirmationResponse> CreateAsync(
         string shopSlug,
         Guid branchPublicId,

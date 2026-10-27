@@ -26,7 +26,7 @@ export default function MyBookingsPage() {
       <div className="mx-auto flex max-w-2xl items-center gap-3 px-4 py-4 sm:px-5 sm:py-6">
         <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-primary/10 text-primary"><History className="size-5" /></span>
         <div className="min-w-0 flex-1"><h1 className="text-xl font-semibold sm:text-2xl">{t("title")}</h1><p className="mt-1 text-xs text-muted-foreground sm:text-sm">{t("description")}</p></div>
-        <div className="rounded-xl border"><LocalSwitcher compact /></div>
+        <LocalSwitcher />
       </div>
     </header>
     <div className="mx-auto max-w-2xl space-y-4 p-4 py-6 sm:p-5 sm:py-10">
